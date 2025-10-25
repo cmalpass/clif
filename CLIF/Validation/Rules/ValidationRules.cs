@@ -1,0 +1,299 @@
+using System;
+using System.IO;
+using System.Linq;
+
+namespace CLIF.Validation.Rules;
+
+/// <summary>
+/// Interface for validation rules
+/// </summary>
+/// <typeparam name="T">The type of input to validate</typeparam>
+public interface IValidationRule<T>
+{
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    string RuleName { get; }
+    
+    /// <summary>
+    /// Validates the specified input
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    ValidationResult Validate(T input);
+}
+
+/// <summary>
+/// Abstract base class for validation rules
+/// </summary>
+/// <typeparam name="T">The type of input to validate</typeparam>
+public abstract class ValidationRule<T> : IValidationRule<T>
+{
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public abstract string RuleName { get; }
+    
+    /// <summary>
+    /// Validates the specified input
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public abstract ValidationResult Validate(T input);
+
+    /// <summary>
+    /// Creates a successful validation result
+    /// </summary>
+    /// <returns>A successful validation result</returns>
+    protected ValidationResult Success() => ValidationResult.Success();
+    
+    /// <summary>
+    /// Creates a failed validation result with the specified message
+    /// </summary>
+    /// <param name="message">The failure message</param>
+    /// <returns>A failed validation result</returns>
+    protected ValidationResult Failure(string message) => ValidationResult.Failure(message);
+}
+
+/// <summary>
+/// Validation rule for numeric range checking
+/// </summary>
+/// <typeparam name="T">The numeric type to validate</typeparam>
+public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
+{
+    private readonly T _minimum;
+    private readonly T _maximum;
+
+    /// <summary>
+    /// Initializes a new instance of the RangeRule class
+    /// </summary>
+    /// <param name="minimum">The minimum allowed value</param>
+    /// <param name="maximum">The maximum allowed value</param>
+    public RangeRule(T minimum, T maximum)
+    {
+        _minimum = minimum;
+        _maximum = maximum;
+    }
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "Range";
+
+    /// <summary>
+    /// Validates that the input is within the specified range
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(T input)
+    {
+        if (input.CompareTo(_minimum) < 0 || input.CompareTo(_maximum) > 0)
+        {
+            return Failure($"Value must be between {_minimum} and {_maximum}");
+        }
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validation rule for string format checking using regular expressions
+/// </summary>
+public class FormatRule : ValidationRule<string>
+{
+    private readonly System.Text.RegularExpressions.Regex _regex;
+    private readonly string _formatDescription;
+
+    /// <summary>
+    /// Initializes a new instance of the FormatRule class
+    /// </summary>
+    /// <param name="pattern">The regular expression pattern</param>
+    /// <param name="formatDescription">A description of the expected format</param>
+    public FormatRule(string pattern, string formatDescription)
+    {
+        _regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
+        _formatDescription = formatDescription;
+    }
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "Format";
+
+    /// <summary>
+    /// Validates that the input matches the specified format
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrEmpty(input) || !_regex.IsMatch(input))
+        {
+            return Failure($"Input must match format: {_formatDescription}");
+        }
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validation rule for string length checking
+/// </summary>
+public class LengthRule : ValidationRule<string>
+{
+    private readonly int _minLength;
+    private readonly int _maxLength;
+
+    /// <summary>
+    /// Initializes a new instance of the LengthRule class
+    /// </summary>
+    /// <param name="minLength">The minimum allowed length</param>
+    /// <param name="maxLength">The maximum allowed length</param>
+    public LengthRule(int minLength, int maxLength = int.MaxValue)
+    {
+        _minLength = minLength;
+        _maxLength = maxLength;
+    }
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "Length";
+
+    /// <summary>
+    /// Validates that the input length is within the specified range
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        var length = input?.Length ?? 0;
+        
+        if (length < _minLength)
+        {
+            return Failure($"Input must be at least {_minLength} characters long");
+        }
+        
+        if (length > _maxLength)
+        {
+            return Failure($"Input cannot exceed {_maxLength} characters");
+        }
+        
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validation rule for preventing path traversal attacks
+/// </summary>
+public class PathTraversalRule : ValidationRule<string>
+{
+    private static readonly string[] DangerousPatterns = { "..", "~", "%2e%2e", "%2E%2E" };
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "PathTraversal";
+
+    /// <summary>
+    /// Validates that the input does not contain path traversal patterns
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return Success();
+        }
+
+        foreach (var pattern in DangerousPatterns)
+        {
+            if (input.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+            {
+                return Failure($"Path traversal detected: {pattern}");
+            }
+        }
+
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validation rule for checking invalid file path characters
+/// </summary>
+public class InvalidCharactersRule : ValidationRule<string>
+{
+    private static readonly char[] InvalidChars = Path.GetInvalidPathChars()
+        .Concat(Path.GetInvalidFileNameChars())
+        .Distinct()
+        .ToArray();
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "InvalidCharacters";
+
+    /// <summary>
+    /// Validates that the input does not contain invalid file path characters
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return Success();
+        }
+
+        var invalidChar = input.FirstOrDefault(c => InvalidChars.Contains(c));
+        if (invalidChar != default)
+        {
+            return Failure($"Input contains invalid character: '{invalidChar}'");
+        }
+
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validation rule for preventing script injection attacks
+/// </summary>
+public class NoInjectionRule : ValidationRule<string>
+{
+    private static readonly string[] DangerousPatterns =
+    {
+        "<script", "</script>", "javascript:", "vbscript:",
+        "onload=", "onerror=", "onclick=", "onmouseover=",
+        "eval(", "setTimeout(", "setInterval(",
+        "document.", "window.", "alert(", "confirm("
+    };
+
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "NoInjection";
+
+    /// <summary>
+    /// Validates that the input does not contain potentially dangerous script content
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return Success();
+        }
+
+        var lowerInput = input.ToLowerInvariant();
+        
+        foreach (var pattern in DangerousPatterns)
+        {
+            if (lowerInput.Contains(pattern))
+            {
+                return Failure($"Input contains potentially dangerous content: {pattern}");
+            }
+        }
+
+        return Success();
+    }
+}

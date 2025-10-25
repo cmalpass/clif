@@ -1,0 +1,278 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CLIF.Validation.Rules;
+
+namespace CLIF.Validation.Validators;
+
+/// <summary>
+/// Validator for element selectors used in UI automation
+/// </summary>
+public class ElementSelectorValidator : ValidatorBase<string>
+{
+    private static readonly Dictionary<string, string> SelectorPatterns = new()
+    {
+        { "id", @"^id=[\w\-_]+$" },
+        { "name", @"^name=.+$" },
+        { "class", @"^class=[\w\-_\.]+$" },
+        { "type", @"^type=\w+$" },
+        { "xpath", @"^xpath=\/\/.+$" },
+        { "automationid", @"^automationid=[\w\-_]+$" }
+    };
+
+    /// <summary>
+    /// Initializes a new instance of the ElementSelectorValidator class
+    /// </summary>
+    public ElementSelectorValidator()
+    {
+        AddRule(new LengthRule(3, 1000)); // Minimum "id=x", maximum 1000 chars
+        AddRule(new NoInjectionRule());
+        AddRule(new SelectorFormatRule());
+    }
+
+    /// <summary>
+    /// Validates the specified element selector
+    /// </summary>
+    /// <param name="selector">The element selector to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string selector)
+    {
+        if (string.IsNullOrWhiteSpace(selector))
+        {
+            return ValidationResult.Failure("Element selector cannot be empty");
+        }
+
+        var result = ValidateRules(selector);
+
+        // Additional selector-specific validation
+        if (result.IsValid)
+        {
+            result.Combine(ValidateSelectorFormat(selector));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Validates the format of the selector
+    /// </summary>
+    /// <param name="selector">The selector to validate</param>
+    /// <returns>A validation result</returns>
+    private static ValidationResult ValidateSelectorFormat(string selector)
+    {
+        var result = ValidationResult.Success();
+
+        // Check if selector contains an equals sign
+        if (!selector.Contains('='))
+        {
+            result.AddError("Selector must be in format 'type=value' (e.g., 'id=myButton')");
+            return result;
+        }
+
+        // Split selector into type and value
+        var parts = selector.Split('=', 2);
+        if (parts.Length != 2)
+        {
+            result.AddError("Invalid selector format. Use 'type=value'");
+            return result;
+        }
+
+        var selectorType = parts[0].ToLowerInvariant();
+        var selectorValue = parts[1];
+
+        // Validate selector type
+        if (!SelectorPatterns.ContainsKey(selectorType))
+        {
+            var validTypes = string.Join(", ", SelectorPatterns.Keys);
+            result.AddError($"Invalid selector type '{selectorType}'. Valid types: {validTypes}");
+            return result;
+        }
+
+        // Validate selector value is not empty
+        if (string.IsNullOrWhiteSpace(selectorValue))
+        {
+            result.AddError($"Selector value cannot be empty for type '{selectorType}'");
+            return result;
+        }
+
+        // Additional validation based on selector type
+        switch (selectorType)
+        {
+            case "xpath":
+                if (!selectorValue.StartsWith("//"))
+                {
+                    result.AddError("XPath selector must start with '//'");
+                }
+                break;
+
+            case "id":
+            case "automationid":
+                if (selectorValue.Contains(' '))
+                {
+                    result.AddError($"{selectorType} selector cannot contain spaces");
+                }
+                break;
+
+            case "class":
+                // Class names can contain dots for compound classes
+                if (selectorValue.Any(c => !char.IsLetterOrDigit(c) && c != '.' && c != '-' && c != '_'))
+                {
+                    result.AddError("Class selector can only contain letters, digits, dots, hyphens, and underscores");
+                }
+                break;
+        }
+
+        return result;
+    }
+}
+
+/// <summary>
+/// Validation rule for element selector format
+/// </summary>
+public class SelectorFormatRule : ValidationRule<string>
+{
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "SelectorFormat";
+
+    /// <summary>
+    /// Validates that the selector has a valid format
+    /// </summary>
+    /// <param name="input">The selector to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return Failure("Selector cannot be empty");
+        }
+
+        // Basic format check: must contain '=' and have content before and after
+        var parts = input.Split('=', 2);
+        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            return Failure("Selector must be in format 'type=value'");
+        }
+
+        return Success();
+    }
+}
+
+/// <summary>
+/// Validator for text input used in UI automation
+/// </summary>
+public class TextInputValidator : ValidatorBase<string>
+{
+    private readonly int _maxLength;
+    private readonly bool _allowEmpty;
+
+    /// <summary>
+    /// Initializes a new instance of the TextInputValidator class
+    /// </summary>
+    /// <param name="maxLength">Maximum allowed text length</param>
+    /// <param name="allowEmpty">Whether empty text is allowed</param>
+    public TextInputValidator(int maxLength = 10000, bool allowEmpty = true)
+    {
+        _maxLength = maxLength;
+        _allowEmpty = allowEmpty;
+
+        AddRule(new LengthRule(allowEmpty ? 0 : 1, maxLength));
+        AddRule(new NoInjectionRule());
+        AddRule(new SafeCharactersRule());
+    }
+
+    /// <summary>
+    /// Validates the specified text input
+    /// </summary>
+    /// <param name="text">The text to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string text)
+    {
+        // Handle null input
+        if (text == null)
+        {
+            return _allowEmpty ? ValidationResult.Success() : ValidationResult.Failure("Text input cannot be null");
+        }
+
+        var result = ValidateRules(text);
+
+        // Additional text-specific validation
+        if (result.IsValid)
+        {
+            result.Combine(ValidateTextSafety(text));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Validates that the text is safe for UI input
+    /// </summary>
+    /// <param name="text">The text to validate</param>
+    /// <returns>A validation result</returns>
+    private static ValidationResult ValidateTextSafety(string text)
+    {
+        var result = ValidationResult.Success();
+
+        // Check for potentially problematic characters
+        if (text.Contains('\0'))
+        {
+            result.AddError("Text cannot contain null characters");
+        }
+
+        // Check for excessive control characters
+        var controlCharCount = text.Count(c => char.IsControl(c) && c != '\r' && c != '\n' && c != '\t');
+        if (controlCharCount > text.Length * 0.1) // More than 10% control characters
+        {
+            result.AddError("Text contains too many control characters");
+        }
+
+        return result;
+    }
+}
+
+/// <summary>
+/// Validation rule for checking safe characters in text input
+/// </summary>
+public class SafeCharactersRule : ValidationRule<string>
+{
+    /// <summary>
+    /// Gets the name of this validation rule
+    /// </summary>
+    public override string RuleName => "SafeCharacters";
+
+    /// <summary>
+    /// Validates that the input contains only safe characters
+    /// </summary>
+    /// <param name="input">The input to validate</param>
+    /// <returns>A validation result</returns>
+    public override ValidationResult Validate(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return Success();
+        }
+
+        // Check for dangerous Unicode categories or specific characters
+        foreach (var c in input)
+        {
+            var category = char.GetUnicodeCategory(c);
+            
+            // Block format characters that could be used for attacks
+            if (category == System.Globalization.UnicodeCategory.Format && c != '\u200C' && c != '\u200D')
+            {
+                return Failure($"Input contains unsafe format character: U+{((int)c):X4}");
+            }
+            
+            // Block private use characters
+            if (category == System.Globalization.UnicodeCategory.PrivateUse)
+            {
+                return Failure($"Input contains private use character: U+{((int)c):X4}");
+            }
+        }
+
+        return Success();
+    }
+}
