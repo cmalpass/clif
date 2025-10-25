@@ -1,0 +1,87 @@
+{
+    "name": "Advanced Controls Test",
+    "description": "Comprehensive test of Calendar, TabControl, DataGrid, TreeView, Menu, and ToolBar controls",
+    "processId": 31144,
+    "steps": [
+        {
+            "action": "CLICK",
+            "element": "name=Friday, October 31, 2025",
+            "description": "Select Halloween date on Calendar"
+        },
+        {
+            "action": "CLICK", 
+            "element": "name=Tab 2",
+            "description": "Switch to Tab 2 in TabControl"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Tab 3", 
+            "description": "Switch to Tab 3 in TabControl"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Tab 1",
+            "description": "Return to Tab 1 in TabControl"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Jane Smith",
+            "description": "Select Jane Smith row in DataGrid"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Bob Johnson", 
+            "description": "Select Bob Johnson row in DataGrid"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Root Node",
+            "description": "Expand Root Node in TreeView"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Child 1",
+            "description": "Select Child 1 node in TreeView" 
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Child 2",
+            "description": "Select Child 2 node in TreeView"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=File",
+            "description": "Click File menu item"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Edit", 
+            "description": "Click Edit menu item"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=New",
+            "description": "Click New button in ToolBar"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Open",
+            "description": "Click Open button in ToolBar"
+        },
+        {
+            "action": "CLICK", 
+            "element": "name=Save",
+            "description": "Click Save button in ToolBar"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Bold",
+            "description": "Click Bold button in ToolBar"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Italic",
+            "description": "Click Italic button in ToolBar"
+        }
+    ]
+}

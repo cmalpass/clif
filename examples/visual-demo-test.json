@@ -1,0 +1,124 @@
+{
+  "name": "Visual Demo Test - See Actual Interactions",
+  "description": "Demonstrates visible interactions with clear feedback",
+  "targetProcess": "TestWpfApp",
+  "version": "1.0",
+  "options": {
+    "continueOnError": true,
+    "takeScreenshots": false,
+    "timeout": 60000,
+    "delayBetweenActions": 2000
+  },
+  "variables": {
+    "demoText": "CLIF is working!",
+    "testMessage": "You can see this in the app!"
+  },
+  "steps": [
+    {
+      "action": "log",
+      "message": "🎬 STARTING VISUAL DEMO - Watch the TestWpfApp window!",
+      "description": "Demo start"
+    },
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Clearing the main text box - you should see it empty now"
+    },
+    {
+      "action": "wait",
+      "duration": 1000,
+      "description": "Pause to let you see the cleared text box"
+    },
+    {
+      "action": "type",
+      "selector": "TestTextBox",
+      "value": "{{demoText}}",
+      "description": "Typing demo text - watch the text appear!"
+    },
+    {
+      "action": "wait",
+      "duration": 2000,
+      "description": "Pause to let you see the typed text"
+    },
+    {
+      "action": "click",
+      "selector": "TestButton",
+      "description": "Clicking the main button - watch for button press animation"
+    },
+    {
+      "action": "wait",
+      "duration": 1500,
+      "description": "Pause after button click"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox",
+      "description": "Toggling checkbox - watch the checkmark appear/disappear"
+    },
+    {
+      "action": "wait",
+      "duration": 1500,
+      "description": "Pause after checkbox toggle"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 2",
+      "description": "Selecting Item 2 from combo box - watch the selection change"
+    },
+    {
+      "action": "wait",
+      "duration": 1500,
+      "description": "Pause after combo box selection"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "75",
+      "description": "Moving slider to 75% - watch the slider thumb move"
+    },
+    {
+      "action": "wait",
+      "duration": 1500,
+      "description": "Pause after slider movement"
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 2",
+      "description": "Switching to Tab 2 - watch the tab change"
+    },
+    {
+      "action": "wait",
+      "duration": 2000,
+      "description": "Pause on Tab 2"
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 1",
+      "description": "Switching back to Tab 1 - watch the tab change back"
+    },
+    {
+      "action": "wait",
+      "duration": 1500,
+      "description": "Final pause on Tab 1"
+    },
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Final clear of text box"
+    },
+    {
+      "action": "type",
+      "selector": "TestTextBox",
+      "value": "{{testMessage}}",
+      "description": "Final message in text box"
+    },
+    {
+      "action": "log",
+      "message": "🎉 VISUAL DEMO COMPLETE - Check the TestWpfApp to see the final message!",
+      "description": "Demo completion"
+    }
+  ]
+}

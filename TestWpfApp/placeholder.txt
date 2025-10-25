@@ -1,0 +1,3 @@
+<!-- This is a placeholder for the image resource -->
+<!-- In a real application, you would add an actual image file -->
+<!-- For now, we'll remove the image source to avoid build errors -->

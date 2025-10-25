@@ -1,0 +1,49 @@
+{
+  "name": "Element Discovery Test",
+  "description": "Testing automation with actual discovered element names",
+  "version": "1.0", 
+  "target": {
+    "processName": "TestWpfApp",
+    "windowTitle": "",
+    "processId": 0,
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 5000
+  },
+  "variables": {},
+  "steps": [
+    {
+      "action": "log",
+      "description": "🔍 Testing with discovered element names from tree output",
+      "delayMs": 1000
+    },
+    {
+      "action": "type",
+      "element": "Enter text here...",
+      "value": "SUCCESS! Real automation working!",
+      "description": "Typing into text input with placeholder text 'Enter text here...'",
+      "delayMs": 2000
+    },
+    {
+      "action": "click",
+      "element": "Click Me!",
+      "description": "Clicking button with text 'Click Me!'",
+      "delayMs": 1500
+    },
+    {
+      "action": "click",
+      "element": "Check this option",
+      "description": "Clicking checkbox with text 'Check this option'",
+      "delayMs": 1500
+    },
+    {
+      "action": "log",
+      "description": "✅ Element discovery test complete - check TestWpfApp window!",
+      "delayMs": 500
+    }
+  ]
+}

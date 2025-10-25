@@ -1,0 +1,44 @@
+{
+  "name": "Dialog Handling Test - Multiple Button Clicks",
+  "description": "Tests that automation continues properly after dismissing multiple dialogs",
+  "steps": [
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click button - Dialog 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "After first dialog - ",
+      "description": "Type text after dialog dismissal"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click button - Dialog 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "After second dialog - ",
+      "description": "Type more text after second dialog"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click button - Dialog 3"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "FINAL TEXT - All dialogs handled!",
+      "description": "Final text to confirm all dialogs were handled"
+    }
+  ]
+}

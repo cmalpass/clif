@@ -1,0 +1,62 @@
+{
+  "name": "AutomationId Test",
+  "description": "Testing automation using AutomationId selectors for reliable element finding",
+  "version": "1.0", 
+  "target": {
+    "processName": "TestWpfApp",
+    "windowTitle": "",
+    "processId": 0,
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 5000
+  },
+  "variables": {},
+  "steps": [
+    {
+      "action": "log",
+      "description": "🎯 Testing with AutomationId selectors for precise element targeting",
+      "delayMs": 1000
+    },
+    {
+      "action": "clear",
+      "element": "TestTextBox",
+      "description": "Clearing text box using AutomationId: TestTextBox",
+      "delayMs": 1000
+    },
+    {
+      "action": "type",
+      "element": "TestTextBox", 
+      "value": "REAL AUTOMATION WORKING VIA AUTOMATIONID!",
+      "description": "Typing into TestTextBox using AutomationId",
+      "delayMs": 3000
+    },
+    {
+      "action": "click",
+      "element": "TestButton",
+      "description": "Clicking TestButton using AutomationId",
+      "delayMs": 2000
+    },
+    {
+      "action": "click",
+      "element": "TestCheckBox",
+      "description": "Clicking TestCheckBox using AutomationId", 
+      "delayMs": 2000
+    },
+    {
+      "action": "select",
+      "element": "TestComboBox",
+      "value": "Item 2",
+      "description": "Selecting Item 2 in TestComboBox using AutomationId",
+      "delayMs": 2000
+    },
+    {
+      "action": "log",
+      "description": "✅ AutomationId test complete - check TestWpfApp for visible changes!",
+      "delayMs": 1000
+    }
+  ]
+}

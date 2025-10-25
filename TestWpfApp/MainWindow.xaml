@@ -1,0 +1,143 @@
+<Window x:Class="TestWpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Comprehensive WPF Controls Test App" Height="800" Width="1200"
+        WindowState="Maximized">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Column 1: Basic Controls -->
+            <StackPanel Grid.Column="0" Margin="10">
+                <Label Content="Basic Controls" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                
+                <Button x:Name="TestButton" Content="Click Me" Width="150" Height="35" Margin="5" Click="TestButton_Click"/>
+                <Button x:Name="ToggleButton" Content="Toggle Me" Width="150" Height="35" Margin="5" Click="ToggleButton_Click"/>
+                
+                <TextBox x:Name="TestTextBox" Width="200" Height="25" Margin="5" Text="Enter text here"/>
+                <PasswordBox x:Name="TestPasswordBox" Width="200" Height="25" Margin="5"/>
+                
+                <CheckBox x:Name="TestCheckBox" Content="Check me" Margin="5"/>
+                <RadioButton x:Name="RadioButton1" Content="Option 1" GroupName="TestGroup" Margin="5"/>
+                <RadioButton x:Name="RadioButton2" Content="Option 2" GroupName="TestGroup" Margin="5"/>
+                
+                <ComboBox x:Name="TestComboBox" Width="200" Height="25" Margin="5" SelectionChanged="TestComboBox_SelectionChanged">
+                    <ComboBoxItem Content="Item 1"/>
+                    <ComboBoxItem Content="Item 2"/>
+                    <ComboBoxItem Content="Item 3"/>
+                    <ComboBoxItem Content="Item 4"/>
+                </ComboBox>
+                
+                <ListBox x:Name="TestListBox" Width="200" Height="100" Margin="5" SelectionChanged="TestListBox_SelectionChanged">
+                    <ListBoxItem Content="List Item 1"/>
+                    <ListBoxItem Content="List Item 2"/>
+                    <ListBoxItem Content="List Item 3"/>
+                    <ListBoxItem Content="List Item 4"/>
+                </ListBox>
+                
+                <Slider x:Name="TestSlider" Width="200" Minimum="0" Maximum="100" Value="50" Margin="5" ValueChanged="TestSlider_ValueChanged"/>
+                <ProgressBar x:Name="TestProgressBar" Width="200" Height="20" Minimum="0" Maximum="100" Value="30" Margin="5"/>
+            </StackPanel>
+            
+            <!-- Column 2: Advanced Controls -->
+            <StackPanel Grid.Column="1" Margin="10">
+                <Label Content="Advanced Controls" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                
+                <DatePicker x:Name="TestDatePicker" Width="200" Margin="5" SelectedDateChanged="TestDatePicker_SelectedDateChanged"/>
+                <Calendar x:Name="TestCalendar" Margin="5" SelectedDatesChanged="TestCalendar_SelectedDatesChanged"/>
+                
+                <TextBlock Text="Status: Ready" x:Name="StatusTextBlock" Margin="5" FontWeight="Bold"/>
+                
+                <GroupBox Header="Grouped Controls" Width="250" Margin="5">
+                    <StackPanel>
+                        <CheckBox Content="Option A" Margin="5"/>
+                        <CheckBox Content="Option B" Margin="5"/>
+                        <CheckBox Content="Option C" Margin="5"/>
+                    </StackPanel>
+                </GroupBox>
+                
+                <Expander x:Name="TestExpander" Header="Expandable Section" Width="250" Margin="5" Expanded="TestExpander_Expanded">
+                    <StackPanel>
+                        <TextBlock Text="Hidden content goes here" Margin="5"/>
+                        <Button Content="Hidden Button" Width="100" Height="30" Margin="5"/>
+                    </StackPanel>
+                </Expander>
+                
+                <TabControl x:Name="TestTabControl" Width="250" Height="150" Margin="5" SelectionChanged="TestTabControl_SelectionChanged">
+                    <TabItem Header="Tab 1">
+                        <TextBlock Text="Content of Tab 1" Margin="10"/>
+                    </TabItem>
+                    <TabItem Header="Tab 2">
+                        <TextBlock Text="Content of Tab 2" Margin="10"/>
+                    </TabItem>
+                    <TabItem Header="Tab 3">
+                        <TextBlock Text="Content of Tab 3" Margin="10"/>
+                    </TabItem>
+                </TabControl>
+            </StackPanel>
+            
+            <!-- Column 3: Data and Complex Controls -->
+            <StackPanel Grid.Column="2" Margin="10">
+                <Label Content="Data and Complex Controls" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                
+                <DataGrid x:Name="TestDataGrid" Width="300" Height="150" Margin="5" AutoGenerateColumns="True" SelectionChanged="TestDataGrid_SelectionChanged"/>
+                
+                <TreeView x:Name="TestTreeView" Width="300" Height="120" Margin="5" SelectedItemChanged="TestTreeView_SelectedItemChanged">
+                    <TreeViewItem Header="Root Node" IsExpanded="True">
+                        <TreeViewItem Header="Child 1">
+                            <TreeViewItem Header="Grandchild 1"/>
+                            <TreeViewItem Header="Grandchild 2"/>
+                        </TreeViewItem>
+                        <TreeViewItem Header="Child 2">
+                            <TreeViewItem Header="Grandchild 3"/>
+                        </TreeViewItem>
+                        <TreeViewItem Header="Child 3"/>
+                    </TreeViewItem>
+                </TreeView>
+                
+                <Menu x:Name="TestMenu" Margin="5">
+                    <MenuItem Header="File">
+                        <MenuItem Header="New" Click="MenuItem_Click"/>
+                        <MenuItem Header="Open" Click="MenuItem_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Exit" Click="MenuItem_Click"/>
+                    </MenuItem>
+                    <MenuItem Header="Edit">
+                        <MenuItem Header="Cut" Click="MenuItem_Click"/>
+                        <MenuItem Header="Copy" Click="MenuItem_Click"/>
+                        <MenuItem Header="Paste" Click="MenuItem_Click"/>
+                    </MenuItem>
+                </Menu>
+                
+                <ToolBar x:Name="TestToolBar" Margin="5">
+                    <Button Content="New" Click="ToolBarButton_Click"/>
+                    <Button Content="Open" Click="ToolBarButton_Click"/>
+                    <Button Content="Save" Click="ToolBarButton_Click"/>
+                    <Separator/>
+                    <ToggleButton Content="Bold" Click="ToolBarToggle_Click"/>
+                    <ToggleButton Content="Italic" Click="ToolBarToggle_Click"/>
+                </ToolBar>
+                
+                <StatusBar x:Name="TestStatusBar" Margin="5">
+                    <StatusBarItem Content="Ready"/>
+                    <StatusBarItem Content="Line: 1"/>
+                    <StatusBarItem Content="Column: 1"/>
+                </StatusBar>
+                
+                <RichTextBox x:Name="TestRichTextBox" Width="300" Height="80" Margin="5" TextChanged="TestRichTextBox_TextChanged">
+                    <FlowDocument>
+                        <Paragraph>Rich text content goes here...</Paragraph>
+                    </FlowDocument>
+                </RichTextBox>
+                
+                <Border x:Name="TestImageBorder" Width="100" Height="100" Margin="5" BorderBrush="Gray" BorderThickness="1">
+                    <TextBlock Text="Image Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"/>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Window>

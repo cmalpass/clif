@@ -1,0 +1,131 @@
+{
+  "name": "Comprehensive WPF UI Test - All Controls Multiple Times",
+  "description": "Tests every available WPF control with multiple interactions to demonstrate full automation capabilities",
+  "steps": [
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "Round 1: Basic text input",
+      "description": "Test basic text input - Round 1"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click the test button - Round 1"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox - Round 1"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 2",
+      "description": "Select ComboBox Item 2 - Round 1"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 3",
+      "description": "Select ListBox Item 3 - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "secret123",
+      "description": "Enter password - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestRichTextBox",
+      "text": "Rich text content for testing - Round 1",
+      "description": "Enter rich text - Round 1"
+    },
+    {
+      "action": "click",
+      "element": "id=TestToggleButton",
+      "description": "Toggle button - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " + ROUND 2 CHANGES",
+      "description": "Append text - Round 2"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox again - Round 2"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 4",
+      "description": "Select ComboBox Item 4 - Round 2"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 1",
+      "description": "Select ListBox Item 1 - Round 2"
+    },
+    {
+      "action": "click",
+      "element": "id=TestToggleButton",
+      "description": "Toggle button again - Round 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "newpass456",
+      "description": "Change password - Round 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " + ROUND 3 FINAL",
+      "description": "Final text addition - Round 3"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 1",
+      "description": "Reset ComboBox to Item 1 - Round 3"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 2",
+      "description": "Select ListBox Item 2 - Round 3"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Final checkbox toggle - Round 3"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Final button click - Round 3"
+    },
+    {
+      "action": "type",
+      "element": "id=TestRichTextBox",
+      "text": " - FINAL RICH TEXT UPDATE",
+      "description": "Final rich text update - Round 3"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "Real Automation Test",
+  "description": "Testing actual WPF control automation",
+  "version": "1.0", 
+  "target": {
+    "processName": "TestWpfApp",
+    "windowTitle": "",
+    "processId": 0,
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 5000
+  },
+  "variables": {
+    "testText": "Real automation working!"
+  },
+  "steps": [
+    {
+      "action": "log",
+      "description": "🚀 Starting REAL automation test - watch the TestWpfApp!",
+      "delayMs": 1000
+    },
+    {
+      "action": "clear",
+      "element": "TestTextBox",
+      "description": "Clearing the main text box",
+      "delayMs": 1500
+    },
+    {
+      "action": "type",
+      "element": "TestTextBox",
+      "value": "CLIF is really working now!",
+      "description": "Typing real text that will appear in the app",
+      "delayMs": 2000
+    },
+    {
+      "action": "click", 
+      "element": "TestButton",
+      "description": "Clicking the button - you should see it press!",
+      "delayMs": 1500
+    },
+    {
+      "action": "click",
+      "element": "TestCheckBox", 
+      "description": "Toggling checkbox - watch it change state!",
+      "delayMs": 1500
+    },
+    {
+      "action": "select",
+      "element": "TestComboBox",
+      "value": "Item 3",
+      "description": "Selecting Item 3 from dropdown - watch selection change!",
+      "delayMs": 1500
+    },
+    {
+      "action": "setvalue",
+      "element": "TestSlider",
+      "value": "80",
+      "description": "Moving slider to 80% - watch the thumb move!",
+      "delayMs": 2000
+    },
+    {
+      "action": "validate",
+      "element": "TestTextBox",
+      "value": "CLIF is really working now!",
+      "description": "Validating that our text was actually entered",
+      "delayMs": 1000
+    },
+    {
+      "action": "log",
+      "description": "🎉 Real automation test completed - check the TestWpfApp to see the changes!",
+      "delayMs": 500
+    }
+  ]
+}

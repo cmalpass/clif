@@ -1,0 +1,144 @@
+{
+  "name": "Complete WPF Automation Test - All Elements Multiple Rounds",
+  "description": "Comprehensive test of every WPF control with multiple interactions, including automatic dialog handling",
+  "steps": [
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "🚀 ROUND 1: Starting comprehensive test",
+      "description": "Initialize with Round 1 text"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click main button (dialog will auto-dismiss)"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "password123",
+      "description": "Enter password - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestRichTextBox",
+      "text": "Rich text content for Round 1 testing",
+      "description": "Enter rich text - Round 1"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 2",
+      "description": "Select ComboBox Item 2 - Round 1"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 3",
+      "description": "Select ListBox Item 3 - Round 1"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " ➡️ ROUND 2: Continuing with more changes",
+      "description": "Append Round 2 text"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click main button again (another dialog)"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox back - Round 2"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 4",
+      "description": "Change ComboBox to Item 4 - Round 2"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 1",
+      "description": "Change ListBox to Item 1 - Round 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "newpass456",
+      "description": "Update password - Round 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestRichTextBox",
+      "text": " + Additional rich text for Round 2",
+      "description": "Append to rich text - Round 2"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " ⭐ ROUND 3: Final comprehensive changes",
+      "description": "Append Round 3 text"
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Final button click (third dialog)"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Final checkbox toggle - Round 3"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionAction": "select",
+      "value": "Item 1",
+      "description": "Reset ComboBox to Item 1 - Final"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionAction": "select",
+      "value": "List Item 2",
+      "description": "Set ListBox to Item 2 - Final"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "final789",
+      "description": "Final password change"
+    },
+    {
+      "action": "type",
+      "element": "id=TestRichTextBox",
+      "text": " ✅ COMPLETED - All elements tested!",
+      "description": "Final rich text completion message"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " 🎯 SUCCESS: All WPF controls tested with dialogs handled!",
+      "description": "Final success message"
+    }
+  ]
+}

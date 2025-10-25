@@ -1,0 +1,46 @@
+{
+  "name": "Test WPF App Basic Interaction",
+  "description": "Demonstrates basic interactions with the test WPF application",
+  "targetProcess": "TestWpfApp",
+  "version": "1.0",
+  "options": {
+    "continueOnError": false,
+    "takeScreenshots": true,
+    "timeout": 30000
+  },
+  "steps": [
+    {
+      "action": "click",
+      "selector": "TestButton",
+      "description": "Click the test button",
+      "waitAfter": 1000
+    },
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Clear the text box"
+    },
+    {
+      "action": "type",
+      "selector": "TestTextBox", 
+      "value": "Hello from CLIF automation!",
+      "description": "Type test message into text box"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox",
+      "description": "Check the checkbox"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Option 2",
+      "description": "Select option from combobox"
+    },
+    {
+      "action": "screenshot",
+      "description": "Take final screenshot",
+      "filename": "test_completion.png"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Visible Automation Test",
+  "description": "Simple test to verify automation is working with visible changes",
+  "version": "1.0", 
+  "target": {
+    "processName": "TestWpfApp",
+    "windowTitle": "",
+    "processId": 0,
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 5000
+  },
+  "variables": {},
+  "steps": [
+    {
+      "action": "log",
+      "description": "🔍 Testing if automation can find and interact with TestWpfApp",
+      "delayMs": 1000
+    },
+    {
+      "action": "clear",
+      "element": "TestTextBox",
+      "description": "Clearing text box completely",
+      "delayMs": 1000
+    },
+    {
+      "action": "type",
+      "element": "TestTextBox",
+      "value": "*** AUTOMATION IS WORKING! ***",
+      "description": "Typing very obvious text",
+      "delayMs": 2000
+    },
+    {
+      "action": "click",
+      "element": "TestButton",
+      "description": "Clicking the test button",
+      "delayMs": 1000
+    },
+    {
+      "action": "log",
+      "description": "✅ If you can see '*** AUTOMATION IS WORKING! ***' in the text box, automation is successful!",
+      "delayMs": 500
+    }
+  ]
+}

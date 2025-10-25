@@ -1,0 +1,52 @@
+{
+  "name": "Session Capture Demo",
+  "description": "Test script to demonstrate automated screenshot capture and session logging",
+  "steps": [
+    {
+      "action": "log",
+      "message": "🎬 Starting session capture demo - screenshots will be saved automatically!"
+    },
+    {
+      "action": "clear",
+      "element": "id=TestTextBox",
+      "description": "Clear text box - screenshot will show empty field"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox", 
+      "text": "📸 Session Capture Working!",
+      "description": "Type text - screenshot will show text in field"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox - screenshot will show state change"
+    },
+    {
+      "action": "wait",
+      "duration": 1000,
+      "description": "Wait 1 second to see change"
+    },
+    {
+      "action": "select",
+      "element": "id=TestComboBox",
+      "value": "Item 2",
+      "description": "Select combo item - screenshot will show selection"
+    },
+    {
+      "action": "click",
+      "element": "id=RadioButton1",
+      "description": "Select radio button - screenshot will show selection"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " ✅ Captured!",
+      "description": "Append text - final screenshot"
+    },
+    {
+      "action": "log",
+      "message": "🎉 Session capture demo complete! Check sessions folder for screenshots and logs."
+    }
+  ]
+}

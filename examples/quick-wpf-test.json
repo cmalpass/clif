@@ -1,0 +1,102 @@
+{
+  "name": "Quick WPF Validation Test",
+  "description": "Quick validation of core WPF control functionality",
+  "targetProcess": "TestWpfApp",
+  "version": "1.0",
+  "options": {
+    "continueOnError": false,
+    "takeScreenshots": true,
+    "timeout": 30000,
+    "delayBetweenActions": 500
+  },
+  "variables": {
+    "quickTest": "Quick Test",
+    "testValue": "42"
+  },
+  "steps": [
+    {
+      "action": "log",
+      "message": "=== Quick WPF Validation Test ===",
+      "description": "Quick test start"
+    },
+    {
+      "action": "screenshot",
+      "description": "Initial state",
+      "filename": "quick_00_start.png"
+    },
+    
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Clear text box"
+    },
+    {
+      "action": "type",
+      "selector": "TestTextBox",
+      "value": "{{quickTest}}",
+      "description": "Enter test text"
+    },
+    {
+      "action": "validate",
+      "selector": "TestTextBox",
+      "expectedValue": "{{quickTest}}",
+      "description": "Validate text entry"
+    },
+    
+    {
+      "action": "click",
+      "selector": "TestButton",
+      "description": "Click main button"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox", 
+      "description": "Toggle checkbox"
+    },
+    
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 2",
+      "description": "Select combo item"
+    },
+    
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "{{testValue}}",
+      "description": "Set slider value"
+    },
+    
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 2",
+      "description": "Switch tabs"
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 1",
+      "description": "Return to Tab 1"
+    },
+    
+    {
+      "action": "selectRow",
+      "selector": "TestDataGrid",
+      "index": 1,
+      "description": "Select data grid row"
+    },
+    
+    {
+      "action": "screenshot",
+      "description": "Final state",
+      "filename": "quick_01_complete.png"
+    },
+    {
+      "action": "log",
+      "message": "Quick validation test completed successfully!",
+      "description": "Test completion"
+    }
+  ]
+}

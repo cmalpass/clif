@@ -1,0 +1,94 @@
+{
+  "name": "Validation Test - Self-Verifying Automation",
+  "description": "Test automation with validation to confirm each interaction actually completed",
+  "steps": [
+    {
+      "action": "log",
+      "message": "🔍 Starting VALIDATION TEST - Each step will verify successful completion"
+    },
+    {
+      "action": "clear",
+      "element": "id=TestTextBox",
+      "description": "Clear text box and validate it's empty"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox", 
+      "text": "VALIDATION: Text input verified!",
+      "description": "Type text and validate it appears in the text box"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox and validate state changed"
+    },
+    {
+      "action": "wait",
+      "duration": 500,
+      "description": "Wait to observe change"
+    },
+    {
+      "action": "click",
+      "element": "id=TestCheckBox",
+      "description": "Toggle checkbox again and validate state changed back"
+    },
+    {
+      "action": "select",
+      "element": "id=TestComboBox",
+      "value": "Item 1",
+      "description": "Select Item 1 and validate selection"
+    },
+    {
+      "action": "wait",
+      "duration": 1000,
+      "description": "Wait 1 second"
+    },
+    {
+      "action": "select",
+      "element": "id=TestComboBox", 
+      "value": "Item 4",
+      "description": "Select Item 4 and validate selection changed"
+    },
+    {
+      "action": "click",
+      "element": "id=RadioButton1",
+      "description": "Select Radio Button 1 and validate selection"
+    },
+    {
+      "action": "wait",
+      "duration": 500,
+      "description": "Wait half second"
+    },
+    {
+      "action": "click",
+      "element": "id=RadioButton2", 
+      "description": "Select Radio Button 2 and validate selection changed"
+    },
+    {
+      "action": "click",
+      "element": "id=ToggleButton",
+      "description": "Toggle button and validate state change"
+    },
+    {
+      "action": "clear",
+      "element": "id=TestPasswordBox",
+      "description": "Clear password box and validate empty"
+    },
+    {
+      "action": "type",
+      "element": "id=TestPasswordBox",
+      "text": "ValidatedPass123",
+      "description": "Type password and validate (may not show text due to masking)"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": " ✅ ALL VALIDATIONS PASSED!",
+      "description": "Append success message"
+    },
+    {
+      "action": "log",
+      "message": "🎉 VALIDATION TEST COMPLETE! Check logs above for ✅ validation confirmations"
+    }
+  ]
+}
