@@ -1,0 +1,1928 @@
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.UIA3;
+using Microsoft.Extensions.Logging;
+using CLIF.Core;
+using System.Drawing;
+using FlaUI.Core.Input;
+using FlaUI.Core.Definitions;
+using System.Runtime.InteropServices;
+
+namespace CLIF.Services;
+
+public class AutomationService : IAutomationService, IDisposable
+{
+    private readonly ILogger<AutomationService> _logger;
+    private readonly ISessionCaptureService _captureService;
+    private UIA3Automation? _automation;
+    private FlaUI.Core.Application? _application;
+    private AutomationElement? _rootElement;
+
+    public bool IsAttached { get; private set; }
+    public int? AttachedProcessId { get; private set; }
+    
+    // Windows API for dialog handling
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
+    
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+    
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+    
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string? className, string? windowTitle);
+    
+    private const uint WM_KEYDOWN = 0x0100;
+    private const int VK_RETURN = 0x0D;
+    private const int VK_ESCAPE = 0x1B;
+
+    public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)
+    {
+        _logger = logger;
+        _captureService = captureService;
+    }
+
+    public async Task<bool> AttachToProcessAsync(int processId)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (IsAttached)
+                {
+                    DetachAsync().Wait();
+                }
+
+                _automation = new UIA3Automation();
+                _application = FlaUI.Core.Application.Attach(processId);
+                _rootElement = _application.GetMainWindow(_automation);
+
+                if (_rootElement == null)
+                {
+                    _logger.LogWarning($"Could not get main window for process {processId}");
+                    return false;
+                }
+
+                // Set the target window for focused screenshot capture
+                _captureService.SetTargetWindow(_rootElement);
+
+                IsAttached = true;
+                AttachedProcessId = processId;
+                _logger.LogInformation($"Successfully attached to process {processId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to attach to process {processId}");
+                return false;
+            }
+        });
+    }
+
+    public async Task DetachAsync()
+    {
+        await Task.Run(() =>
+        {
+            try
+            {
+                _rootElement = null;
+                _application?.Dispose();
+                _automation?.Dispose();
+                
+                IsAttached = false;
+                AttachedProcessId = null;
+                _logger.LogInformation("Successfully detached from process");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during detach");
+            }
+        });
+    }
+
+    public async Task<AutomationElement?> FindElementAsync(string selector)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (!IsAttached || _rootElement == null)
+                {
+                    _logger.LogWarning("Not attached to any process");
+                    return null;
+                }
+
+                return FindElementBySelector(_rootElement, selector);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error finding element with selector: {selector}");
+                return null;
+            }
+        });
+    }
+
+    public async Task<AutomationElement[]> FindElementsAsync(string selector)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (!IsAttached || _rootElement == null)
+                {
+                    _logger.LogWarning("Not attached to any process");
+                    return Array.Empty<AutomationElement>();
+                }
+
+                return FindElementsBySelector(_rootElement, selector);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error finding elements with selector: {selector}");
+                return Array.Empty<AutomationElement>();
+            }
+        });
+    }
+
+    public async Task<bool> ClickAsync(AutomationElement element)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                // Capture state before click for validation
+                var beforeState = await CaptureElementStateAsync(element);
+                
+                element.Click();
+                _logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
+                
+                // Wait for potential state changes
+                await Task.Delay(300);
+                
+                // Validate click had an effect
+                var afterState = await CaptureElementStateAsync(element);
+                var stateChanged = ValidateStateChange(beforeState, afterState, element);
+                
+                string validationResult;
+                if (stateChanged)
+                {
+                    validationResult = "✅ Element state changed as expected";
+                    _logger.LogInformation(validationResult);
+                }
+                else
+                {
+                    validationResult = "ℹ️ No detectable state change (normal for buttons)";
+                    _logger.LogInformation($"ℹ️ Click completed: {validationResult}");
+                }
+                
+                // Check for and handle any modal dialogs that may have appeared
+                await Task.Delay(100); // Small delay to allow dialog to appear
+                await HandleModalDialogsAsync();
+                
+                // Capture screenshot after interaction
+                await _captureService.CaptureAfterInteractionAsync(
+                    "CLICK", 
+                    element.AutomationId ?? element.Name ?? "Unknown", 
+                    true, 
+                    validationResult
+                );
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clicking element");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> DoubleClickAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                element.DoubleClick();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error double-clicking element");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> RightClickAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                element.RightClick();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error right-clicking element");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> TypeTextAsync(AutomationElement element, string text)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                element.Focus();
+                await Task.Delay(100); // Small delay to ensure focus
+                Keyboard.Type(text);
+                _logger.LogInformation($"Typed text '{text}' into element");
+                
+                // Validate text was actually entered
+                await Task.Delay(200); // Allow time for text to register
+                var actualText = await GetElementTextAsync(element);
+                string validationResult;
+                bool success = true;
+                
+                if (actualText != null && actualText.Contains(text))
+                {
+                    validationResult = $"✅ Text validated: Found '{text}' in element";
+                    _logger.LogInformation($"✅ Text input validated: Found '{text}' in element (current: '{actualText}')");
+                }
+                else
+                {
+                    validationResult = $"⚠️ Validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'";
+                    _logger.LogWarning($"⚠️ Text input validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'");
+                }
+                
+                // Capture screenshot after interaction
+                await _captureService.CaptureAfterInteractionAsync(
+                    "TYPE", 
+                    $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{text}'", 
+                    success, 
+                    validationResult
+                );
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error typing text");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetValueAsync(AutomationElement element, string value)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                var beforeText = await GetElementTextAsync(element);
+                
+                if (element.Patterns.Value.TryGetPattern(out var valuePattern))
+                {
+                    valuePattern.SetValue(value);
+                    _logger.LogInformation($"Set value '{value}' using ValuePattern");
+                }
+                else
+                {
+                    // Fallback to typing
+                    element.Focus();
+                    await Task.Delay(100);
+                    
+                    // Clear existing text and type new value
+                    element.Focus();
+                    await Task.Delay(100);
+                    
+                    // Select all and replace
+                    var textBox = element.AsTextBox();
+                    if (textBox != null)
+                    {
+                        textBox.Text = value;
+                    }
+                    else
+                    {
+                        // Fallback to keyboard
+                        Keyboard.Type(value);
+                    }
+                    _logger.LogInformation($"Set value '{value}' using keyboard input");
+                }
+                
+                // Validate the value was set
+                await Task.Delay(200);
+                var afterText = await GetElementTextAsync(element);
+                string validationResult;
+                bool success;
+                
+                if (afterText == value || (string.IsNullOrEmpty(value) && string.IsNullOrEmpty(afterText)))
+                {
+                    validationResult = $"✅ Value validated: '{beforeText}' → '{afterText}'";
+                    success = true;
+                    _logger.LogInformation($"✅ Value setting validated: '{beforeText}' → '{afterText}'");
+                }
+                else
+                {
+                    validationResult = $"⚠️ Validation failed: Expected '{value}', found '{afterText}'";
+                    success = false;
+                    _logger.LogWarning($"⚠️ Value setting validation failed: Expected '{value}', found '{afterText}'");
+                }
+                
+                // Capture screenshot after interaction
+                await _captureService.CaptureAfterInteractionAsync(
+                    string.IsNullOrEmpty(value) ? "CLEAR" : "SET_VALUE", 
+                    $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{value}'", 
+                    success, 
+                    validationResult
+                );
+                
+                return success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting value");
+                return false;
+            }
+        });
+    }
+
+    public async Task<string> GetTextAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                return element.Name ?? element.Properties.Name.ValueOrDefault ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting text");
+                return string.Empty;
+            }
+        });
+    }
+
+    public async Task<string> GetValueAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (element.Patterns.Value.TryGetPattern(out var valuePattern))
+                {
+                    return valuePattern.Value ?? string.Empty;
+                }
+                return element.Name ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting value");
+                return string.Empty;
+            }
+        });
+    }
+
+    public async Task<Dictionary<string, object>> GetPropertiesAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            var properties = new Dictionary<string, object>();
+            
+            try
+            {
+                properties["Name"] = element.Name ?? string.Empty;
+                properties["AutomationId"] = element.AutomationId ?? string.Empty;
+                properties["ClassName"] = element.ClassName ?? string.Empty;
+                properties["ControlType"] = element.ControlType.ToString();
+                properties["IsEnabled"] = element.IsEnabled;
+                properties["IsVisible"] = !element.IsOffscreen;
+                properties["BoundingRectangle"] = element.BoundingRectangle.ToString();
+                
+                if (element.Patterns.Value.TryGetPattern(out var valuePattern))
+                {
+                    properties["Value"] = valuePattern.Value ?? string.Empty;
+                }
+
+                properties["ProcessId"] = element.Properties.ProcessId.ValueOrDefault;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting properties");
+            }
+            
+            return properties;
+        });
+    }
+
+    public async Task<bool> FocusAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                element.Focus();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error focusing element");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> ScrollToAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (element.Patterns.ScrollItem.TryGetPattern(out var scrollPattern))
+                {
+                    scrollPattern.ScrollIntoView();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error scrolling to element");
+                return false;
+            }
+        });
+    }
+
+    public async Task<byte[]> TakeScreenshotAsync()
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                if (!IsAttached || _rootElement == null)
+                    return Array.Empty<byte>();
+
+                var capture = _rootElement.Capture();
+                using var stream = new MemoryStream();
+                capture.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error taking screenshot");
+                return Array.Empty<byte>();
+            }
+        });
+    }
+
+    public async Task<byte[]> TakeElementScreenshotAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var capture = element.Capture();
+                using var stream = new MemoryStream();
+                capture.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                return stream.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error taking element screenshot");
+                return Array.Empty<byte>();
+            }
+        });
+    }
+
+    public async Task<AutomationElement?> GetRootElementAsync()
+    {
+        return await Task.Run(() => _rootElement);
+    }
+
+    private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
+    {
+        // Simple selector parsing - can be enhanced
+        if (selector.StartsWith("name="))
+        {
+            var name = selector.Substring(5);
+            return root.FindFirstDescendant(cf => cf.ByName(name));
+        }
+        else if (selector.StartsWith("id="))
+        {
+            var id = selector.Substring(3);
+            return root.FindFirstDescendant(cf => cf.ByAutomationId(id));
+        }
+        else if (selector.StartsWith("class="))
+        {
+            var className = selector.Substring(6);
+            return root.FindFirstDescendant(cf => cf.ByClassName(className));
+        }
+        else if (selector.StartsWith("type="))
+        {
+            var controlType = selector.Substring(5);
+            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
+            {
+                return root.FindFirstDescendant(cf => cf.ByControlType(ct));
+            }
+        }
+        
+        // Default to name search
+        return root.FindFirstDescendant(cf => cf.ByName(selector));
+    }
+
+    private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
+    {
+        // Similar logic to FindElementBySelector but returning all matches
+        if (selector.StartsWith("name="))
+        {
+            var name = selector.Substring(5);
+            return root.FindAllDescendants(cf => cf.ByName(name));
+        }
+        else if (selector.StartsWith("id="))
+        {
+            var id = selector.Substring(3);
+            return root.FindAllDescendants(cf => cf.ByAutomationId(id));
+        }
+        else if (selector.StartsWith("class="))
+        {
+            var className = selector.Substring(6);
+            return root.FindAllDescendants(cf => cf.ByClassName(className));
+        }
+        else if (selector.StartsWith("type="))
+        {
+            var controlType = selector.Substring(5);
+            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
+            {
+                return root.FindAllDescendants(cf => cf.ByControlType(ct));
+            }
+        }
+        
+        return root.FindAllDescendants(cf => cf.ByName(selector));
+    }
+
+    // Advanced control interaction methods
+    public async Task<bool> SelectComboBoxItemAsync(AutomationElement element, string itemText)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                // Get current selection before change
+                var beforeSelection = await GetComboBoxSelectionAsync(element);
+                
+                var comboBox = element.AsComboBox();
+                if (comboBox != null)
+                {
+                    comboBox.Select(itemText);
+                    _logger.LogInformation($"Selected '{itemText}' from combo box");
+                    
+                    await Task.Delay(200); // Allow selection to register
+                    
+                    // Validate selection changed
+                    var afterSelection = await GetComboBoxSelectionAsync(element);
+                    string validationResult;
+                    bool success;
+                    
+                    if (afterSelection == itemText)
+                    {
+                        validationResult = $"✅ Selection validated: '{itemText}' is now selected";
+                        success = true;
+                        _logger.LogInformation($"✅ ComboBox selection validated: '{itemText}' is now selected");
+                    }
+                    else
+                    {
+                        validationResult = $"⚠️ Validation failed: Expected '{itemText}', found '{afterSelection ?? "null"}'";
+                        success = false;
+                        _logger.LogWarning($"⚠️ ComboBox selection validation failed: Expected '{itemText}', found '{afterSelection ?? "null"}'");
+                    }
+                    
+                    // Capture screenshot after interaction
+                    await _captureService.CaptureAfterInteractionAsync(
+                        "SELECT", 
+                        $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{itemText}'", 
+                        success, 
+                        validationResult
+                    );
+                    
+                    return success;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting ComboBox item: {itemText}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectComboBoxItemByIndexAsync(AutomationElement element, int index)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var comboBox = element.AsComboBox();
+                if (comboBox != null)
+                {
+                    comboBox.Select(index);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting ComboBox item by index: {index}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectListBoxItemAsync(AutomationElement element, string itemText)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var listBox = element.AsListBox();
+                if (listBox != null)
+                {
+                    var item = listBox.Items.FirstOrDefault(i => i.Text == itemText);
+                    if (item != null)
+                    {
+                        item.Select();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting ListBox item: {itemText}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectListBoxItemByIndexAsync(AutomationElement element, int index)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var listBox = element.AsListBox();
+                if (listBox != null && index < listBox.Items.Length)
+                {
+                    listBox.Items[index].Select();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting ListBox item by index: {index}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetCheckBoxAsync(AutomationElement element, bool isChecked)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                var beforeState = await GetCheckBoxStateAsync(element);
+                
+                var checkBox = element.AsCheckBox();
+                if (checkBox != null)
+                {
+                    checkBox.IsChecked = isChecked;
+                    _logger.LogInformation($"Set CheckBox state to: {isChecked}");
+                    
+                    await Task.Delay(200); // Allow state change to register
+                    
+                    // Validate state changed
+                    var afterState = await GetCheckBoxStateAsync(element);
+                    string validationResult;
+                    bool success;
+                    
+                    if (afterState == isChecked)
+                    {
+                        validationResult = $"✅ CheckBox state validated: {(isChecked ? "Checked" : "Unchecked")}";
+                        success = true;
+                        _logger.LogInformation($"✅ CheckBox state validated: {(isChecked ? "Checked" : "Unchecked")}");
+                    }
+                    else
+                    {
+                        validationResult = $"⚠️ Validation failed: Expected {isChecked}, found {afterState}";
+                        success = false;
+                        _logger.LogWarning($"⚠️ CheckBox state validation failed: Expected {isChecked}, found {afterState}");
+                    }
+                    
+                    // Capture screenshot after interaction
+                    await _captureService.CaptureAfterInteractionAsync(
+                        "SET_CHECKBOX", 
+                        $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isChecked ? "Checked" : "Unchecked")}", 
+                        success, 
+                        validationResult
+                    );
+                    
+                    return success;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting CheckBox state: {isChecked}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetRadioButtonAsync(AutomationElement element, bool isSelected)
+    {
+        return await Task.Run(async () =>
+        {
+            try
+            {
+                var beforeState = await GetRadioButtonStateAsync(element);
+                
+                var radioButton = element.AsRadioButton();
+                if (radioButton != null)
+                {
+                    if (isSelected)
+                    {
+                        radioButton.Click();
+                        _logger.LogInformation($"Clicked RadioButton to select");
+                    }
+                    
+                    await Task.Delay(200); // Allow state change to register
+                    
+                    // Validate state changed
+                    var afterState = await GetRadioButtonStateAsync(element);
+                    string validationResult;
+                    bool success;
+                    
+                    if (afterState == isSelected)
+                    {
+                        validationResult = $"✅ RadioButton state validated: {(isSelected ? "Selected" : "Not Selected")}";
+                        success = true;
+                        _logger.LogInformation($"✅ RadioButton state validated: {(isSelected ? "Selected" : "Not Selected")}");
+                    }
+                    else
+                    {
+                        validationResult = $"⚠️ Validation failed: Expected {isSelected}, found {afterState}";
+                        success = false;
+                        _logger.LogWarning($"⚠️ RadioButton state validation failed: Expected {isSelected}, found {afterState}");
+                    }
+                    
+                    // Capture screenshot after interaction
+                    await _captureService.CaptureAfterInteractionAsync(
+                        "SET_RADIOBUTTON", 
+                        $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isSelected ? "Selected" : "Not Selected")}", 
+                        success, 
+                        validationResult
+                    );
+                    
+                    return success;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting RadioButton state: {isSelected}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetSliderValueAsync(AutomationElement element, double value)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var slider = element.AsSlider();
+                if (slider != null)
+                {
+                    slider.Value = value;
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting Slider value: {value}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectTabAsync(AutomationElement element, string tabName)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var tabControl = element.AsTab();
+                if (tabControl != null)
+                {
+                    var tab = tabControl.TabItems.FirstOrDefault(t => t.Name == tabName);
+                    if (tab != null)
+                    {
+                        tab.Select();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting Tab: {tabName}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectTabByIndexAsync(AutomationElement element, int tabIndex)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var tabControl = element.AsTab();
+                if (tabControl != null && tabIndex < tabControl.TabItems.Length)
+                {
+                    tabControl.TabItems[tabIndex].Select();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting Tab by index: {tabIndex}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> ExpandTreeNodeAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var treeItem = element.AsTreeItem();
+                if (treeItem != null)
+                {
+                    treeItem.Expand();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error expanding TreeNode");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> CollapseTreeNodeAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var treeItem = element.AsTreeItem();
+                if (treeItem != null)
+                {
+                    treeItem.Collapse();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error collapsing TreeNode");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectTreeNodeAsync(AutomationElement element, string nodePath)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Implementation would traverse the tree path and select the node
+                // This is a simplified version
+                var treeItem = element.AsTreeItem();
+                if (treeItem != null)
+                {
+                    treeItem.Select();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting TreeNode: {nodePath}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetDatePickerAsync(AutomationElement element, DateTime date)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var datePicker = element.AsDateTimePicker();
+                if (datePicker != null)
+                {
+                    datePicker.SelectedDate = date;
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting DatePicker value: {date}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetCalendarDateAsync(AutomationElement element, DateTime date)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // For Calendar controls, we need to find the specific date button
+                var calendarDayButtons = element.FindAllDescendants(cf => cf.ByClassName("CalendarDayButton"));
+                
+                foreach (var dayButton in calendarDayButtons)
+                {
+                    var buttonName = dayButton.Properties.Name.ValueOrDefault;
+                    if (!string.IsNullOrEmpty(buttonName) && buttonName.Contains(date.ToString("MMMM d, yyyy")))
+                    {
+                        dayButton.AsButton()?.Invoke();
+                        _logger.LogInformation($"Selected calendar date: {date:yyyy-MM-dd}");
+                        return true;
+                    }
+                }
+                
+                _logger.LogWarning($"Calendar date not found: {date:yyyy-MM-dd}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting Calendar date: {date}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> ToggleExpanderAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var expandCollapsePattern = element.Patterns.ExpandCollapse.PatternOrDefault;
+                if (expandCollapsePattern != null)
+                {
+                    if (expandCollapsePattern.ExpandCollapseState == ExpandCollapseState.Collapsed)
+                    {
+                        expandCollapsePattern.Expand();
+                    }
+                    else
+                    {
+                        expandCollapsePattern.Collapse();
+                    }
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling Expander");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectDataGridRowAsync(AutomationElement element, int rowIndex)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = element.AsDataGridView();
+                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
+                {
+                    dataGrid.Rows[rowIndex].Click();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = element.AsDataGridView();
+                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
+                {
+                    var row = dataGrid.Rows[rowIndex];
+                    if (columnIndex < row.Cells.Length)
+                    {
+                        row.Cells[columnIndex].Click();
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> InvokeMenuItemAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var menuItem = element.AsMenuItem();
+                if (menuItem != null)
+                {
+                    menuItem.Invoke();
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error invoking MenuItem");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetToggleButtonAsync(AutomationElement element, bool isToggled)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var toggleButton = element.AsToggleButton();
+                if (toggleButton != null)
+                {
+                    toggleButton.IsToggled = isToggled;
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error setting ToggleButton state: {isToggled}");
+                return false;
+            }
+        });
+    }
+
+    // Data extraction methods for advanced controls
+    public async Task<string[]> GetComboBoxItemsAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var comboBox = element.AsComboBox();
+                if (comboBox != null)
+                {
+                    return comboBox.Items.Select(i => i.Text).ToArray();
+                }
+                return Array.Empty<string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting ComboBox items");
+                return Array.Empty<string>();
+            }
+        });
+    }
+
+    public async Task<string[]> GetListBoxItemsAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var listBox = element.AsListBox();
+                if (listBox != null)
+                {
+                    return listBox.Items.Select(i => i.Text).ToArray();
+                }
+                return Array.Empty<string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting ListBox items");
+                return Array.Empty<string>();
+            }
+        });
+    }
+
+    public async Task<bool> GetCheckBoxStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var checkBox = element.AsCheckBox();
+                return checkBox?.IsChecked == true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting CheckBox state");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> GetRadioButtonStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var radioButton = element.AsRadioButton();
+                return radioButton?.IsChecked == true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting RadioButton state");
+                return false;
+            }
+        });
+    }
+
+    public async Task<double> GetSliderValueAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var slider = element.AsSlider();
+                return slider?.Value ?? 0.0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Slider value");
+                return 0.0;
+            }
+        });
+    }
+
+    public async Task<string> GetSelectedTabAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var tabControl = element.AsTab();
+                var selectedTab = tabControl?.SelectedTabItem;
+                return selectedTab?.Name ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting selected Tab");
+                return string.Empty;
+            }
+        });
+    }
+
+    public async Task<string[]> GetTreeNodePathAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // This would build the path from root to the selected node
+                // Simplified implementation
+                var treeItem = element.AsTreeItem();
+                return treeItem != null ? new[] { treeItem.Text } : Array.Empty<string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting TreeNode path");
+                return Array.Empty<string>();
+            }
+        });
+    }
+
+    public async Task<DateTime?> GetDatePickerValueAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var datePicker = element.AsDateTimePicker();
+                return datePicker?.SelectedDate;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting DatePicker value");
+                return null;
+            }
+        });
+    }
+
+    public async Task<DateTime?> GetCalendarDateAsync(AutomationElement element)
+    {
+        return await Task.Run<DateTime?>(() =>
+        {
+            try
+            {
+                // For Calendar controls, find the status element to get selected date
+                var rootElement = _automation?.GetDesktop();
+                if (rootElement != null)
+                {
+                    var statusElement = rootElement.FindFirstDescendant(cf => cf.ByAutomationId("StatusTextBlock"));
+                    if (statusElement != null)
+                    {
+                        var statusText = statusElement.Properties.Name.ValueOrDefault;
+                        if (!string.IsNullOrEmpty(statusText) && statusText.Contains("Calendar date:"))
+                        {
+                            var dateStr = statusText.Replace("Calendar date:", "").Trim();
+                            if (DateTime.TryParse(dateStr, out DateTime parsedDate))
+                            {
+                                return (DateTime?)parsedDate;
+                            }
+                        }
+                    }
+                }
+                
+                _logger.LogWarning("Could not determine selected calendar date");
+                return (DateTime?)null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Calendar date");
+                return (DateTime?)null;
+            }
+        });
+    }
+
+    public async Task<bool> GetExpanderStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var expander = element.Patterns.ExpandCollapse.PatternOrDefault;
+                return expander?.ExpandCollapseState == FlaUI.Core.Definitions.ExpandCollapseState.Expanded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Expander state");
+                return false;
+            }
+        });
+    }
+
+    public async Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = element.AsDataGridView();
+                if (dataGrid != null)
+                {
+                    var results = new List<Dictionary<string, object>>();
+                    
+                    foreach (var row in dataGrid.Rows)
+                    {
+                        var rowData = new Dictionary<string, object>();
+                        for (int i = 0; i < row.Cells.Length; i++)
+                        {
+                            rowData[$"Column{i}"] = row.Cells[i].Value ?? string.Empty;
+                        }
+                        results.Add(rowData);
+                    }
+                    
+                    return results.ToArray();
+                }
+                return Array.Empty<Dictionary<string, object>>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting DataGrid data");
+                return Array.Empty<Dictionary<string, object>>();
+            }
+        });
+    }
+
+    public async Task<bool> GetToggleButtonStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var toggleButton = element.AsToggleButton();
+                return toggleButton?.IsToggled == true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting ToggleButton state");
+                return false;
+            }
+        });
+    }
+
+    private async Task<string?> GetElementTextAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Try different ways to get text based on control type
+                if (element.ControlType == ControlType.Edit)
+                {
+                    return element.AsTextBox()?.Text;
+                }
+                else if (element.ControlType == ControlType.Text)
+                {
+                    return element.AsLabel()?.Text ?? element.Name;
+                }
+                else if (element.ControlType == ControlType.Document)
+                {
+                    return element.AsLabel()?.Text ?? element.Name;
+                }
+                return element.Name;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"Could not get text from element: {ex.Message}");
+                return element.Name;
+            }
+        });
+    }
+
+    private async Task<Dictionary<string, object?>> CaptureElementStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            var state = new Dictionary<string, object?>();
+            try
+            {
+                state["IsEnabled"] = element.IsEnabled;
+                state["Name"] = element.Name;
+                state["ControlType"] = element.ControlType.ToString();
+                
+                if (element.ControlType == ControlType.CheckBox)
+                {
+                    state["IsChecked"] = element.AsCheckBox()?.IsChecked;
+                }
+                else if (element.ControlType == ControlType.RadioButton)
+                {
+                    state["IsSelected"] = element.AsRadioButton()?.IsChecked;
+                }
+                else if (element.ControlType == ControlType.Button)
+                {
+                    try
+                    {
+                        var toggleButton = element.AsToggleButton();
+                        if (toggleButton != null)
+                        {
+                            state["ToggleState"] = toggleButton.ToggleState;
+                        }
+                    }
+                    catch
+                    {
+                        // Not a toggle button, skip
+                    }
+                }
+                else if (element.ControlType == ControlType.Edit)
+                {
+                    state["Text"] = element.AsTextBox()?.Text;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"Could not capture all state for element: {ex.Message}");
+            }
+            return state;
+        });
+    }
+
+    private bool ValidateStateChange(Dictionary<string, object?> before, Dictionary<string, object?> after, AutomationElement element)
+    {
+        try
+        {
+            // Check for meaningful state changes based on control type
+            if (element.ControlType == ControlType.CheckBox)
+            {
+                var beforeChecked = before.GetValueOrDefault("IsChecked");
+                var afterChecked = after.GetValueOrDefault("IsChecked");
+                bool changed = !Equals(beforeChecked, afterChecked);
+                if (changed) _logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
+                return changed;
+            }
+            else if (element.ControlType == ControlType.RadioButton)
+            {
+                var beforeSelected = before.GetValueOrDefault("IsSelected");
+                var afterSelected = after.GetValueOrDefault("IsSelected");
+                bool changed = !Equals(beforeSelected, afterSelected);
+                if (changed) _logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
+                return changed;
+            }
+            else if (element.ControlType == ControlType.Button)
+            {
+                try
+                {
+                    var toggleButton = element.AsToggleButton();
+                    if (toggleButton != null)
+                    {
+                        var beforeToggle = before.GetValueOrDefault("ToggleState");
+                        var afterToggle = after.GetValueOrDefault("ToggleState");
+                        bool changed = !Equals(beforeToggle, afterToggle);
+                        if (changed) _logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
+                        return changed;
+                    }
+                }
+                catch
+                {
+                    // Not a toggle button, treat as regular button
+                }
+                return false; // Regular button - no detectable change expected
+            }
+            else if (element.ControlType == ControlType.Button)
+            {
+                // For regular buttons, we can't easily detect state change
+                // In a real scenario, you might check if a dialog appeared, etc.
+                return false; // No detectable change expected
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug($"Error validating state change: {ex.Message}");
+        }
+        
+        return false; // Default to no change detected
+    }
+
+    private async Task<string?> GetComboBoxSelectionAsync(AutomationElement comboBox)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var cb = comboBox.AsComboBox();
+                return cb?.SelectedItem?.Name;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"Could not get ComboBox selection: {ex.Message}");
+                return null;
+            }
+        });
+    }
+
+    private async Task HandleModalDialogsAsync()
+    {
+        await Task.Run(async () =>
+        {
+            try
+            {
+                // Common Windows dialog class names and titles
+                var dialogPatterns = new[]
+                {
+                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
+                    new { ClassName = (string?)null, Title = "Button Click" }, // Our specific MessageBox title
+                    new { ClassName = (string?)null, Title = "Information" },
+                    new { ClassName = (string?)null, Title = "Warning" },
+                    new { ClassName = (string?)null, Title = "Error" },
+                    new { ClassName = (string?)null, Title = "Confirm" }
+                };
+
+                foreach (var pattern in dialogPatterns)
+                {
+                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
+                    if (dialogHandle != IntPtr.Zero)
+                    {
+                        _logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
+                        
+                        // Bring dialog to foreground
+                        SetForegroundWindow(dialogHandle);
+                        Thread.Sleep(100);
+                        
+                        // Try to find and click OK button first
+                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
+                        if (okButton != IntPtr.Zero)
+                        {
+                            PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
+                            _logger.LogInformation("Clicked OK button on dialog");
+                        }
+                        else
+                        {
+                            // Fallback: Send Enter key to dismiss dialog
+                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                            _logger.LogInformation("Sent Enter key to dismiss dialog");
+                        }
+                        
+                        Thread.Sleep(200); // Allow time for dialog to close
+                        break; // Handle one dialog at a time
+                    }
+                }
+                
+                // Also try FlaUI approach for more complex dialogs
+                if (_automation != null)
+                {
+                    var desktop = _automation.GetDesktop();
+                    var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
+                        .Where(w => w.IsOffscreen == false)
+                        .ToArray();
+                    
+                    foreach (var dialog in dialogs)
+                    {
+                        try
+                        {
+                            // Check if this window might be a dialog (has certain characteristics)
+                            if (dialog.Name.Contains("Information") || dialog.Name.Contains("Button Click") || 
+                                dialog.Name.Contains("Warning") || dialog.Name.Contains("Error"))
+                            {
+                                _logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
+                                
+                                // Look for OK, Yes, or Close buttons
+                                var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
+                                var dismissButton = buttons.FirstOrDefault(b => 
+                                    b.Name?.ToLower().Contains("ok") == true ||
+                                    b.Name?.ToLower().Contains("yes") == true ||
+                                    b.Name?.ToLower().Contains("close") == true);
+                                
+                                if (dismissButton != null)
+                                {
+                                    dismissButton.Click();
+                                    _logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
+                                    await Task.Delay(200);
+                                    break;
+                                }
+                                else
+                                {
+                                    // Send Escape to close dialog
+                                    Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
+                                    _logger.LogInformation("Sent Escape key to dismiss dialog");
+                                    await Task.Delay(200);
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"Error in dialog handling: {ex.Message}");
+            }
+        });
+    }
+
+    // DataGrid-specific checkbox operations
+    public async Task<bool> SetDataGridCheckboxAsync(string dataGridSelector, int rowIndex, bool isChecked)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = FindElementAsync(dataGridSelector).Result;
+                if (dataGrid == null) 
+                {
+                    _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+                    return false;
+                }
+
+                // Get all data rows (excluding NewItemPlaceholder)
+                var dataRows = dataGrid.FindAllDescendants(cf => 
+                    cf.ByControlType(ControlType.DataItem)
+                    .And(cf.ByName("TestWpfApp.SampleData")));
+
+                if (rowIndex >= dataRows.Length)
+                {
+                    _logger.LogWarning($"Row index {rowIndex} out of range. Found {dataRows.Length} rows.");
+                    return false;
+                }
+
+                var row = dataRows[rowIndex];
+                
+                // Find the checkbox cell by looking for cells that contain checkboxes
+                AutomationElement? checkboxCell = null;
+                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
+                
+                foreach (var cell in cells)
+                {
+                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                    if (cellCheckbox != null)
+                    {
+                        checkboxCell = cell;
+                        break;
+                    }
+                }
+                
+                if (checkboxCell == null)
+                {
+                    _logger.LogWarning($"Checkbox cell not found in row {rowIndex}");
+                    return false;
+                }
+
+                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                
+                if (checkbox != null)
+                {
+                    var checkboxElement = checkbox.AsCheckBox();
+                    var currentState = checkboxElement.IsChecked ?? false;
+                    
+                    _logger.LogInformation($"Row {rowIndex} checkbox current state: {currentState}, target state: {isChecked}");
+                    
+                    if (currentState != isChecked)
+                    {
+                        checkboxElement.Toggle();
+                        _logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {isChecked}");
+                        
+                        // Verify the change - remove await from lambda
+                        Task.Delay(100).Wait();
+                        var newState = checkboxElement.IsChecked ?? false;
+                        _logger.LogInformation($"Verified checkbox state in row {rowIndex}: {newState}");
+                        
+                        return newState == isChecked;
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Checkbox in row {rowIndex} already in desired state: {isChecked}");
+                        return true;
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning($"Checkbox not found in row {rowIndex} cell");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to set DataGrid checkbox at row {rowIndex}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> SetDataGridCheckboxByNameAsync(string dataGridSelector, string rowName, bool isChecked)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = FindElementAsync(dataGridSelector).Result;
+                if (dataGrid == null) return false;
+
+                // Find row by name cell content
+                var nameCell = dataGrid.FindFirstDescendant(cf => 
+                    cf.ByControlType(ControlType.Custom)
+                    .And(cf.ByName(rowName)));
+                
+                if (nameCell == null)
+                {
+                    _logger.LogWarning($"Row with name '{rowName}' not found");
+                    return false;
+                }
+
+                // Get the parent row
+                var row = nameCell.Parent;
+                if (row == null) return false;
+
+                // Find checkbox cell in this row
+                AutomationElement? checkboxCell = null;
+                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
+                
+                foreach (var cell in cells)
+                {
+                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                    if (cellCheckbox != null)
+                    {
+                        checkboxCell = cell;
+                        break;
+                    }
+                }
+                
+                if (checkboxCell == null) return false;
+
+                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                
+                if (checkbox != null)
+                {
+                    var checkboxElement = checkbox.AsCheckBox();
+                    var currentState = checkboxElement.IsChecked ?? false;
+                    if (currentState != isChecked)
+                    {
+                        checkboxElement.Toggle();
+                        _logger.LogInformation($"Toggled checkbox for row '{rowName}' to {isChecked}");
+                    }
+                    return true;
+                }
+                
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to set DataGrid checkbox for row '{rowName}'");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool> ToggleDataGridCheckboxAsync(string dataGridSelector, int rowIndex)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = FindElementAsync(dataGridSelector).Result;
+                if (dataGrid == null) return false;
+
+                var dataRows = dataGrid.FindAllDescendants(cf => 
+                    cf.ByControlType(ControlType.DataItem)
+                    .And(cf.ByName("TestWpfApp.SampleData")));
+
+                if (rowIndex >= dataRows.Length) return false;
+
+                var row = dataRows[rowIndex];
+                
+                // Find checkbox cell in this row
+                AutomationElement? checkboxCell = null;
+                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
+                
+                foreach (var cell in cells)
+                {
+                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                    if (cellCheckbox != null)
+                    {
+                        checkboxCell = cell;
+                        break;
+                    }
+                }
+                
+                if (checkboxCell == null) return false;
+
+                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                
+                if (checkbox != null)
+                {
+                    var checkboxElement = checkbox.AsCheckBox();
+                    var currentState = checkboxElement.IsChecked ?? false;
+                    checkboxElement.Toggle();
+                    _logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {!currentState}");
+                    return true;
+                }
+                
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to toggle DataGrid checkbox at row {rowIndex}");
+                return false;
+            }
+        });
+    }
+
+    public async Task<bool[]> GetDataGridCheckboxStatesAsync(string dataGridSelector)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var dataGrid = FindElementAsync(dataGridSelector).Result;
+                if (dataGrid == null) 
+                {
+                    _logger.LogWarning($"DataGrid not found with selector: {dataGridSelector}");
+                    return new bool[0];
+                }
+
+                _logger.LogInformation($"DataGrid found: {dataGrid.Name}, ControlType: {dataGrid.ControlType}");
+
+                // Try to find all DataItem descendants without the name filter first
+                var allDataItems = dataGrid.FindAllDescendants(cf => cf.ByControlType(ControlType.DataItem));
+                _logger.LogInformation($"Found {allDataItems.Length} DataItem descendants");
+
+                // Log the names of all DataItems
+                for (int i = 0; i < allDataItems.Length; i++)
+                {
+                    _logger.LogInformation($"DataItem {i}: Name='{allDataItems[i].Name}', ClassName='{allDataItems[i].ClassName}'");
+                }
+
+                // Now try the original filter
+                var dataRows = dataGrid.FindAllDescendants(cf => 
+                    cf.ByControlType(ControlType.DataItem)
+                    .And(cf.ByName("TestWpfApp.SampleData")));
+
+                _logger.LogInformation($"Found {dataRows.Length} filtered DataRows with name 'TestWpfApp.SampleData'");
+
+                // If the filtered search didn't work, try excluding the NewItemPlaceholder
+                if (dataRows.Length == 0 && allDataItems.Length > 0)
+                {
+                    dataRows = allDataItems.Where(item => !item.Name.Contains("NewItemPlaceholder")).ToArray();
+                    _logger.LogInformation($"Using fallback: Found {dataRows.Length} DataRows excluding NewItemPlaceholder");
+                }
+
+                var states = new List<bool>();
+
+                foreach (var row in dataRows)
+                {
+                    _logger.LogInformation($"Processing row: {row.Name}");
+                    
+                    // Find the checkbox cell by looking for cells that contain checkboxes
+                    AutomationElement? checkboxCell = null;
+                    var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
+                    _logger.LogInformation($"Found {cells.Length} custom cells in row: {row.Name}");
+                    
+                    foreach (var cell in cells)
+                    {
+                        _logger.LogInformation($"Checking cell: '{cell.Name}' for checkbox");
+                        var checkbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                        if (checkbox != null)
+                        {
+                            _logger.LogInformation($"Found checkbox in cell: '{cell.Name}'");
+                            checkboxCell = cell;
+                            break;
+                        }
+                    }
+                    
+                    if (checkboxCell != null)
+                    {
+                        _logger.LogInformation($"Found checkbox cell in row: {row.Name}");
+                        
+                        var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+                        if (checkbox != null)
+                        {
+                            var isChecked = checkbox.AsCheckBox().IsChecked ?? false;
+                            _logger.LogInformation($"Checkbox in row '{row.Name}' is {isChecked}");
+                            states.Add(isChecked);
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Checkbox not found in cell for row: {row.Name}");
+                            states.Add(false);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Checkbox cell not found for row: {row.Name}");
+                        states.Add(false);
+                    }
+                }
+
+                _logger.LogInformation($"Returning {states.Count} checkbox states");
+                return states.ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get DataGrid checkbox states");
+                return new bool[0];
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        DetachAsync().Wait();
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "name": "Toggle DataGrid Checkboxes Systematically",
+    "description": "Select each data row and try to interact with the associated checkbox",
+    "processId": 31144,
+    "steps": [
+        {
+            "action": "CLICK",
+            "element": "name=John Doe",
+            "description": "Click on John Doe row - this should make his checkbox active/accessible"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Bob Johnson", 
+            "description": "Click on Bob Johnson row to potentially toggle his checkbox"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Alice Brown",
+            "description": "Click on Alice Brown row to potentially toggle her checkbox"
+        }
+    ]
+}

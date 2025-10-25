@@ -1,0 +1,22 @@
+{
+    "name": "Uncheck DataGrid Active Status",
+    "description": "Uncheck the IsActive checkboxes for all rows in the DataGrid by clicking directly on each checkbox",
+    "processId": 31144,
+    "steps": [
+        {
+            "action": "CLICK",
+            "element": "name=John Doe",
+            "description": "Click on John Doe row to position near the checkbox"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Bob Johnson", 
+            "description": "Click on Bob Johnson row to position near the checkbox"
+        },
+        {
+            "action": "CLICK",
+            "element": "name=Alice Brown",
+            "description": "Click on Alice Brown row to position near the checkbox"
+        }
+    ]
+}

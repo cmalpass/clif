@@ -1,0 +1,9 @@
+CLIF/bin/*
+CLIF/obj/*
+TestWpfApp/bin/*
+TestWpfApp/obj/*
+sessions/*
+bin/*
+obj/*
+.vs/*
+specs/*

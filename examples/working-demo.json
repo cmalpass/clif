@@ -1,0 +1,62 @@
+{
+  "name": "Simple Working Demo",
+  "description": "A basic demo that actually works with the Script model",
+  "version": "1.0",
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 5000
+  },
+  "variables": {
+    "testText": "Hello from CLIF!"
+  },
+  "steps": [
+    {
+      "action": "log",
+      "description": "Starting the working demo",
+      "delayMs": 500
+    },
+    {
+      "action": "clear",
+      "element": "TestTextBox", 
+      "description": "Clearing the main text box",
+      "delayMs": 1000
+    },
+    {
+      "action": "type",
+      "element": "TestTextBox",
+      "value": "CLIF is actually working!",
+      "description": "Typing demo text",
+      "delayMs": 1500
+    },
+    {
+      "action": "click",
+      "element": "TestButton",
+      "description": "Clicking the main button",
+      "delayMs": 1000
+    },
+    {
+      "action": "click",
+      "element": "TestCheckBox",
+      "description": "Toggling the checkbox",
+      "delayMs": 1000
+    },
+    {
+      "action": "select",
+      "element": "TestComboBox",
+      "value": "Item 2",
+      "description": "Selecting from combo box",
+      "delayMs": 1000
+    },
+    {
+      "action": "log",
+      "description": "Demo completed successfully!",
+      "delayMs": 500
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+    "name": "Uncheck All DataGrid IsActive Checkboxes",
+    "description": "Click on each DataGrid row's IsActive checkbox to uncheck them",
+    "processId": 31144,
+    "steps": [
+        {
+            "action": "CLICK",
+            "element": "id=TestDataGrid",
+            "description": "Focus the DataGrid first"
+        }
+    ]
+}

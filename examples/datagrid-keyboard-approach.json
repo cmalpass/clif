@@ -1,0 +1,45 @@
+{
+  "name": "DataGrid Keyboard Navigation Approach",
+  "description": "Use keyboard navigation and F2 to edit DataGrid checkboxes",
+  "steps": [
+    {
+      "step": 1,
+      "action": "CLICK",
+      "description": "Click on John Doe row to select it",
+      "element": "name=John Doe and class=DataGridCell and type=Custom"
+    },
+    {
+      "step": 2,
+      "action": "TYPE",
+      "description": "Send keyboard navigation to move to IsActive column and edit",
+      "element": "id=TestDataGrid",
+      "text": "{RIGHT}{F2}{SPACE}{ENTER}"
+    },
+    {
+      "step": 3,
+      "action": "CLICK", 
+      "description": "Click on Bob Johnson row to select it",
+      "element": "name=Bob Johnson and class=DataGridCell and type=Custom"
+    },
+    {
+      "step": 4,
+      "action": "TYPE",
+      "description": "Send keyboard navigation to move to IsActive column and edit",
+      "element": "id=TestDataGrid",
+      "text": "{RIGHT}{F2}{SPACE}{ENTER}"
+    },
+    {
+      "step": 5,
+      "action": "CLICK",
+      "description": "Click on Alice Brown row to select it", 
+      "element": "name=Alice Brown and class=DataGridCell and type=Custom"
+    },
+    {
+      "step": 6,
+      "action": "TYPE",
+      "description": "Send keyboard navigation to move to IsActive column and edit",
+      "element": "id=TestDataGrid", 
+      "text": "{RIGHT}{F2}{SPACE}{ENTER}"
+    }
+  ]
+}

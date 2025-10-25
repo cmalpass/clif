@@ -1,0 +1,485 @@
+{
+  "name": "Comprehensive WPF Controls Test",
+  "description": "Thorough testing of all WPF controls in the TestWpfApp",
+  "targetProcess": "TestWpfApp",
+  "version": "1.0",
+  "options": {
+    "continueOnError": true,
+    "takeScreenshots": true,
+    "timeout": 120000,
+    "delayBetweenActions": 800
+  },
+  "variables": {
+    "testText": "CLIF Automation Test",
+    "testPassword": "SecurePass123",
+    "testEmail": "test@example.com",
+    "testNumber": "42",
+    "testDate": "2025-12-25"
+  },
+  "steps": [
+    {
+      "action": "screenshot",
+      "description": "Initial state of the application",
+      "filename": "00_initial_state.png"
+    },
+    {
+      "action": "log",
+      "message": "=== Starting Comprehensive WPF Controls Test ===",
+      "description": "Test initialization"
+    },
+    
+    {
+      "action": "log",
+      "message": "Phase 1: Testing Basic Input Controls",
+      "description": "Input controls phase"
+    },
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Clear the main text box"
+    },
+    {
+      "action": "type", 
+      "selector": "TestTextBox",
+      "value": "{{testText}}",
+      "description": "Type test text into main text box"
+    },
+    {
+      "action": "validate",
+      "selector": "TestTextBox",
+      "expectedValue": "{{testText}}",
+      "description": "Verify text was entered correctly"
+    },
+    {
+      "action": "clear",
+      "selector": "TestPasswordBox",
+      "description": "Clear the password box"
+    },
+    {
+      "action": "type",
+      "selector": "TestPasswordBox", 
+      "value": "{{testPassword}}",
+      "description": "Type password into password box"
+    },
+    {
+      "action": "screenshot",
+      "description": "After text input",
+      "filename": "01_text_input.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 2: Testing Selection Controls",
+      "description": "Selection controls phase"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox",
+      "description": "Toggle the main checkbox"
+    },
+    {
+      "action": "click",
+      "selector": "RadioButton1",
+      "description": "Select first radio button"
+    },
+    {
+      "action": "wait",
+      "duration": 500
+    },
+    {
+      "action": "click",
+      "selector": "RadioButton2", 
+      "description": "Select second radio button"
+    },
+    {
+      "action": "click",
+      "selector": "TestToggleButton",
+      "description": "Toggle the toggle button"
+    },
+    {
+      "action": "screenshot",
+      "description": "After selection controls",
+      "filename": "02_selection_controls.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 3: Testing Dropdown and List Controls",
+      "description": "Dropdown and list controls phase"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 2",
+      "description": "Select item from combo box"
+    },
+    {
+      "action": "select",
+      "selector": "TestListBox",
+      "value": "List Item 2",
+      "description": "Select item from list box"
+    },
+    {
+      "action": "screenshot",
+      "description": "After dropdown selections",
+      "filename": "03_dropdown_lists.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 4: Testing Range and Progress Controls",
+      "description": "Range controls phase"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "25",
+      "description": "Set slider to 25%"
+    },
+    {
+      "action": "wait",
+      "duration": 1000
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "75",
+      "description": "Set slider to 75%"
+    },
+    {
+      "action": "screenshot",
+      "description": "After slider adjustments",
+      "filename": "04_range_controls.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 5: Testing Date Controls",
+      "description": "Date controls phase"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestDatePicker",
+      "value": "{{testDate}}",
+      "description": "Set date picker value"
+    },
+    {
+      "action": "screenshot",
+      "description": "After date selection",
+      "filename": "05_date_controls.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 6: Testing Tab Navigation",
+      "description": "Tab controls phase"
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 2",
+      "description": "Switch to Tab 2"
+    },
+    {
+      "action": "wait",
+      "duration": 1000
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl", 
+      "value": "Tab 3",
+      "description": "Switch to Tab 3"
+    },
+    {
+      "action": "wait",
+      "duration": 1000
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 1", 
+      "description": "Return to Tab 1"
+    },
+    {
+      "action": "screenshot",
+      "description": "After tab navigation",
+      "filename": "06_tab_navigation.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 7: Testing Tree View",
+      "description": "Tree view phase"
+    },
+    {
+      "action": "expand",
+      "selector": "TestTreeView",
+      "value": "Root Item",
+      "description": "Expand root tree node"
+    },
+    {
+      "action": "select",
+      "selector": "TestTreeView",
+      "value": "Child Item 1",
+      "description": "Select child item in tree"
+    },
+    {
+      "action": "screenshot",
+      "description": "After tree interaction",
+      "filename": "07_tree_view.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 8: Testing Data Grid",
+      "description": "Data grid phase"
+    },
+    {
+      "action": "selectRow",
+      "selector": "TestDataGrid",
+      "index": 0,
+      "description": "Select first row in data grid"
+    },
+    {
+      "action": "wait",
+      "duration": 500
+    },
+    {
+      "action": "selectRow",
+      "selector": "TestDataGrid",
+      "index": 1,
+      "description": "Select second row in data grid"
+    },
+    {
+      "action": "selectCell",
+      "selector": "TestDataGrid",
+      "row": 2,
+      "column": 1,
+      "description": "Select specific cell in data grid"
+    },
+    {
+      "action": "screenshot",
+      "description": "After data grid interaction",
+      "filename": "08_data_grid.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 9: Testing Menu and Toolbar",
+      "description": "Menu and toolbar phase"
+    },
+    {
+      "action": "click",
+      "selector": "FileMenu",
+      "description": "Open File menu"
+    },
+    {
+      "action": "wait",
+      "duration": 500
+    },
+    {
+      "action": "click",
+      "selector": "NewMenuItem",
+      "description": "Click New menu item"
+    },
+    {
+      "action": "click",
+      "selector": "SaveToolbarButton",
+      "description": "Click Save toolbar button"
+    },
+    {
+      "action": "screenshot",
+      "description": "After menu/toolbar interaction",
+      "filename": "09_menu_toolbar.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 10: Testing Rich Text and Expander",
+      "description": "Rich text and expander phase"
+    },
+    {
+      "action": "expand",
+      "selector": "TestExpander",
+      "description": "Expand the expander control"
+    },
+    {
+      "action": "clear",
+      "selector": "TestRichTextBox",
+      "description": "Clear rich text box"
+    },
+    {
+      "action": "type",
+      "selector": "TestRichTextBox",
+      "value": "Rich text content from CLIF automation\nSecond line of text\nThird line with formatting",
+      "description": "Add rich text content"
+    },
+    {
+      "action": "screenshot",
+      "description": "After rich text and expander",
+      "filename": "10_rich_text_expander.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 11: Testing All Buttons",
+      "description": "Button testing phase"
+    },
+    {
+      "action": "click",
+      "selector": "TestButton",
+      "description": "Click main test button"
+    },
+    {
+      "action": "wait",
+      "duration": 500
+    },
+    {
+      "action": "click",
+      "selector": "StandardButton",
+      "description": "Click standard button"
+    },
+    {
+      "action": "wait",
+      "duration": 500
+    },
+    {
+      "action": "click",
+      "selector": "DefaultButton",
+      "description": "Click default button"
+    },
+    {
+      "action": "screenshot",
+      "description": "After button clicks",
+      "filename": "11_buttons.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 12: Stress Testing - Rapid Interactions",
+      "description": "Stress testing phase"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox",
+      "description": "Rapid checkbox toggle 1"
+    },
+    {
+      "action": "click",
+      "selector": "TestCheckBox", 
+      "description": "Rapid checkbox toggle 2"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "10",
+      "description": "Rapid slider change 1"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "90",
+      "description": "Rapid slider change 2"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider", 
+      "value": "50",
+      "description": "Rapid slider change 3"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 1",
+      "description": "Rapid combo selection 1"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 3", 
+      "description": "Rapid combo selection 2"
+    },
+    {
+      "action": "screenshot",
+      "description": "After stress testing",
+      "filename": "12_stress_test.png"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 13: Final Validation",
+      "description": "Final validation phase"
+    },
+    {
+      "action": "validate",
+      "selector": "TestTextBox",
+      "expectedValue": "{{testText}}",
+      "description": "Validate text box still contains test text"
+    },
+    {
+      "action": "getState",
+      "selector": "TestCheckBox",
+      "description": "Get final checkbox state"
+    },
+    {
+      "action": "getValue",
+      "selector": "TestSlider",
+      "description": "Get final slider value"
+    },
+    {
+      "action": "getSelection",
+      "selector": "TestComboBox",
+      "description": "Get final combo box selection"
+    },
+
+    {
+      "action": "log",
+      "message": "Phase 14: Application State Reset",
+      "description": "Reset application state"
+    },
+    {
+      "action": "clear",
+      "selector": "TestTextBox",
+      "description": "Reset text box"
+    },
+    {
+      "action": "clear",
+      "selector": "TestPasswordBox",
+      "description": "Reset password box"
+    },
+    {
+      "action": "setValue",
+      "selector": "TestSlider",
+      "value": "50",
+      "description": "Reset slider to middle"
+    },
+    {
+      "action": "select",
+      "selector": "TestComboBox",
+      "value": "Item 1",
+      "description": "Reset combo box to first item"
+    },
+    {
+      "action": "selectTab",
+      "selector": "TestTabControl",
+      "value": "Tab 1",
+      "description": "Reset to first tab"
+    },
+
+    {
+      "action": "screenshot",
+      "description": "Final state after reset",
+      "filename": "13_final_reset.png"
+    },
+    {
+      "action": "log",
+      "message": "=== Comprehensive WPF Controls Test Completed Successfully ===",
+      "description": "Test completion"
+    },
+    {
+      "action": "wait",
+      "duration": 2000,
+      "description": "Final pause before test completion"
+    }
+  ]
+}
