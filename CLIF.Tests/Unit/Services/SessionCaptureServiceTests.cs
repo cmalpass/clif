@@ -13,7 +13,7 @@ public class SessionCaptureServiceTests
 {
     private readonly Mock<ILogger<SessionCaptureService>> _mockLogger;
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
-    
+
     public SessionCaptureServiceTests()
     {
         _mockLogger = new Mock<ILogger<SessionCaptureService>>();
@@ -28,7 +28,7 @@ public class SessionCaptureServiceTests
         // Act
         var sessionId1 = await service.StartSessionAsync("TEST_Session_1").WithTimeout(DefaultTimeout, "StartSessionAsync #1");
         await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync #1"); // End first session
-        
+
         var sessionId2 = await service.StartSessionAsync("TEST_Session_2").WithTimeout(DefaultTimeout, "StartSessionAsync #2");
         await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync #2"); // End second session
 
@@ -52,7 +52,7 @@ public class SessionCaptureServiceTests
         // Assert
         sessionId.Should().NotBeEmpty();
         sessionId.Should().StartWith("CLIF_Session_");
-        
+
         // Cleanup
         await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (default)");
     }
@@ -70,7 +70,7 @@ public class SessionCaptureServiceTests
         service.CurrentSessionId.Should().Be("TEST_Session");
         service.CurrentSessionPath.Should().NotBeNull();
         service.CurrentSessionPath.Should().EndWith("TEST_Session");
-        
+
         // Cleanup
         await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (properties)");
     }

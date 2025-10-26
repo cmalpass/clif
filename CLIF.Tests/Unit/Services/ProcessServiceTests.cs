@@ -270,11 +270,11 @@ public class ProcessServiceTests
         var currentProcessId = Environment.ProcessId;
 
         // Act & Assert - All methods should handle errors gracefully and not throw
-    var action1 = async () => await _processService.GetWpfProcessesAsync().WithTimeout(DefaultTimeout, "GetWpfProcessesAsync");
-    var action2 = async () => await _processService.FindProcessByIdAsync(currentProcessId).WithTimeout(DefaultTimeout, "FindProcessByIdAsync");
-    var action3 = async () => await _processService.FindProcessByNameAsync("testprocess").WithTimeout(DefaultTimeout, "FindProcessByNameAsync");
-    var action4 = async () => await _processService.FindProcessByWindowTitleAsync("Test Window").WithTimeout(DefaultTimeout, "FindProcessByWindowTitleAsync");
-    var action5 = async () => await _processService.IsProcessAliveAsync(currentProcessId).WithTimeout(DefaultTimeout, "IsProcessAliveAsync");
+        var action1 = async () => await _processService.GetWpfProcessesAsync().WithTimeout(DefaultTimeout, "GetWpfProcessesAsync");
+        var action2 = async () => await _processService.FindProcessByIdAsync(currentProcessId).WithTimeout(DefaultTimeout, "FindProcessByIdAsync");
+        var action3 = async () => await _processService.FindProcessByNameAsync("testprocess").WithTimeout(DefaultTimeout, "FindProcessByNameAsync");
+        var action4 = async () => await _processService.FindProcessByWindowTitleAsync("Test Window").WithTimeout(DefaultTimeout, "FindProcessByWindowTitleAsync");
+        var action5 = async () => await _processService.IsProcessAliveAsync(currentProcessId).WithTimeout(DefaultTimeout, "IsProcessAliveAsync");
 
         await action1.Should().NotThrowAsync();
         await action2.Should().NotThrowAsync();
@@ -295,7 +295,7 @@ public class ProcessServiceTests
         // The service should only return processes that are WPF applications
         // In test environment, this might be empty, but should not include non-WPF processes
         allProcesses.Should().NotBeNull();
-        
+
         if (allProcesses.Any())
         {
             allProcesses.Should().AllSatisfy(process =>

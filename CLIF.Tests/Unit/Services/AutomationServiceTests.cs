@@ -23,7 +23,7 @@ public class AutomationServiceTests : IDisposable
         _mockLogger = new Mock<ILogger<AutomationService>>();
         _testCaptureService = new TestSessionCaptureService(
             TestHelpers.CreateMockLogger<TestSessionCaptureService>().Object);
-        
+
         _automationService = new AutomationService(_mockLogger.Object, _testCaptureService);
     }
 
@@ -41,7 +41,7 @@ public class AutomationServiceTests : IDisposable
         // Assert - May fail in test environment, but should not throw
         // Result can be either true or false, both are acceptable in test environment
         (result == true || result == false).Should().BeTrue();
-        
+
         // Cleanup
         if (_automationService.IsAttached)
         {
@@ -70,7 +70,7 @@ public class AutomationServiceTests : IDisposable
     {
         // Act & Assert - Should not throw
         await _automationService.DetachAsync().WithTimeout(DefaultTimeout, "DetachAsync(not attached)");
-        
+
         // Verify state
         _automationService.IsAttached.Should().BeFalse();
         _automationService.AttachedProcessId.Should().BeNull();
