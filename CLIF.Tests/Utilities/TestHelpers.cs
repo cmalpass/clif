@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Diagnostics;
+using System.IO;
 
 namespace CLIF.Tests.Utilities;
 

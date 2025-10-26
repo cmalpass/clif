@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>4</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    <TargetFramework>net8.0-windows</TargetFramework>
+  </RunConfiguration>
+  
+  <TestAdapterSettings>
+    <xUnit>
+      <DiagnosticMessages>false</DiagnosticMessages>
+      <CollectionBehavior>CollectionPerAssembly</CollectionBehavior>
+    </xUnit>
+  </TestAdapterSettings>
+  
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>minimal</Verbosity>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>

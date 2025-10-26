@@ -47,10 +47,14 @@ public class MockFactory
         var mock = new Mock<IProcessService>();
         
         mock.Setup(x => x.GetWpfProcessesAsync())
-            .ReturnsAsync(new List<System.Diagnostics.Process>());
+            .Returns(Task.FromResult(new List<ProcessInfo>
+            {
+                new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window", HasMainWindow = true },
+                new() { Id = 5678, Name = "AnotherApp", WindowTitle = "Another Window", HasMainWindow = true }
+            }));
             
-        mock.Setup(x => x.FindProcessByNameAsync(It.IsAny<string>()))
-            .ReturnsAsync((System.Diagnostics.Process?)null);
+        mock.Setup(x => x.FindProcessByIdAsync(It.IsAny<int>()))
+            .Returns(Task.FromResult((ProcessInfo?)null));
             
         return mock;
     }
@@ -70,7 +74,7 @@ public class MockFactory
             .Returns("test-session-id");
             
         mock.Setup(x => x.CurrentSessionPath)
-            .Returns(Path.Combine(Path.GetTempPath(), "test-session"));
+            .Returns(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "test-session"));
             
         return mock;
     }

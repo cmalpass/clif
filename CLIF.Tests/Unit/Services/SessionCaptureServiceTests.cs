@@ -12,6 +12,7 @@ namespace CLIF.Tests.Unit.Services;
 public class SessionCaptureServiceTests
 {
     private readonly Mock<ILogger<SessionCaptureService>> _mockLogger;
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
     
     public SessionCaptureServiceTests()
     {
@@ -25,11 +26,11 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act
-        var sessionId1 = await service.StartSessionAsync("TEST_Session_1");
-        await service.EndSessionAsync(); // End first session
+        var sessionId1 = await service.StartSessionAsync("TEST_Session_1").WithTimeout(DefaultTimeout, "StartSessionAsync #1");
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync #1"); // End first session
         
-        var sessionId2 = await service.StartSessionAsync("TEST_Session_2");
-        await service.EndSessionAsync(); // End second session
+        var sessionId2 = await service.StartSessionAsync("TEST_Session_2").WithTimeout(DefaultTimeout, "StartSessionAsync #2");
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync #2"); // End second session
 
         // Assert
         sessionId1.Should().NotBeEmpty();
@@ -46,14 +47,14 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act
-        var sessionId = await service.StartSessionAsync();
+        var sessionId = await service.StartSessionAsync().WithTimeout(DefaultTimeout, "StartSessionAsync (default)");
 
         // Assert
         sessionId.Should().NotBeEmpty();
         sessionId.Should().StartWith("CLIF_Session_");
         
         // Cleanup
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (default)");
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act
-        var sessionId = await service.StartSessionAsync("TEST_Session");
+        var sessionId = await service.StartSessionAsync("TEST_Session").WithTimeout(DefaultTimeout, "StartSessionAsync (properties)");
 
         // Assert
         service.CurrentSessionId.Should().Be("TEST_Session");
@@ -71,7 +72,7 @@ public class SessionCaptureServiceTests
         service.CurrentSessionPath.Should().EndWith("TEST_Session");
         
         // Cleanup
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (properties)");
     }
 
     [Fact]
@@ -79,14 +80,14 @@ public class SessionCaptureServiceTests
     {
         // Arrange
         var service = new SessionCaptureService(_mockLogger.Object);
-        await service.StartSessionAsync("TEST_Capture");
+        await service.StartSessionAsync("TEST_Capture").WithTimeout(DefaultTimeout, "StartSessionAsync (capture)");
 
         // Act & Assert - Should not throw
-        await service.CaptureAfterInteractionAsync("click", "id=TestButton", true, "Button clicked successfully");
-        await service.CaptureAfterInteractionAsync("type", "id=TextBox", false, "Text input failed");
+        await service.CaptureAfterInteractionAsync("click", "id=TestButton", true, "Button clicked successfully").WithTimeout(DefaultTimeout, "CaptureAfterInteractionAsync(click)");
+        await service.CaptureAfterInteractionAsync("type", "id=TextBox", false, "Text input failed").WithTimeout(DefaultTimeout, "CaptureAfterInteractionAsync(type)");
 
         // Cleanup
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (capture)");
     }
 
     [Fact]
@@ -94,14 +95,14 @@ public class SessionCaptureServiceTests
     {
         // Arrange
         var service = new SessionCaptureService(_mockLogger.Object);
-        await service.StartSessionAsync("TEST_Log");
+        await service.StartSessionAsync("TEST_Log").WithTimeout(DefaultTimeout, "StartSessionAsync (log)");
 
         // Act & Assert - Should not throw
-        await service.LogInteractionAsync("Test message", LogLevel.Information);
-        await service.LogInteractionAsync("Warning message", LogLevel.Warning);
+        await service.LogInteractionAsync("Test message", LogLevel.Information).WithTimeout(DefaultTimeout, "LogInteractionAsync(info)");
+        await service.LogInteractionAsync("Warning message", LogLevel.Warning).WithTimeout(DefaultTimeout, "LogInteractionAsync(warn)");
 
         // Cleanup
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (log)");
     }
 
     [Fact]
@@ -109,10 +110,10 @@ public class SessionCaptureServiceTests
     {
         // Arrange
         var service = new SessionCaptureService(_mockLogger.Object);
-        await service.StartSessionAsync("TEST_End");
+        await service.StartSessionAsync("TEST_End").WithTimeout(DefaultTimeout, "StartSessionAsync (end)");
 
         // Act
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, "EndSessionAsync (end)");
 
         // Assert
         service.CurrentSessionId.Should().BeNull();
@@ -140,14 +141,14 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act
-        var sessionId = await service.StartSessionAsync(sessionName);
+        var sessionId = await service.StartSessionAsync(sessionName).WithTimeout(DefaultTimeout, $"StartSessionAsync ({sessionName})");
 
         // Assert
         sessionId.Should().Be(sessionName);
         service.CurrentSessionId.Should().Be(sessionName);
 
         // Cleanup
-        await service.EndSessionAsync();
+        await service.EndSessionAsync().WithTimeout(DefaultTimeout, $"EndSessionAsync ({sessionName})");
     }
 
     [Fact]
@@ -157,7 +158,7 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act & Assert - Should not throw when no session is active
-        await service.CaptureAfterInteractionAsync("click", "id=Button", true);
+        await service.CaptureAfterInteractionAsync("click", "id=Button", true).WithTimeout(DefaultTimeout, "CaptureAfterInteractionAsync(no session)");
     }
 
     [Fact]
@@ -167,6 +168,6 @@ public class SessionCaptureServiceTests
         var service = new SessionCaptureService(_mockLogger.Object);
 
         // Act & Assert - Should not throw when no session is active
-        await service.LogInteractionAsync("Test message");
+        await service.LogInteractionAsync("Test message").WithTimeout(DefaultTimeout, "LogInteractionAsync(no session)");
     }
 }
