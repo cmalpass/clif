@@ -1,0 +1,17 @@
+{
+  "dotnet.defaultSolutionOrFolder": "${workspaceFolder}/clif.sln",
+  "dotnet.autoGenerateConfigurationFiles": true,
+  "omnisharp.defaultLaunchSolution": "${workspaceFolder}/clif.sln",
+  "dotnet.server.useOmnisharp": false,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.formatOnSave": true
+  },
+  "explorer.excludeGitignore": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true
+  }
+}

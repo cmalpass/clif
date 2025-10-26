@@ -1,6 +1,7 @@
 using AutoFixture;
 using Bogus;
 using System.Text.Json;
+using System.IO;
 
 namespace CLIF.Tests.Utilities;
 
@@ -96,7 +97,7 @@ public class TestDataBuilder
                 ProcessId = processId,
                 TimeoutMs = 30000
             },
-            Steps = new[]
+            Steps = new object[]
             {
                 new
                 {
