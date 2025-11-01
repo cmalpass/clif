@@ -321,7 +321,7 @@ public async Task<Element?> FindElementAsync(string selector)
     try
     {
         // Sanitize even after validation
-        var safeSelectorselectors = SanitizationHelper.SanitizeTextInput(selector);
+        var safeSelector = SanitizationHelper.SanitizeTextInput(selector);
         
         // Proceed with operation
         return await FindElementInternalAsync(safeSelector);

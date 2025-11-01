@@ -388,7 +388,6 @@ public class InteractiveService : IInteractiveService
     private readonly IAutomationService _automationService;
     private readonly IElementTreeService _elementTreeService;
     private readonly ISessionCaptureService _captureService;
-    private int? _attachedProcessId;
     
     public bool IsSessionActive { get; private set; }
 
@@ -412,7 +411,6 @@ public class InteractiveService : IInteractiveService
     public async Task StartInteractiveSessionAsync(int? processId = null)
     {
         IsSessionActive = true;
-        _attachedProcessId = processId;
         
         Console.WriteLine("=== CLIF Interactive Mode ===");
         Console.WriteLine("Type 'help' for available commands or 'exit' to quit.");
@@ -752,7 +750,6 @@ public class InteractiveService : IInteractiveService
         var success = await _automationService.AttachToProcessAsync(processId);
         if (success)
         {
-            _attachedProcessId = processId;
             Console.WriteLine($"✓ Attached to process: {processId}");
         }
         else
