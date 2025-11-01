@@ -13,13 +13,25 @@ namespace CLIF.Tests.Unit.Services;
 public class InteractiveServiceTests
 {
     private readonly Mock<ILogger<InteractiveService>> _mockLogger;
+    private readonly Mock<IAutomationService> _mockAutomationService;
+    private readonly Mock<IElementTreeService> _mockElementTreeService;
+    private readonly TestSessionCaptureService _testCaptureService;
     private readonly InteractiveService _interactiveService;
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
 
     public InteractiveServiceTests()
     {
         _mockLogger = new Mock<ILogger<InteractiveService>>();
-        _interactiveService = new InteractiveService(_mockLogger.Object);
+        _mockAutomationService = new Mock<IAutomationService>();
+        _mockElementTreeService = new Mock<IElementTreeService>();
+        _testCaptureService = new TestSessionCaptureService(
+            TestHelpers.CreateMockLogger<TestSessionCaptureService>().Object);
+
+        _interactiveService = new InteractiveService(
+            _mockLogger.Object,
+            _mockAutomationService.Object,
+            _mockElementTreeService.Object,
+            _testCaptureService);
     }
 
     [Fact]
@@ -104,7 +116,7 @@ public class InteractiveServiceTests
     }
 
     [Fact]
-    public async Task ExecuteCommandAsync_WithUnknownCommand_ShouldReturnTrue()
+    public async Task ExecuteCommandAsync_WithUnknownCommand_ShouldReturnFalse()
     {
         // Act
         var result = await _interactiveService
@@ -112,6 +124,112 @@ public class InteractiveServiceTests
             .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(unknown)");
 
         // Assert
-        result.Should().BeTrue(); // Service handles unknown commands gracefully
+        result.Should().BeFalse(); // Unknown commands should return false
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithClickCommand_WithoutAttach_ShouldReturnFalse()
+    {
+        // Arrange
+        _mockAutomationService.Setup(a => a.IsAttached).Returns(false);
+
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("click id=Button")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(click without attach)");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithTypeCommand_WithoutElement_ShouldReturnFalse()
+    {
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("type")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(type without args)");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithTreeCommand_WithoutAttach_ShouldReturnFalse()
+    {
+        // Arrange
+        _mockAutomationService.Setup(a => a.IsAttached).Returns(false);
+
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("tree")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(tree without attach)");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("click")]
+    [InlineData("type id=Test")]
+    [InlineData("get-text")]
+    [InlineData("get-value")]
+    [InlineData("search")]
+    public async Task ExecuteCommandAsync_WithIncompleteCommands_ShouldReturnFalse(string command)
+    {
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync(command)
+            .WithTimeout(DefaultTimeout, $"ExecuteCommandAsync({command})");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithAttachCommand_WithValidPid_ShouldCallAutomationService()
+    {
+        // Arrange
+        _mockAutomationService.Setup(a => a.IsAttached).Returns(false);
+        _mockAutomationService.Setup(a => a.AttachToProcessAsync(It.IsAny<int>()))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("attach 1234")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(attach)");
+
+        // Assert
+        result.Should().BeTrue();
+        _mockAutomationService.Verify(a => a.AttachToProcessAsync(1234), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithAttachCommand_WithInvalidPid_ShouldReturnFalse()
+    {
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("attach notanumber")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(attach invalid)");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_WithQuotedString_ShouldParseCorrectly()
+    {
+        // Arrange
+        _mockAutomationService.Setup(a => a.IsAttached).Returns(true);
+        _mockAutomationService.Setup(a => a.FindElementAsync(It.IsAny<string>()))
+            .ReturnsAsync((FlaUI.Core.AutomationElements.AutomationElement?)null);
+
+        // Act
+        var result = await _interactiveService
+            .ExecuteCommandAsync("type id=TextBox \"Hello World\"")
+            .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(type with quotes)");
+
+        // Assert - Should attempt to find element
+        _mockAutomationService.Verify(a => a.FindElementAsync(It.IsAny<string>()), Times.Once);
     }
 }
