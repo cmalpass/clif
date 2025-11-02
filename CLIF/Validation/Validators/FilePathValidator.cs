@@ -131,7 +131,7 @@ public class FilePathValidator : ValidatorBase<string>
         try
         {
             var fullPath = Path.GetFullPath(filePath);
-            
+
             // Define restricted directories
             var restrictedPaths = new[]
             {
@@ -145,11 +145,11 @@ public class FilePathValidator : ValidatorBase<string>
 
             foreach (var restrictedPath in restrictedPaths.Where(p => !string.IsNullOrEmpty(p)))
             {
-                    if (fullPath.StartsWith(restrictedPath, StringComparison.OrdinalIgnoreCase))
-                    {
-                        result.AddError($"Access to restricted system directory: {restrictedPath}");
-                        break;
-                    }
+                if (fullPath.StartsWith(restrictedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    result.AddError($"Access to restricted system directory: {restrictedPath}");
+                    break;
+                }
             }
         }
         catch (Exception ex)

@@ -15,12 +15,12 @@ public class ValidationResult
     /// Gets a value indicating whether the validation was successful
     /// </summary>
     public bool IsValid => !_errors.Any();
-    
+
     /// <summary>
     /// Gets the collection of validation errors
     /// </summary>
     public IReadOnlyList<ValidationError> Errors => _errors.AsReadOnly();
-    
+
     /// <summary>
     /// Gets a combined error message from all validation errors
     /// </summary>

@@ -12,7 +12,7 @@ namespace CLIF.Tests.Utilities;
 public class TestSessionCaptureService : ISessionCaptureService
 {
     private readonly ILogger<TestSessionCaptureService> _logger;
-    
+
     public TestSessionCaptureService(ILogger<TestSessionCaptureService> logger)
     {
         _logger = logger;
@@ -21,15 +21,15 @@ public class TestSessionCaptureService : ISessionCaptureService
         CapturedLogs = new List<string>();
         CapturedInteractions = new List<string>();
     }
-    
+
     public List<string> CapturedSessions { get; }
     public List<string> CapturedScreenshots { get; }
     public List<string> CapturedLogs { get; }
     public List<string> CapturedInteractions { get; }
-    
+
     public string? CurrentSessionId { get; private set; }
     public string? CurrentSessionPath { get; private set; }
-    
+
     public async Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
     {
         var sessionId = sessionName ?? $"TEST_{DateTime.Now:HHmmss}";

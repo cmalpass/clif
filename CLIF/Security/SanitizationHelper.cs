@@ -231,7 +231,7 @@ public static class SanitizationHelper
         }
 
         var sanitized = result.ToString();
-        
+
         // Ensure reasonable length
         if (sanitized.Length > 255)
         {
