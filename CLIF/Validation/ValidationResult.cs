@@ -39,7 +39,7 @@ public class ValidationResult
     /// <param name="field">The optional field name that failed validation</param>
     /// <returns>A failed validation result</returns>
     public static ValidationResult Failure(string message, string? field = null) =>
-        new ValidationResult().AddError(message, field);
+        new ValidationResult().AddError(message ?? string.Empty, field);
 
     /// <summary>
     /// Creates a failed validation result with a single error
@@ -57,7 +57,7 @@ public class ValidationResult
     /// <returns>This validation result for method chaining</returns>
     public ValidationResult AddError(string message, string? field = null)
     {
-        _errors.Add(new ValidationError(message, field));
+        _errors.Add(new ValidationError(message ?? string.Empty, field));
         return this;
     }
 
@@ -95,6 +95,11 @@ public class ValidationResult
             _errors.AddRange(other.Errors);
         }
         return this;
+    }
+
+    public override string ToString()
+    {
+        return IsValid ? "Success" : ErrorMessage;
     }
 }
 

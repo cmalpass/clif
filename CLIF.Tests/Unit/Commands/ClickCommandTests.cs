@@ -1,6 +1,7 @@
 using CLIF.Commands;
 using CLIF.Core;
 using CLIF.Tests.Utilities;
+using CLIF.Services;
 using FluentAssertions;
 using Moq;
 using System.CommandLine;

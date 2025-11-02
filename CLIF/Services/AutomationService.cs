@@ -505,6 +505,12 @@ public class AutomationService : IAutomationService, IDisposable
         return await Task.Run(() => _rootElement);
     }
 
+    public async Task<AutomationElement?> GetMainWindowAsync()
+    {
+        // Return the cached root element which represents the main window when attached
+        return await GetRootElementAsync();
+    }
+
     private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
     {
         // Simple selector parsing - can be enhanced

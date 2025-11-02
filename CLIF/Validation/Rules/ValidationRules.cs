@@ -169,12 +169,12 @@ public class LengthRule : ValidationRule<string>
         
         if (length < _minLength)
         {
-            return Failure($"Input must be at least {_minLength} characters long");
+            return Failure($"Input must be at least {_minLength} characters long (minimum length)");
         }
         
         if (length > _maxLength)
         {
-            return Failure($"Input cannot exceed {_maxLength} characters");
+            return Failure($"Input cannot exceed {_maxLength} characters (maximum length)");
         }
         
         return Success();
@@ -244,10 +244,31 @@ public class InvalidCharactersRule : ValidationRule<string>
             return Success();
         }
 
-        var invalidChar = input.FirstOrDefault(c => InvalidChars.Contains(c));
-        if (invalidChar != default)
+        // Allow drive-letter colon on Windows (e.g., "C:\path\to\file")
+        for (int i = 0; i < input.Length; i++)
         {
-            return Failure($"Input contains invalid character: '{invalidChar}'");
+            var c = input[i];
+
+            // Allow colon when it appears as part of a drive letter (e.g., "C:\")
+            if (c == ':')
+            {
+                // Typical drive-letter pattern "C:\" or "C:/"
+                if (i > 0 && char.IsLetter(input[i - 1]) && (i + 1 < input.Length && (input[i + 1] == '\\' || input[i + 1] == '/')))
+                {
+                    continue;
+                }
+
+                // Also allow the simple "C:" form when at index 1
+                if (i == 1 && input.Length > 1 && char.IsLetter(input[0]))
+                {
+                    continue;
+                }
+            }
+
+            if (InvalidChars.Contains(c))
+            {
+                return Failure($"Input contains invalid character: '{c}'");
+            }
         }
 
         return Success();
@@ -264,7 +285,13 @@ public class NoInjectionRule : ValidationRule<string>
         "<script", "</script>", "javascript:", "vbscript:",
         "onload=", "onerror=", "onclick=", "onmouseover=",
         "eval(", "setTimeout(", "setInterval(",
-        "document.", "window.", "alert(", "confirm("
+        "document.", "window.", "alert(", "confirm(",
+        // Common modern injection patterns
+        "${jndi", "${env:",
+        // File traversal and path patterns
+        "..\\", "../",
+        // SQL-ish patterns (simple heuristic to catch obvious SQL injection strings)
+        "drop table", "';"
     };
 
     /// <summary>
@@ -290,7 +317,8 @@ public class NoInjectionRule : ValidationRule<string>
         {
             if (lowerInput.Contains(pattern))
             {
-                return Failure($"Input contains potentially dangerous content: {pattern}");
+                // Provide a consistent, test-friendly message
+                return Failure($"Input contains potentially malicious pattern: {pattern}");
             }
         }
 

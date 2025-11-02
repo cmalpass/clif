@@ -67,7 +67,7 @@ public class ElementTreeServiceTests
         var options = new TreePrintOptions
         {
             ShowProperties = true,
-            ShowSelectors = true,
+            ShowSelector = true,
             MaxDepth = 3
         };
 

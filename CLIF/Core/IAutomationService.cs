@@ -75,6 +75,9 @@ public interface IAutomationService
     
     // Get root element for tree navigation
     Task<AutomationElement?> GetRootElementAsync();
+    
+    // Convenience helper to get the main window (same as root element when attached)
+    Task<AutomationElement?> GetMainWindowAsync();
 }
 
 public class ElementSelector
