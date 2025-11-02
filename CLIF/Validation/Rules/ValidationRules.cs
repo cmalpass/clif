@@ -14,7 +14,7 @@ public interface IValidationRule<T>
     /// Gets the name of this validation rule
     /// </summary>
     string RuleName { get; }
-    
+
     /// <summary>
     /// Validates the specified input
     /// </summary>
@@ -33,7 +33,7 @@ public abstract class ValidationRule<T> : IValidationRule<T>
     /// Gets the name of this validation rule
     /// </summary>
     public abstract string RuleName { get; }
-    
+
     /// <summary>
     /// Validates the specified input
     /// </summary>
@@ -46,7 +46,7 @@ public abstract class ValidationRule<T> : IValidationRule<T>
     /// </summary>
     /// <returns>A successful validation result</returns>
     protected ValidationResult Success() => ValidationResult.Success();
-    
+
     /// <summary>
     /// Creates a failed validation result with the specified message
     /// </summary>
@@ -166,17 +166,17 @@ public class LengthRule : ValidationRule<string>
     public override ValidationResult Validate(string input)
     {
         var length = input?.Length ?? 0;
-        
+
         if (length < _minLength)
         {
             return Failure($"Input must be at least {_minLength} characters long (minimum length)");
         }
-        
+
         if (length > _maxLength)
         {
             return Failure($"Input cannot exceed {_maxLength} characters (maximum length)");
         }
-        
+
         return Success();
     }
 }
@@ -312,7 +312,7 @@ public class NoInjectionRule : ValidationRule<string>
         }
 
         var lowerInput = input.ToLowerInvariant();
-        
+
         foreach (var pattern in DangerousPatterns)
         {
             if (lowerInput.Contains(pattern))

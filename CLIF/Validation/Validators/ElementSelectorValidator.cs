@@ -279,13 +279,13 @@ public class SafeCharactersRule : ValidationRule<string>
         foreach (var c in input)
         {
             var category = char.GetUnicodeCategory(c);
-            
+
             // Block format characters that could be used for attacks
             if (category == System.Globalization.UnicodeCategory.Format && c != '\u200C' && c != '\u200D')
             {
                 return Failure($"Input contains unsafe format character: U+{((int)c):X4}");
             }
-            
+
             // Block private use characters
             if (category == System.Globalization.UnicodeCategory.PrivateUse)
             {

@@ -9,18 +9,18 @@ public interface IAutomationService
     Task DetachAsync();
     bool IsAttached { get; }
     int? AttachedProcessId { get; }
-    
+
     // Element operations
     Task<AutomationElement?> FindElementAsync(string selector);
     Task<AutomationElement[]> FindElementsAsync(string selector);
-    
+
     // Basic interactions
     Task<bool> ClickAsync(AutomationElement element);
     Task<bool> DoubleClickAsync(AutomationElement element);
     Task<bool> RightClickAsync(AutomationElement element);
     Task<bool> TypeTextAsync(AutomationElement element, string text);
     Task<bool> SetValueAsync(AutomationElement element, string value);
-    
+
     // Advanced control interactions
     Task<bool> SelectComboBoxItemAsync(AutomationElement element, string itemText);
     Task<bool> SelectComboBoxItemByIndexAsync(AutomationElement element, int index);
@@ -41,13 +41,13 @@ public interface IAutomationService
     Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex);
     Task<bool> InvokeMenuItemAsync(AutomationElement element);
     Task<bool> SetToggleButtonAsync(AutomationElement element, bool isToggled);
-    
+
     // DataGrid-specific operations
     Task<bool> SetDataGridCheckboxAsync(string dataGridSelector, int rowIndex, bool isChecked);
     Task<bool> SetDataGridCheckboxByNameAsync(string dataGridSelector, string rowName, bool isChecked);
     Task<bool> ToggleDataGridCheckboxAsync(string dataGridSelector, int rowIndex);
     Task<bool[]> GetDataGridCheckboxStatesAsync(string dataGridSelector);
-    
+
     // Data extraction
     Task<string> GetTextAsync(AutomationElement element);
     Task<string> GetValueAsync(AutomationElement element);
@@ -64,18 +64,18 @@ public interface IAutomationService
     Task<bool> GetExpanderStateAsync(AutomationElement element);
     Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element);
     Task<bool> GetToggleButtonStateAsync(AutomationElement element);
-    
+
     // Navigation
     Task<bool> FocusAsync(AutomationElement element);
     Task<bool> ScrollToAsync(AutomationElement element);
-    
+
     // Screenshots
     Task<byte[]> TakeScreenshotAsync();
     Task<byte[]> TakeElementScreenshotAsync(AutomationElement element);
-    
+
     // Get root element for tree navigation
     Task<AutomationElement?> GetRootElementAsync();
-    
+
     // Convenience helper to get the main window (same as root element when attached)
     Task<AutomationElement?> GetMainWindowAsync();
 }
