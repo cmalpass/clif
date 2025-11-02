@@ -2,6 +2,7 @@ using CLIF.Core;
 using CLIF.Tests.Utilities;
 using FluentAssertions;
 using Xunit;
+using System.IO;
 
 namespace CLIF.Tests.Integration;
 

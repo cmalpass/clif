@@ -4,6 +4,7 @@ using CLIF.Tests.Utilities;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.IO;
 
 namespace CLIF.Tests.Unit.Services;
 

@@ -115,6 +115,10 @@ public static class SanitizationHelper
 
         var result = input;
 
+        // Do not remove injection-like patterns for free-form text input.
+        // Sanitization for text input should preserve content like ${jndi:...} or SQL snippets
+        // and only strip truly dangerous control/unicode characters or nulls.
+
         // Remove null characters
         result = result.Replace("\0", "");
 
