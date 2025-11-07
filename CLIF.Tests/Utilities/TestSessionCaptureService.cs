@@ -2,7 +2,6 @@ using CLIF.Services;
 using Microsoft.Extensions.Logging;
 using FlaUI.Core.AutomationElements;
 using System.IO;
-using System.IO;
 
 namespace CLIF.Tests.Utilities;
 
