@@ -234,7 +234,7 @@ public class ShellViewModel : Screen
                 UpdateStatus("Expander opened");
         }
     }
-    
+
     public System.DateTime SelectedTime
     {
         get => _selectedTime;
@@ -245,7 +245,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Time selected: {value.ToShortTimeString()}");
         }
     }
-    
+
     public double RatingValue
     {
         get => _ratingValue;
@@ -256,7 +256,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Rating: {value} stars");
         }
     }
-    
+
     public bool SwitchToggleIsChecked
     {
         get => _switchToggleIsChecked;
@@ -267,7 +267,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Switch toggle is {(value ? "ON" : "OFF")}");
         }
     }
-    
+
     public bool ActionToggleIsChecked
     {
         get => _actionToggleIsChecked;
@@ -278,7 +278,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Action toggle is {(value ? "ON" : "OFF")}");
         }
     }
-    
+
     public bool FlatToggleIsChecked
     {
         get => _flatToggleIsChecked;
@@ -289,7 +289,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Flat toggle is {(value ? "ON" : "OFF")}");
         }
     }
-    
+
     public System.Windows.Media.Color SelectedColor
     {
         get => _selectedColor;
@@ -300,7 +300,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Color selected: {value}");
         }
     }
-    
+
     public double DiscreteSliderValue
     {
         get => _discreteSliderValue;
@@ -311,7 +311,7 @@ public class ShellViewModel : Screen
             UpdateStatus($"Discrete slider: {value}");
         }
     }
-    
+
     public bool Chip1IsChecked
     {
         get => _chip1IsChecked;
@@ -322,7 +322,7 @@ public class ShellViewModel : Screen
             if (value) UpdateStatus("Action Chip selected");
         }
     }
-    
+
     public bool Chip2IsChecked
     {
         get => _chip2IsChecked;
@@ -333,7 +333,7 @@ public class ShellViewModel : Screen
             if (value) UpdateStatus("Filter Chip selected");
         }
     }
-    
+
     public bool Chip3IsChecked
     {
         get => _chip3IsChecked;
@@ -378,48 +378,48 @@ public class ShellViewModel : Screen
     {
         UpdateStatus($"ToolBar toggle: {parameter}");
     }
-    
+
     public void OutlinedButton()
     {
         UpdateStatus("Outlined button clicked!");
     }
-    
+
     public void FlatButton()
     {
         UpdateStatus("Flat button clicked!");
     }
-    
+
     public void IconButton()
     {
         UpdateStatus("Icon button clicked!");
     }
-    
+
     public void FloatingActionButton()
     {
         UpdateStatus("Floating Action Button clicked!");
     }
-    
+
     public void ShowSnackbar()
     {
         UpdateStatus("Snackbar message displayed");
         // In real app, you'd use MaterialDesign's MessageQueue
     }
-    
+
     public void Chip1()
     {
         UpdateStatus("Action Chip clicked!");
     }
-    
+
     public void Chip2()
     {
         Chip2IsChecked = !Chip2IsChecked;
     }
-    
+
     public void Chip3()
     {
         Chip3IsChecked = !Chip3IsChecked;
     }
-    
+
     public void DeletableChip()
     {
         UpdateStatus("Deletable chip action triggered");
