@@ -60,7 +60,7 @@ public class InteractiveCommandTests
         var args = new[] { "interactive" };
 
         // Act
-        var result = await rootCommand.InvokeAsync(args);
+        await rootCommand.InvokeAsync(args);
 
         // Assert
         _mockInteractiveService.Verify(
