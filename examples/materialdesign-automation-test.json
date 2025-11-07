@@ -1,0 +1,78 @@
+{
+  "name": "MaterialDesign WPF Automation Test",
+  "description": "Comprehensive test of MaterialDesign themed TestWpfApp",
+  "version": "1.0",
+  "steps": [
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Click the primary MaterialDesign button",
+      "expected": "Shows success dialog"
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "text": "MaterialDesign Integration Success!",
+      "description": "Type in the MaterialDesign OutlinedTextBox",
+      "expected": "Text appears in styled text box"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestCheckBox",
+      "controlType": "checkbox",
+      "interactionType": "toggle",
+      "description": "Toggle the MaterialDesign styled checkbox",
+      "expected": "Checkbox state changes with MaterialDesign animation"
+    },
+    {
+      "action": "interact",
+      "element": "id=RadioButton2",
+      "controlType": "radiobutton",
+      "interactionType": "select",
+      "description": "Select the second MaterialDesign radio button",
+      "expected": "Radio button selection changes"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestComboBox",
+      "controlType": "combobox",
+      "interactionType": "select",
+      "value": "Item 2",
+      "description": "Select item from MaterialDesign ComboBox",
+      "expected": "ComboBox shows selected item with MaterialDesign styling"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestListBox",
+      "controlType": "listbox",
+      "interactionType": "select",
+      "value": "List Item 3",
+      "description": "Select item from MaterialDesign ListBox",
+      "expected": "List item is highlighted with MaterialDesign colors"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestDataGrid",
+      "controlType": "datagrid",
+      "interactionType": "set-checkbox-by-name",
+      "value": "Jane Smith:true",
+      "description": "Toggle DataGrid checkbox for Jane Smith",
+      "expected": "Checkbox state changes in MaterialDesign styled DataGrid"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestTabControl",
+      "controlType": "tab",
+      "interactionType": "select",
+      "value": "Tab 3",
+      "description": "Switch to Tab 3 in MaterialDesign TabControl",
+      "expected": "Tab selection changes with MaterialDesign tab styling"
+    },
+    {
+      "action": "click",
+      "element": "id=ToggleButton",
+      "description": "Click the MaterialDesign accent button",
+      "expected": "Shows toggle confirmation dialog"
+    }
+  ]
+}
