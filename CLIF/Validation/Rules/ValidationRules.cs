@@ -169,7 +169,7 @@ public class LengthRule : ValidationRule<string>
 
         if (length < _minLength)
         {
-            return Failure($"Input must be at least {_minLength} characters long (minimum length)");
+            return Failure($"Input must be at least {_minLength} characters long");
         }
 
         if (length > _maxLength)
