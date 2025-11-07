@@ -9,3 +9,6 @@ bin/*
 obj/*
 .vs/*
 specs/*
+tools/ValidatorDebugger/
+tools/ValidatorDebug/bin/
+tools/ValidatorDebug/obj/

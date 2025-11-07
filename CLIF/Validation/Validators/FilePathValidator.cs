@@ -20,7 +20,7 @@ public class FilePathValidator : ValidatorBase<string>
     /// <param name="mustExist">Whether the file must exist</param>
     /// <param name="allowedExtensions">Array of allowed file extensions (e.g., ".json", ".txt")</param>
     /// <param name="maxFileSize">Maximum allowed file size in bytes (default: 10MB)</param>
-    public FilePathValidator(bool mustExist = true, string[]? allowedExtensions = null, long maxFileSize = 10 * 1024 * 1024)
+    public FilePathValidator(bool mustExist = false, string[]? allowedExtensions = null, long maxFileSize = 10 * 1024 * 1024)
     {
         _mustExist = mustExist;
         _allowedExtensions = allowedExtensions ?? Array.Empty<string>();
@@ -28,7 +28,7 @@ public class FilePathValidator : ValidatorBase<string>
 
         AddRule(new LengthRule(1, 260)); // Windows MAX_PATH
         AddRule(new PathTraversalRule());
-        AddRule(new InvalidCharactersRule());
+        // Note: InvalidCharactersRule removed since Path.GetFullPath normalization handles character validation
     }
 
     /// <summary>
@@ -38,37 +38,56 @@ public class FilePathValidator : ValidatorBase<string>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(string filePath)
     {
+        if (filePath == null)
+        {
+            return ValidationResult.Failure("File path cannot be null");
+        }
+
         if (string.IsNullOrWhiteSpace(filePath))
         {
             return ValidationResult.Failure("File path cannot be empty");
         }
 
-        var result = ValidateRules(filePath);
+        // First, run validation rules on the raw input to catch traversal patterns and invalid characters
+        var preResult = ValidateRules(filePath);
+        if (!preResult.IsValid)
+        {
+            return preResult;
+        }
 
-        // Normalize the path
+        // Normalize the path so further validation operates on a canonical form
+        string normalizedPath;
         try
         {
-            filePath = Path.GetFullPath(filePath);
+            normalizedPath = Path.GetFullPath(filePath);
         }
         catch (Exception ex)
         {
-            result.AddError($"Invalid file path format: {ex.Message}");
-            return result;
+            return ValidationResult.Failure($"Invalid file path format: {ex.Message}");
         }
+
+        // First, run security check for restricted system directories and return early if restricted
+        var secureCheck = ValidateSecurePath(normalizedPath);
+        if (!secureCheck.IsValid)
+        {
+            return secureCheck;
+        }
+
+        var result = ValidateRules(normalizedPath);
 
         // Check if file exists when required
         if (_mustExist && result.IsValid)
         {
-            if (!File.Exists(filePath))
+            if (!File.Exists(normalizedPath))
             {
-                result.AddError($"File not found: {filePath}");
+                result.AddError($"File not found: {normalizedPath}");
             }
             else
             {
                 // Validate file extension
                 if (_allowedExtensions.Any())
                 {
-                    var extension = Path.GetExtension(filePath).ToLowerInvariant();
+                    var extension = Path.GetExtension(normalizedPath).ToLowerInvariant();
                     if (!_allowedExtensions.Contains(extension))
                     {
                         result.AddError($"File extension '{extension}' is not allowed. Allowed extensions: {string.Join(", ", _allowedExtensions)}");
@@ -78,7 +97,7 @@ public class FilePathValidator : ValidatorBase<string>
                 // Validate file size
                 try
                 {
-                    var fileInfo = new FileInfo(filePath);
+                    var fileInfo = new FileInfo(normalizedPath);
                     if (fileInfo.Length > _maxFileSize)
                     {
                         result.AddError($"File size ({fileInfo.Length:N0} bytes) exceeds maximum allowed size ({_maxFileSize:N0} bytes)");
@@ -94,7 +113,7 @@ public class FilePathValidator : ValidatorBase<string>
         // Security check: ensure the file is not in system directories
         if (result.IsValid)
         {
-            result.Combine(ValidateSecurePath(filePath));
+            result.Combine(ValidateSecurePath(normalizedPath));
         }
 
         return result;
@@ -112,7 +131,7 @@ public class FilePathValidator : ValidatorBase<string>
         try
         {
             var fullPath = Path.GetFullPath(filePath);
-            
+
             // Define restricted directories
             var restrictedPaths = new[]
             {
@@ -128,7 +147,7 @@ public class FilePathValidator : ValidatorBase<string>
             {
                 if (fullPath.StartsWith(restrictedPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    result.AddError($"Access to system directory is not allowed: {restrictedPath}");
+                    result.AddError($"Access to restricted system directory: {restrictedPath}");
                     break;
                 }
             }

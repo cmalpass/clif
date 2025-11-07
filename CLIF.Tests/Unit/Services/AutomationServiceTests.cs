@@ -156,13 +156,13 @@ public class AutomationServiceTests : IDisposable
     [Fact]
     public async Task TypeTextAsync_WithEmptyText_ShouldReturnFalse()
     {
-        // Arrange - Create a mock element (though it won't be used in test)
-        var mockElement = new Mock<AutomationElement>();
+        // Arrange - empty text should be rejected regardless of element
+        AutomationElement? nullElement = null;
         var emptyText = "";
 
         // Act
         var result = await _automationService
-            .TypeTextAsync(mockElement.Object, emptyText)
+            .TypeTextAsync(nullElement!, emptyText)
             .WithTimeout(DefaultTimeout, "TypeTextAsync(empty)");
 
         // Assert

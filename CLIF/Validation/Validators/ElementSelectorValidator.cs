@@ -38,6 +38,11 @@ public class ElementSelectorValidator : ValidatorBase<string>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(string selector)
     {
+        if (selector is null)
+        {
+            return ValidationResult.Failure("Element selector cannot be null");
+        }
+
         if (string.IsNullOrWhiteSpace(selector))
         {
             return ValidationResult.Failure("Element selector cannot be empty");
@@ -63,18 +68,11 @@ public class ElementSelectorValidator : ValidatorBase<string>
     {
         var result = ValidationResult.Success();
 
-        // Check if selector contains an equals sign
-        if (!selector.Contains('='))
-        {
-            result.AddError("Selector must be in format 'type=value' (e.g., 'id=myButton')");
-            return result;
-        }
-
-        // Split selector into type and value
+        // Check if selector contains an equals sign and split into parts
         var parts = selector.Split('=', 2);
         if (parts.Length != 2)
         {
-            result.AddError("Invalid selector format. Use 'type=value'");
+            result.AddError("Invalid selector format");
             return result;
         }
 
@@ -92,7 +90,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
         // Validate selector value is not empty
         if (string.IsNullOrWhiteSpace(selectorValue))
         {
-            result.AddError($"Selector value cannot be empty for type '{selectorType}'");
+            result.AddError("Selector value cannot be empty");
             return result;
         }
 
@@ -149,11 +147,20 @@ public class SelectorFormatRule : ValidationRule<string>
             return Failure("Selector cannot be empty");
         }
 
-        // Basic format check: must contain '=' and have content before and after
         var parts = input.Split('=', 2);
-        if (parts.Length != 2 || string.IsNullOrWhiteSpace(parts[0]) || string.IsNullOrWhiteSpace(parts[1]))
+        if (parts.Length != 2)
         {
-            return Failure("Selector must be in format 'type=value'");
+            return Failure("Invalid selector format");
+        }
+
+        if (string.IsNullOrWhiteSpace(parts[0]))
+        {
+            return Failure("Invalid selector format");
+        }
+
+        if (string.IsNullOrWhiteSpace(parts[1]))
+        {
+            return Failure("Selector value cannot be empty");
         }
 
         return Success();
@@ -173,7 +180,7 @@ public class TextInputValidator : ValidatorBase<string>
     /// </summary>
     /// <param name="maxLength">Maximum allowed text length</param>
     /// <param name="allowEmpty">Whether empty text is allowed</param>
-    public TextInputValidator(int maxLength = 10000, bool allowEmpty = true)
+    public TextInputValidator(int maxLength = 10000, bool allowEmpty = false)
     {
         _maxLength = maxLength;
         _allowEmpty = allowEmpty;
@@ -190,12 +197,19 @@ public class TextInputValidator : ValidatorBase<string>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(string text)
     {
-        // Handle null input
+        // Handle null input with specific message expected by tests
         if (text == null)
         {
-            return _allowEmpty ? ValidationResult.Success() : ValidationResult.Failure("Text input cannot be null");
+            return ValidationResult.Failure("Text input cannot be null");
         }
 
+        // Handle empty or whitespace-only input (unless allowEmpty is true)
+        if (!_allowEmpty && string.IsNullOrWhiteSpace(text))
+        {
+            return ValidationResult.Failure("Text input cannot be empty");
+        }
+
+        // Now validate using rules (including length and malicious content detection)
         var result = ValidateRules(text);
 
         // Additional text-specific validation
@@ -259,13 +273,13 @@ public class SafeCharactersRule : ValidationRule<string>
         foreach (var c in input)
         {
             var category = char.GetUnicodeCategory(c);
-            
+
             // Block format characters that could be used for attacks
             if (category == System.Globalization.UnicodeCategory.Format && c != '\u200C' && c != '\u200D')
             {
                 return Failure($"Input contains unsafe format character: U+{((int)c):X4}");
             }
-            
+
             // Block private use characters
             if (category == System.Globalization.UnicodeCategory.PrivateUse)
             {

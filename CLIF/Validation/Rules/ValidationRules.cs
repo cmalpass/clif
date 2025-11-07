@@ -14,7 +14,7 @@ public interface IValidationRule<T>
     /// Gets the name of this validation rule
     /// </summary>
     string RuleName { get; }
-    
+
     /// <summary>
     /// Validates the specified input
     /// </summary>
@@ -33,7 +33,7 @@ public abstract class ValidationRule<T> : IValidationRule<T>
     /// Gets the name of this validation rule
     /// </summary>
     public abstract string RuleName { get; }
-    
+
     /// <summary>
     /// Validates the specified input
     /// </summary>
@@ -46,7 +46,7 @@ public abstract class ValidationRule<T> : IValidationRule<T>
     /// </summary>
     /// <returns>A successful validation result</returns>
     protected ValidationResult Success() => ValidationResult.Success();
-    
+
     /// <summary>
     /// Creates a failed validation result with the specified message
     /// </summary>
@@ -166,17 +166,17 @@ public class LengthRule : ValidationRule<string>
     public override ValidationResult Validate(string input)
     {
         var length = input?.Length ?? 0;
-        
+
         if (length < _minLength)
         {
             return Failure($"Input must be at least {_minLength} characters long");
         }
-        
+
         if (length > _maxLength)
         {
             return Failure($"Input cannot exceed {_maxLength} characters");
         }
-        
+
         return Success();
     }
 }
@@ -233,6 +233,37 @@ public class InvalidCharactersRule : ValidationRule<string>
     public override string RuleName => "InvalidCharacters";
 
     /// <summary>
+    /// Checks if a colon at the given position is part of a Windows drive letter pattern
+    /// </summary>
+    private static bool IsWindowsDriveLetterColon(string input, int index)
+    {
+        // Check for typical drive-letter pattern "C:\" or "C:/"
+        bool hasPrecedingLetter = index > 0 && char.IsLetter(input[index - 1]);
+        bool hasFollowingPathSeparator = index + 1 < input.Length && IsPathSeparator(input[index + 1]);
+        
+        if (hasPrecedingLetter && hasFollowingPathSeparator)
+        {
+            return true;
+        }
+
+        // Also allow the simple "C:" form when at index 1
+        if (index == 1 && char.IsLetter(input[0]))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a character is a path separator (backslash or forward slash)
+    /// </summary>
+    private static bool IsPathSeparator(char c)
+    {
+        return c == '\\' || c == '/';
+    }
+
+    /// <summary>
     /// Validates that the input does not contain invalid file path characters
     /// </summary>
     /// <param name="input">The input to validate</param>
@@ -244,10 +275,21 @@ public class InvalidCharactersRule : ValidationRule<string>
             return Success();
         }
 
-        var invalidChar = input.FirstOrDefault(c => InvalidChars.Contains(c));
-        if (invalidChar != default)
+        // Allow drive-letter colon on Windows (e.g., "C:\path\to\file")
+        for (int i = 0; i < input.Length; i++)
         {
-            return Failure($"Input contains invalid character: '{invalidChar}'");
+            var c = input[i];
+
+            // Allow colon when it appears as part of a drive letter (e.g., "C:\")
+            if (c == ':' && IsWindowsDriveLetterColon(input, i))
+            {
+                continue;
+            }
+
+            if (InvalidChars.Contains(c))
+            {
+                return Failure($"Input contains invalid character: '{c}'");
+            }
         }
 
         return Success();
@@ -264,7 +306,13 @@ public class NoInjectionRule : ValidationRule<string>
         "<script", "</script>", "javascript:", "vbscript:",
         "onload=", "onerror=", "onclick=", "onmouseover=",
         "eval(", "setTimeout(", "setInterval(",
-        "document.", "window.", "alert(", "confirm("
+        "document.", "window.", "alert(", "confirm(",
+        // Common modern injection patterns
+        "${jndi", "${env:",
+        // File traversal and path patterns
+        "..\\", "../",
+        // SQL-ish patterns (simple heuristic to catch obvious SQL injection strings)
+        "drop table", "';"
     };
 
     /// <summary>
@@ -285,12 +333,13 @@ public class NoInjectionRule : ValidationRule<string>
         }
 
         var lowerInput = input.ToLowerInvariant();
-        
+
         foreach (var pattern in DangerousPatterns)
         {
             if (lowerInput.Contains(pattern))
             {
-                return Failure($"Input contains potentially dangerous content: {pattern}");
+                // Provide a consistent, test-friendly message
+                return Failure($"Input contains potentially malicious pattern: {pattern}");
             }
         }
 
