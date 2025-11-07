@@ -1,7 +1,6 @@
 {
   "dotnet.defaultSolutionOrFolder": "${workspaceFolder}/clif.sln",
   "dotnet.autoGenerateConfigurationFiles": true,
-  "omnisharp.defaultLaunchSolution": "${workspaceFolder}/clif.sln",
   "dotnet.server.useOmnisharp": false,
   "[csharp]": {
     "editor.defaultFormatter": "ms-dotnettools.csharp",
@@ -13,5 +12,6 @@
     "**/bin": true,
     "**/obj": true,
     "**/.vs": true
-  }
+  },
+  "dotnet.defaultSolution": "${workspaceFolder}/clif.sln"
 }

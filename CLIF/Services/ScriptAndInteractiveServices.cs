@@ -385,12 +385,22 @@ public class ScriptService : IScriptService
 public class InteractiveService : IInteractiveService
 {
     private readonly ILogger<InteractiveService> _logger;
+    private readonly IAutomationService _automationService;
+    private readonly IElementTreeService _elementTreeService;
+    private readonly ISessionCaptureService _captureService;
     
     public bool IsSessionActive { get; private set; }
 
-    public InteractiveService(ILogger<InteractiveService> logger)
+    public InteractiveService(
+        ILogger<InteractiveService> logger,
+        IAutomationService automationService,
+        IElementTreeService elementTreeService,
+        ISessionCaptureService captureService)
     {
         _logger = logger;
+        _automationService = automationService;
+        _elementTreeService = elementTreeService;
+        _captureService = captureService;
     }
 
     public async Task StartInteractiveModeAsync(int? processId = null)
@@ -401,12 +411,21 @@ public class InteractiveService : IInteractiveService
     public async Task StartInteractiveSessionAsync(int? processId = null)
     {
         IsSessionActive = true;
+        
         Console.WriteLine("=== CLIF Interactive Mode ===");
         Console.WriteLine("Type 'help' for available commands or 'exit' to quit.");
         
         if (processId.HasValue)
         {
-            Console.WriteLine($"Attached to process: {processId}");
+            var attached = await _automationService.AttachToProcessAsync(processId.Value);
+            if (attached)
+            {
+                Console.WriteLine($"✓ Attached to process: {processId}");
+            }
+            else
+            {
+                Console.WriteLine($"⚠ Failed to attach to process: {processId}");
+            }
         }
 
         while (IsSessionActive)
@@ -427,6 +446,11 @@ public class InteractiveService : IInteractiveService
             await ExecuteCommandAsync(input.Trim());
         }
 
+        if (_automationService.IsAttached)
+        {
+            await _automationService.DetachAsync();
+        }
+
         Console.WriteLine("Interactive session ended.");
     }
 
@@ -434,15 +458,84 @@ public class InteractiveService : IInteractiveService
     {
         try
         {
-            if (command.ToLowerInvariant() == "help")
-            {
-                await ShowHelpAsync();
+            var parts = ParseCommand(command);
+            if (parts.Length == 0)
                 return true;
-            }
 
-            // TODO: Implement command parsing and execution
-            Console.WriteLine($"Command '{command}' - implementation coming soon!");
-            return true;
+            var cmd = parts[0].ToLowerInvariant();
+
+            switch (cmd)
+            {
+                case "help":
+                    await ShowHelpAsync();
+                    return true;
+
+                case "click":
+                    if (parts.Length < 2)
+                    {
+                        Console.WriteLine("Usage: click <selector>");
+                        return false;
+                    }
+                    return await ExecuteClickAsync(parts[1]);
+
+                case "type":
+                    if (parts.Length < 3)
+                    {
+                        Console.WriteLine("Usage: type <selector> <text>");
+                        return false;
+                    }
+                    var text = string.Join(" ", parts.Skip(2));
+                    return await ExecuteTypeAsync(parts[1], text);
+
+                case "get-text":
+                    if (parts.Length < 2)
+                    {
+                        Console.WriteLine("Usage: get-text <selector>");
+                        return false;
+                    }
+                    return await ExecuteGetTextAsync(parts[1]);
+
+                case "get-value":
+                    if (parts.Length < 2)
+                    {
+                        Console.WriteLine("Usage: get-value <selector>");
+                        return false;
+                    }
+                    return await ExecuteGetValueAsync(parts[1]);
+
+                case "tree":
+                    var depth = 5;
+                    if (parts.Length > 1 && int.TryParse(parts[1], out var d))
+                        depth = d;
+                    return await ExecuteTreeAsync(depth);
+
+                case "search":
+                    if (parts.Length < 2)
+                    {
+                        Console.WriteLine("Usage: search <criteria>");
+                        return false;
+                    }
+                    return await ExecuteSearchAsync(parts[1]);
+
+                case "screenshot":
+                    var filename = parts.Length > 1 ? parts[1] : null;
+                    return await ExecuteScreenshotAsync(filename);
+
+                case "attach":
+                    if (parts.Length < 2)
+                    {
+                        Console.WriteLine("Usage: attach <process-id>");
+                        return false;
+                    }
+                    if (int.TryParse(parts[1], out var pid))
+                        return await ExecuteAttachAsync(pid);
+                    Console.WriteLine("Invalid process ID");
+                    return false;
+
+                default:
+                    Console.WriteLine($"Unknown command: {cmd}. Type 'help' for available commands.");
+                    return false;
+            }
         }
         catch (Exception ex)
         {
@@ -450,6 +543,220 @@ public class InteractiveService : IInteractiveService
             Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
+    }
+
+    private string[] ParseCommand(string command)
+    {
+        // Simple parsing - splits by space but respects quoted strings
+        var parts = new List<string>();
+        var current = new System.Text.StringBuilder();
+        var inQuotes = false;
+
+        for (int i = 0; i < command.Length; i++)
+        {
+            var c = command[i];
+            if (c == '"')
+            {
+                inQuotes = !inQuotes;
+            }
+            else if (c == ' ' && !inQuotes)
+            {
+                if (current.Length > 0)
+                {
+                    parts.Add(current.ToString());
+                    current.Clear();
+                }
+            }
+            else
+            {
+                current.Append(c);
+            }
+        }
+
+        if (current.Length > 0)
+            parts.Add(current.ToString());
+
+        return parts.ToArray();
+    }
+
+    private async Task<bool> ExecuteClickAsync(string selector)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var element = await _automationService.FindElementAsync(selector);
+        if (element == null)
+        {
+            Console.WriteLine($"Element not found: {selector}");
+            return false;
+        }
+
+        var success = await _automationService.ClickAsync(element);
+        Console.WriteLine(success ? $"✓ Clicked: {selector}" : $"✗ Failed to click: {selector}");
+        return success;
+    }
+
+    private async Task<bool> ExecuteTypeAsync(string selector, string text)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var element = await _automationService.FindElementAsync(selector);
+        if (element == null)
+        {
+            Console.WriteLine($"Element not found: {selector}");
+            return false;
+        }
+
+        var success = await _automationService.TypeTextAsync(element, text);
+        Console.WriteLine(success ? $"✓ Typed text into: {selector}" : $"✗ Failed to type into: {selector}");
+        return success;
+    }
+
+    private async Task<bool> ExecuteGetTextAsync(string selector)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var element = await _automationService.FindElementAsync(selector);
+        if (element == null)
+        {
+            Console.WriteLine($"Element not found: {selector}");
+            return false;
+        }
+
+        var text = await _automationService.GetTextAsync(element);
+        Console.WriteLine($"Text: {text ?? "(empty)"}");
+        return true;
+    }
+
+    private async Task<bool> ExecuteGetValueAsync(string selector)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var element = await _automationService.FindElementAsync(selector);
+        if (element == null)
+        {
+            Console.WriteLine($"Element not found: {selector}");
+            return false;
+        }
+
+        var value = await _automationService.GetValueAsync(element);
+        Console.WriteLine($"Value: {value ?? "(empty)"}");
+        return true;
+    }
+
+    private async Task<bool> ExecuteTreeAsync(int depth)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var window = await _automationService.GetMainWindowAsync();
+        if (window == null)
+        {
+            Console.WriteLine("Could not get main window");
+            return false;
+        }
+
+        var tree = await _elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: depth);
+        var output = await _elementTreeService.PrintTreeAsync(tree);
+        Console.WriteLine(output);
+        return true;
+    }
+
+    private async Task<bool> ExecuteSearchAsync(string criteria)
+    {
+        if (!_automationService.IsAttached)
+        {
+            Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
+            return false;
+        }
+
+        var window = await _automationService.GetMainWindowAsync();
+        if (window == null)
+        {
+            Console.WriteLine("Could not get main window");
+            return false;
+        }
+
+        var tree = await _elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: 10);
+        
+        // Parse criteria (e.g., "name:Button" or "id:TestButton")
+        var searchCriteria = new ElementSearchCriteria();
+        if (criteria.Contains(':'))
+        {
+            var parts = criteria.Split(':', 2);
+            switch (parts[0].ToLowerInvariant())
+            {
+                case "name":
+                    searchCriteria.Name = parts[1];
+                    break;
+                case "id":
+                    searchCriteria.AutomationId = parts[1];
+                    break;
+                case "type":
+                    searchCriteria.ControlType = parts[1];
+                    break;
+                case "class":
+                    searchCriteria.ClassName = parts[1];
+                    break;
+            }
+        }
+        else
+        {
+            searchCriteria.Name = criteria;
+        }
+
+        var results = await _elementTreeService.SearchTreeAsync(tree, searchCriteria);
+        Console.WriteLine($"Found {results.Count} element(s):");
+        foreach (var result in results)
+        {
+            Console.WriteLine($"  - {result.Name} ({result.ControlType}) [{result.Selector}]");
+        }
+        return true;
+    }
+
+    private async Task<bool> ExecuteScreenshotAsync(string? filename)
+    {
+        filename ??= $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
+        await _captureService.CaptureAfterInteractionAsync("SCREENSHOT", filename, success: true);
+        Console.WriteLine($"✓ Screenshot saved: {filename}");
+        return true;
+    }
+
+    private async Task<bool> ExecuteAttachAsync(int processId)
+    {
+        if (_automationService.IsAttached)
+        {
+            await _automationService.DetachAsync();
+        }
+
+        var success = await _automationService.AttachToProcessAsync(processId);
+        if (success)
+        {
+            Console.WriteLine($"✓ Attached to process: {processId}");
+        }
+        else
+        {
+            Console.WriteLine($"✗ Failed to attach to process: {processId}");
+        }
+        return success;
     }
 
     public async Task ShowHelpAsync()
