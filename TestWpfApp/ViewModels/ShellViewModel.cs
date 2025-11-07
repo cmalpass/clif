@@ -238,7 +238,7 @@ public class ShellViewModel : Screen
     public void MenuItem(string parameter)
     {
         UpdateStatus($"Menu item clicked: {parameter}");
-        
+
         if (parameter == "Exit")
         {
             Application.Current.Shutdown();
