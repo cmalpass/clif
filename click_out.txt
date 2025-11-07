@@ -1,0 +1,18 @@
+'500' was not matched. Did you mean one of the following?
+-p
+-e
+Unrecognized command or argument '--wait'.
+Unrecognized command or argument '500'.
+
+Description:
+  Click on a UI element
+
+Usage:
+  CLIF click [options]
+
+Options:
+  -p, --process-id <process-id> (REQUIRED)  The process ID to attach to
+  -e, --element <element> (REQUIRED)        The automation ID or path to the element
+  -?, -h, --help                            Show help and usage information
+
+
