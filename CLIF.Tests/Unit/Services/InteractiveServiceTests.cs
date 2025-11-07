@@ -225,7 +225,7 @@ public class InteractiveServiceTests
             .ReturnsAsync((FlaUI.Core.AutomationElements.AutomationElement?)null);
 
         // Act
-        var result = await _interactiveService
+        await _interactiveService
             .ExecuteCommandAsync("type id=TextBox \"Hello World\"")
             .WithTimeout(DefaultTimeout, "ExecuteCommandAsync(type with quotes)");
 
