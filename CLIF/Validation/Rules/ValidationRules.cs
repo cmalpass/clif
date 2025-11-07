@@ -239,8 +239,7 @@ public class InvalidCharactersRule : ValidationRule<string>
     {
         // Check for typical drive-letter pattern "C:\" or "C:/"
         bool hasPrecedingLetter = index > 0 && char.IsLetter(input[index - 1]);
-        bool hasFollowingPathSeparator = index + 1 < input.Length && 
-            (input[index + 1] == '\\' || input[index + 1] == '/');
+        bool hasFollowingPathSeparator = index + 1 < input.Length && IsPathSeparator(input[index + 1]);
         
         if (hasPrecedingLetter && hasFollowingPathSeparator)
         {
@@ -248,12 +247,20 @@ public class InvalidCharactersRule : ValidationRule<string>
         }
 
         // Also allow the simple "C:" form when at index 1
-        if (index == 1 && input.Length > 1 && char.IsLetter(input[0]))
+        if (index == 1 && char.IsLetter(input[0]))
         {
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks if a character is a path separator (backslash or forward slash)
+    /// </summary>
+    private static bool IsPathSeparator(char c)
+    {
+        return c == '\\' || c == '/';
     }
 
     /// <summary>
