@@ -203,8 +203,8 @@ public class TextInputValidator : ValidatorBase<string>
             return ValidationResult.Failure("Text input cannot be null");
         }
 
-        // Handle empty or whitespace-only input with specific message expected by tests
-        if (string.IsNullOrWhiteSpace(text))
+        // Handle empty or whitespace-only input (unless allowEmpty is true)
+        if (!_allowEmpty && string.IsNullOrWhiteSpace(text))
         {
             return ValidationResult.Failure("Text input cannot be empty");
         }

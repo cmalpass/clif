@@ -237,9 +237,12 @@ public class InvalidCharactersRule : ValidationRule<string>
     /// </summary>
     private static bool IsWindowsDriveLetterColon(string input, int index)
     {
-        // Typical drive-letter pattern "C:\" or "C:/"
-        if (index > 0 && char.IsLetter(input[index - 1]) && 
-            (index + 1 < input.Length && (input[index + 1] == '\\' || input[index + 1] == '/')))
+        // Check for typical drive-letter pattern "C:\" or "C:/"
+        bool hasPrecedingLetter = index > 0 && char.IsLetter(input[index - 1]);
+        bool hasFollowingPathSeparator = index + 1 < input.Length && 
+            (input[index + 1] == '\\' || input[index + 1] == '/');
+        
+        if (hasPrecedingLetter && hasFollowingPathSeparator)
         {
             return true;
         }
