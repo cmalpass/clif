@@ -1,0 +1,409 @@
+<Window x:Class="TestWpfApp.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:cal="http://caliburnmicro.com"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        Height="800" Width="1200"
+        WindowState="Maximized">
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Top AppBar -->
+            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16" materialDesign:ElevationAssist.Elevation="Dp4">
+                <DockPanel>
+                    <materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignRightEdges">
+                        <StackPanel>
+                            <Button Content="Settings" />
+                            <Button Content="Help" />
+                            <Separator/>
+                            <Button Content="Exit" cal:Message.Attach="[Event Click] = [Action MenuItem('Exit')]"/>
+                        </StackPanel>
+                    </materialDesign:PopupBox>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="TestTube" Width="32" Height="32" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock VerticalAlignment="Center" FontSize="22" Text="Comprehensive WPF Controls Test App"/>
+                    </StackPanel>
+                </DockPanel>
+            </materialDesign:ColorZone>
+            
+            <!-- Main Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Column 1: Basic Controls -->
+                    <materialDesign:Card Grid.Column="0" Margin="8" Padding="16">
+                        <StackPanel>
+                            <TextBlock Style="{DynamicResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16">Basic Controls</TextBlock>
+                            
+                                <Button x:Name="TestButton" 
+                                    Style="{DynamicResource MaterialDesignRaisedButton}"
+                                    Content="Click Me" 
+                                    Width="150" 
+                                    Height="36" 
+                                    Margin="0,8"/>
+                            
+                                <Button x:Name="ToggleButton" 
+                                    Style="{DynamicResource MaterialDesignRaisedAccentButton}"
+                                    Content="Toggle Me" 
+                                    Width="150" 
+                                    Height="36" 
+                                    Margin="0,8"/>
+                            
+                            <TextBox x:Name="TestTextBox" 
+                                     materialDesign:HintAssist.Hint="Enter text here"
+                                     Style="{DynamicResource MaterialDesignOutlinedTextBox}"
+                                     Width="250" 
+                                     Margin="0,8"
+                                     Text="{Binding TestTextBoxText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                            
+                            <PasswordBox x:Name="TestPasswordBox" 
+                                         materialDesign:HintAssist.Hint="Password"
+                                         Style="{DynamicResource MaterialDesignOutlinedPasswordBox}"
+                                         Width="250" 
+                                         Margin="0,8"
+                                         cal:Message.Attach="[Event PasswordChanged] = [Action PasswordChanged($source.Password)]"/>
+                            
+                            <CheckBox x:Name="TestCheckBox" 
+                                      Content="Check me" 
+                                      Margin="0,8" 
+                                      IsChecked="{Binding TestCheckBoxIsChecked}"
+                                      Style="{DynamicResource MaterialDesignCheckBox}"/>
+                            
+                            <StackPanel Margin="0,8">
+                                <RadioButton x:Name="RadioButton1" 
+                                             Content="Option 1" 
+                                             GroupName="TestGroup" 
+                                             Margin="0,4" 
+                                             IsChecked="{Binding RadioButton1IsChecked}"
+                                             Style="{DynamicResource MaterialDesignRadioButton}"/>
+                                <RadioButton x:Name="RadioButton2" 
+                                             Content="Option 2" 
+                                             GroupName="TestGroup" 
+                                             Margin="0,4" 
+                                             IsChecked="{Binding RadioButton2IsChecked}"
+                                             Style="{DynamicResource MaterialDesignRadioButton}"/>
+                            </StackPanel>
+                            
+                            <ComboBox x:Name="TestComboBox" 
+                                      materialDesign:HintAssist.Hint="Select an item"
+                                      Style="{DynamicResource MaterialDesignOutlinedComboBox}"
+                                      Width="250" 
+                                      Margin="0,8" 
+                                      SelectedIndex="{Binding SelectedComboBoxIndex}">
+                                <ComboBoxItem Content="Item 1"/>
+                                <ComboBoxItem Content="Item 2"/>
+                                <ComboBoxItem Content="Item 3"/>
+                                <ComboBoxItem Content="Item 4"/>
+                            </ComboBox>
+                            
+                            <ListBox x:Name="TestListBox" 
+                                     Width="250" 
+                                     Height="120" 
+                                     Margin="0,8" 
+                                     SelectedIndex="{Binding SelectedListBoxIndex}"
+                                     Style="{DynamicResource MaterialDesignListBox}">
+                                <ListBoxItem Content="List Item 1"/>
+                                <ListBoxItem Content="List Item 2"/>
+                                <ListBoxItem Content="List Item 3"/>
+                                <ListBoxItem Content="List Item 4"/>
+                            </ListBox>
+                            
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Slider Value" FontSize="12" Margin="0,0,0,4"/>
+                                <Slider x:Name="TestSlider" 
+                                    Width="250" 
+                                    Minimum="0" 
+                                    Maximum="100" 
+                                    Value="{Binding SliderValue}"
+                                    Style="{DynamicResource MaterialDesignSlider}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Progress" FontSize="12" Margin="0,0,0,4"/>
+                                <ProgressBar x:Name="TestProgressBar" 
+                                             Width="250" 
+                                             Height="6" 
+                                             Minimum="0" 
+                                             Maximum="100" 
+                                             Value="{Binding ProgressBarValue}"
+                                             Style="{DynamicResource MaterialDesignLinearProgressBar}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    
+                    <!-- Column 2: Advanced Controls -->
+                    <materialDesign:Card Grid.Column="1" Margin="8" Padding="16">
+                        <StackPanel>
+                            <TextBlock Style="{DynamicResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16">Advanced Controls</TextBlock>
+                            
+                            <DatePicker x:Name="TestDatePicker" 
+                                        materialDesign:HintAssist.Hint="Pick a date"
+                                        Style="{DynamicResource MaterialDesignOutlinedDatePicker}"
+                                        Width="250" 
+                                        Margin="0,8" 
+                                        SelectedDate="{Binding SelectedDate}"/>
+                            
+                            <Calendar x:Name="TestCalendar" 
+                                      Margin="0,8" 
+                                      SelectedDate="{Binding SelectedDate}"
+                                      Style="{DynamicResource MaterialDesignCalendarPortrait}"/>
+                            
+                            <materialDesign:Card Background="{DynamicResource PrimaryHueMidBrush}" 
+                                                 Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                                 Padding="12" 
+                                                 Margin="0,8">
+                                <TextBlock x:Name="StatusTextBlock" 
+                                           Text="{Binding StatusMessage}"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"/>
+                            </materialDesign:Card>
+                            
+                            <GroupBox Header="Grouped Controls" 
+                                      Width="280" 
+                                      Margin="0,8"
+                                      Style="{DynamicResource MaterialDesignCardGroupBox}">
+                                <StackPanel Margin="8">
+                                    <CheckBox Content="Option A" Margin="0,4" Style="{DynamicResource MaterialDesignCheckBox}"/>
+                                    <CheckBox Content="Option B" Margin="0,4" Style="{DynamicResource MaterialDesignCheckBox}"/>
+                                    <CheckBox Content="Option C" Margin="0,4" Style="{DynamicResource MaterialDesignCheckBox}"/>
+                                </StackPanel>
+                            </GroupBox>
+                            
+                            <Expander x:Name="TestExpander" 
+                                      Header="Expandable Section" 
+                                      Width="280" 
+                                      Margin="0,8" 
+                                      IsExpanded="{Binding IsExpanderExpanded}"
+                                      Style="{DynamicResource MaterialDesignExpander}">
+                                <StackPanel Margin="24,8,24,16">
+                                    <TextBlock Text="Hidden content goes here" Margin="0,0,0,8"/>
+                                            <Button Content="Hidden Button" 
+                                            Width="120" 
+                                            Height="32"
+                                            Style="{DynamicResource MaterialDesignOutlinedButton}"/>
+                                </StackPanel>
+                            </Expander>
+                            
+                            <TabControl x:Name="TestTabControl" 
+                                        Width="280" 
+                                        Margin="0,8" 
+                                        SelectedIndex="{Binding SelectedTabIndex}"
+                                        Style="{DynamicResource MaterialDesignFilledTabControl}">
+                                <TabItem Header="Tab 1">
+                                    <StackPanel Margin="16">
+                                        <TextBlock Text="Content of Tab 1" FontSize="14"/>
+                                        <materialDesign:PackIcon Kind="ViewDashboard" Width="48" Height="48" Margin="0,16"/>
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Tab 2">
+                                    <StackPanel Margin="16">
+                                        <TextBlock Text="Content of Tab 2" FontSize="14"/>
+                                        <materialDesign:PackIcon Kind="Settings" Width="48" Height="48" Margin="0,16"/>
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Tab 3">
+                                    <StackPanel Margin="16">
+                                        <TextBlock Text="Content of Tab 3" FontSize="14"/>
+                                        <materialDesign:PackIcon Kind="Information" Width="48" Height="48" Margin="0,16"/>
+                                    </StackPanel>
+                                </TabItem>
+                            </TabControl>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    
+                    <!-- Column 3: Data and Complex Controls -->
+                    <materialDesign:Card Grid.Column="2" Margin="8" Padding="16">
+                        <StackPanel>
+                            <TextBlock Style="{DynamicResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16">Data Controls</TextBlock>
+                            
+                            <DataGrid x:Name="TestDataGrid" 
+                                      Width="340" 
+                                      Height="180" 
+                                      Margin="0,8" 
+                                      AutoGenerateColumns="True" 
+                                      ItemsSource="{Binding SampleData}"
+                                      SelectedItem="{Binding SelectedDataGridItem}"
+                                      CanUserAddRows="False"
+                                      materialDesign:DataGridAssist.CellPadding="8"
+                                      materialDesign:DataGridAssist.ColumnHeaderPadding="8"/>
+                            
+                            <TreeView x:Name="TestTreeView" 
+                                      Width="340" 
+                                      Height="140" 
+                                      Margin="0,8">
+                                <TreeViewItem Header="Root Node" IsExpanded="True">
+                                    <TreeViewItem Header="Child 1">
+                                        <TreeViewItem Header="Grandchild 1">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="FileDocument" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Grandchild 1" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="Grandchild 2">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="FileDocument" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Grandchild 2" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="Child 2">
+                                        <TreeViewItem Header="Grandchild 3">
+                                            <TreeViewItem.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <materialDesign:PackIcon Kind="FileDocument" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="Grandchild 3" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </TreeViewItem.HeaderTemplate>
+                                        </TreeViewItem>
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="Child 3"/>
+                                </TreeViewItem>
+                            </TreeView>
+                            
+                            <Menu x:Name="TestMenu" 
+                                  Margin="0,8"
+                                  materialDesign:MenuAssist.TopLevelMenuItemHeight="32">
+                                <MenuItem Header="File">
+                                    <MenuItem Header="New" 
+                                              Icon="{materialDesign:PackIcon Kind=FilePlus}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('New')]"/>
+                                    <MenuItem Header="Open" 
+                                              Icon="{materialDesign:PackIcon Kind=FolderOpen}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('Open')]"/>
+                                    <Separator/>
+                                    <MenuItem Header="Exit" 
+                                              Icon="{materialDesign:PackIcon Kind=ExitToApp}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('Exit')]"/>
+                                </MenuItem>
+                                <MenuItem Header="Edit">
+                                    <MenuItem Header="Cut" 
+                                              Icon="{materialDesign:PackIcon Kind=ContentCut}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('Cut')]"/>
+                                    <MenuItem Header="Copy" 
+                                              Icon="{materialDesign:PackIcon Kind=ContentCopy}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('Copy')]"/>
+                                    <MenuItem Header="Paste" 
+                                              Icon="{materialDesign:PackIcon Kind=ContentPaste}"
+                                              cal:Message.Attach="[Event Click] = [Action MenuItem('Paste')]"/>
+                                </MenuItem>
+                            </Menu>
+                            
+                            <ToolBar x:Name="TestToolBar" 
+                                     Margin="0,8"
+                                     Style="{DynamicResource MaterialDesignToolBar}">
+                                <Button ToolTip="New File"
+                                    Style="{DynamicResource MaterialDesignToolButton}"
+                                        cal:Message.Attach="[Event Click] = [Action ToolBarButton('New')]">
+                                    <StackPanel>
+                                        <materialDesign:PackIcon Kind="FilePlus"/>
+                                        <TextBlock Text="New" FontSize="10"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button ToolTip="Open File"
+                                    Style="{DynamicResource MaterialDesignToolButton}"
+                                        cal:Message.Attach="[Event Click] = [Action ToolBarButton('Open')]">
+                                    <StackPanel>
+                                        <materialDesign:PackIcon Kind="FolderOpen"/>
+                                        <TextBlock Text="Open" FontSize="10"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button ToolTip="Save File"
+                                    Style="{DynamicResource MaterialDesignToolButton}"
+                                        cal:Message.Attach="[Event Click] = [Action ToolBarButton('Save')]">
+                                    <StackPanel>
+                                        <materialDesign:PackIcon Kind="ContentSave"/>
+                                        <TextBlock Text="Save" FontSize="10"/>
+                                    </StackPanel>
+                                </Button>
+                                <Separator/>
+                                <ToggleButton ToolTip="Bold"
+                                              Style="{DynamicResource MaterialDesignToolToggleButton}"
+                                              cal:Message.Attach="[Event Click] = [Action ToolBarToggle('Bold')]">
+                                    <materialDesign:PackIcon Kind="FormatBold"/>
+                                </ToggleButton>
+                                <ToggleButton ToolTip="Italic"
+                                              Style="{DynamicResource MaterialDesignToolToggleButton}"
+                                              cal:Message.Attach="[Event Click] = [Action ToolBarToggle('Italic')]">
+                                    <materialDesign:PackIcon Kind="FormatItalic"/>
+                                </ToggleButton>
+                            </ToolBar>
+                            
+                            <StatusBar x:Name="TestStatusBar" 
+                                       Margin="0,8"
+                                       Background="{DynamicResource MaterialDesignDivider}">
+                                <StatusBarItem>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="InformationOutline" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                        <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StatusBarItem>
+                                <StatusBarItem>
+                                    <TextBlock Text="Line: 1"/>
+                                </StatusBarItem>
+                                <StatusBarItem>
+                                    <TextBlock Text="Column: 1"/>
+                                </StatusBarItem>
+                            </StatusBar>
+                            
+                            <RichTextBox x:Name="TestRichTextBox" 
+                                         Width="340" 
+                                         Height="100" 
+                                         Margin="0,8"
+                                         materialDesign:TextFieldAssist.HasOutlinedTextField="True">
+                                <FlowDocument>
+                                    <Paragraph>
+                                        <Run Text="Rich text content with "/>
+                                        <Bold>bold</Bold>
+                                        <Run Text=" and "/>
+                                        <Italic>italic</Italic>
+                                        <Run Text=" formatting..."/>
+                                    </Paragraph>
+                                </FlowDocument>
+                            </RichTextBox>
+                            
+                            <materialDesign:Card x:Name="TestImageBorder" 
+                                                 Width="120" 
+                                                 Height="120" 
+                                                 Margin="0,8"
+                                                 Background="{DynamicResource MaterialDesignChipBackground}">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Kind="Image" Width="48" Height="48"/>
+                                    <TextBlock Text="Image Placeholder" 
+                                               FontSize="10" 
+                                               Margin="0,8,0,0"
+                                               TextAlignment="Center"/>
+                                </StackPanel>
+                            </materialDesign:Card>
+                        </StackPanel>
+                    </materialDesign:Card>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>

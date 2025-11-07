@@ -1,4 +1,23 @@
 {
+  // Launch configurations for debugging TestWpfApp
+  // Use VS Code Debug (Omnisharp/CoreCLR) to start the WPF exe and capture any exceptions.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch TestWpfApp (.NET Core)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/TestWpfApp/bin/Debug/net8.0-windows/TestWpfApp.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/TestWpfApp",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
+}
+{
   "version": "0.2.0",
   "configurations": [
     {

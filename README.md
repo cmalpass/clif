@@ -345,6 +345,47 @@ CLIF is built with a comprehensive modular architecture:
 - **Dependency Injection**: Microsoft.Extensions.DependencyInjection for service management
 - **Configuration Management**: JSON-based configuration with environment support
 
+## TestWpfApp - Example Application
+
+The repository includes **TestWpfApp**, a comprehensive WPF test application built with **Caliburn.Micro MVVM framework**. This application demonstrates:
+
+- ✅ Proper MVVM architecture with Caliburn.Micro conventions
+- ✅ All WPF control types for testing automation
+- ✅ Full compatibility with CLIF automation tools
+- ✅ Clean separation of concerns (Views/ViewModels)
+- ✅ Convention-based data binding and action methods
+
+### Running TestWpfApp
+
+```bash
+# Build and run
+cd TestWpfApp
+dotnet build
+dotnet run
+
+# Or run the compiled executable
+./TestWpfApp/bin/Debug/net8.0-windows/TestWpfApp.exe
+```
+
+### Testing Automation
+
+```bash
+# Get the process ID
+clif list-processes
+
+# Test various controls
+clif click --process-id <PID> --element "id=TestButton"
+clif type --process-id <PID> --element "id=TestTextBox" --text "Hello MVVM!"
+clif interact --process-id <PID> --element "id=TestCheckBox" --control-type checkbox --action toggle
+```
+
+### Documentation
+- **README.md**: Architecture overview and features
+- **CALIBURN_CONVENTIONS.md**: Complete convention guide for Caliburn.Micro
+- **MIGRATION_SUMMARY.md**: Detailed migration notes and verification
+
+The TestWpfApp demonstrates that CLIF works seamlessly with modern MVVM applications while maintaining clean, testable code architecture.
+
 ## Contributing
 
 1. Fork the repository
