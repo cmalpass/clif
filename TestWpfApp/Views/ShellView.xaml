@@ -44,6 +44,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
                     <!-- Column 1: Basic Controls -->
@@ -58,12 +59,42 @@
                                     Height="36" 
                                     Margin="0,8"/>
                             
-                                <Button x:Name="ToggleButton" 
+                            <Button x:Name="ToggleButton" 
                                     Style="{DynamicResource MaterialDesignRaisedAccentButton}"
                                     Content="Toggle Me" 
                                     Width="150" 
                                     Height="36" 
                                     Margin="0,8"/>
+                                    
+                            <Button x:Name="OutlinedButton" 
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}"
+                                    Content="Outlined" 
+                                    Width="150" 
+                                    Height="36" 
+                                    Margin="0,8"/>
+                                    
+                            <Button x:Name="FlatButton" 
+                                    Style="{DynamicResource MaterialDesignFlatButton}"
+                                    Content="Flat Button" 
+                                    Width="150" 
+                                    Height="36" 
+                                    Margin="0,8"/>
+                                    
+                            <Button x:Name="IconButton" 
+                                    Style="{DynamicResource MaterialDesignIconButton}"
+                                    Width="40" 
+                                    Height="40" 
+                                    Margin="0,8">
+                                <materialDesign:PackIcon Kind="Heart" />
+                            </Button>
+                                    
+                            <Button x:Name="FloatingActionButton" 
+                                    Style="{DynamicResource MaterialDesignFloatingActionButton}"
+                                    Width="56" 
+                                    Height="56" 
+                                    Margin="0,8">
+                                <materialDesign:PackIcon Kind="Plus" Width="24" Height="24" />
+                            </Button>
                             
                             <TextBox x:Name="TestTextBox" 
                                      materialDesign:HintAssist.Hint="Enter text here"
@@ -71,6 +102,18 @@
                                      Width="250" 
                                      Margin="0,8"
                                      Text="{Binding TestTextBoxText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                     
+                            <TextBox x:Name="FilledTextBox" 
+                                     materialDesign:HintAssist.Hint="Filled TextBox"
+                                     Style="{DynamicResource MaterialDesignFilledTextBox}"
+                                     Width="250" 
+                                     Margin="0,8"/>
+                                     
+                            <TextBox x:Name="FloatingHintTextBox" 
+                                     materialDesign:HintAssist.Hint="Floating Hint"
+                                     Style="{DynamicResource MaterialDesignFloatingHintTextBox}"
+                                     Width="250" 
+                                     Margin="0,8"/>
                             
                             <PasswordBox x:Name="TestPasswordBox" 
                                          materialDesign:HintAssist.Hint="Password"
@@ -400,6 +443,146 @@
                                                TextAlignment="Center"/>
                                 </StackPanel>
                             </materialDesign:Card>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    
+                    <!-- Column 4: Specialized MaterialDesign Controls -->
+                    <materialDesign:Card Grid.Column="3" Margin="8" Padding="16">
+                        <StackPanel>
+                            <TextBlock Style="{DynamicResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16">Specialized Controls</TextBlock>
+                            
+                            <!-- ToggleButton Varieties -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="ToggleButton Styles" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <ToggleButton x:Name="SwitchToggleButton"
+                                              Style="{DynamicResource MaterialDesignSwitchToggleButton}"
+                                              Content="Switch Style"
+                                              Margin="0,4"/>
+                                              
+                                <ToggleButton x:Name="ActionToggleButton"
+                                              Style="{DynamicResource MaterialDesignActionToggleButton}"
+                                              Margin="0,4">
+                                    <materialDesign:PackIcon Kind="Star" />
+                                </ToggleButton>
+                                
+                                <ToggleButton x:Name="FlatToggleButton"
+                                              Style="{DynamicResource MaterialDesignFlatToggleButton}"
+                                              Content="Flat Toggle"
+                                              Margin="0,4"/>
+                            </StackPanel>
+                            
+                            <!-- TimePicker -->
+                            <materialDesign:TimePicker x:Name="TestTimePicker"
+                                                       materialDesign:HintAssist.Hint="Select time"
+                                                       Style="{DynamicResource MaterialDesignOutlinedTimePicker}"
+                                                       Width="250"
+                                                       Margin="0,8"/>
+                                                       
+                            <!-- RatingBar -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Rating" FontSize="12" Margin="0,0,0,4"/>
+                                <materialDesign:RatingBar x:Name="TestRatingBar"
+                                                          Value="3"
+                                                          Max="5"
+                                                          Width="150"/>
+                            </StackPanel>
+                            
+                            <!-- Chip Controls -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Chips" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <WrapPanel>
+                                    <materialDesign:Chip x:Name="Chip1"
+                                                         Content="Action Chip"
+                                                         Icon="{materialDesign:PackIcon Kind=Add}"
+                                                         IconBackground="{DynamicResource PrimaryHueMidBrush}"
+                                                         IconForeground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                                         Margin="2"/>
+                                    <materialDesign:Chip x:Name="Chip2"
+                                                         Content="Filter Chip"
+                                                         Margin="2"/>
+                                    <materialDesign:Chip x:Name="Chip3"
+                                                         Content="Choice Chip"
+                                                         Margin="2"/>
+                                    <materialDesign:Chip x:Name="DeletableChip"
+                                                         Content="Deletable"
+                                                         IsDeletable="True"
+                                                         Margin="2"/>
+                                </WrapPanel>
+                            </StackPanel>
+                            
+                            <!-- ColorPicker -->
+                            <materialDesign:ColorPicker x:Name="TestColorPicker"
+                                                        Width="200"
+                                                        Margin="0,8"/>
+                                                        
+                            <!-- Clock -->
+                            <materialDesign:Clock x:Name="TestClock"
+                                                  Style="{DynamicResource MaterialDesignClock}"
+                                                  Width="150"
+                                                  Height="150"
+                                                  Margin="0,8"/>
+                                                  
+                            <!-- Circular ProgressBar -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Circular Progress" FontSize="12" Margin="0,0,0,4"/>
+                                <ProgressBar x:Name="CircularProgressBar"
+                                             Style="{DynamicResource MaterialDesignCircularProgressBar}"
+                                             Width="50"
+                                             Height="50"
+                                             Value="65"
+                                             Maximum="100"/>
+                            </StackPanel>
+                            
+                            <!-- Discrete Slider -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Discrete Slider" FontSize="12" Margin="0,0,0,4"/>
+                                <Slider x:Name="DiscreteSlider"
+                                        Style="{DynamicResource MaterialDesignDiscreteSlider}"
+                                        Width="200"
+                                        Minimum="0"
+                                        Maximum="10"
+                                        Value="5"
+                                        TickFrequency="1"/>
+                            </StackPanel>
+                            
+                            <!-- Badged Control -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="Badged Button" FontSize="12" Margin="0,0,0,4"/>
+                                <materialDesign:Badged x:Name="BadgedControl"
+                                                       Badge="3"
+                                                       BadgeBackground="{DynamicResource SecondaryHueMidBrush}">
+                                    <Button Content="Messages" Style="{DynamicResource MaterialDesignRaisedButton}"/>
+                                </materialDesign:Badged>
+                            </StackPanel>
+                            
+                            <!-- Snackbar Host -->
+                            <materialDesign:Snackbar x:Name="TestSnackbar"
+                                                     MessageQueue="{materialDesign:MessageQueue}"
+                                                     Width="300"
+                                                     Margin="0,8"/>
+                                                     
+                            <!-- GridSplitter Demo -->
+                            <StackPanel Margin="0,8">
+                                <TextBlock Text="GridSplitter Demo" FontSize="12" Margin="0,0,0,4"/>
+                                <Grid Height="100" Width="250">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="3"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="{DynamicResource PrimaryHueLightBrush}">
+                                        <TextBlock Text="Top Panel" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <GridSplitter x:Name="TestGridSplitter"
+                                                  Grid.Row="1"
+                                                  Style="{DynamicResource MaterialDesignGridSplitter}"
+                                                  HorizontalAlignment="Stretch"
+                                                  ResizeDirection="Rows"/>
+                                    <Border Grid.Row="2" Background="{DynamicResource SecondaryHueLightBrush}">
+                                        <TextBlock Text="Bottom Panel" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
                         </StackPanel>
                     </materialDesign:Card>
                 </Grid>

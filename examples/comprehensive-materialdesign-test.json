@@ -1,0 +1,119 @@
+{
+  "name": "Comprehensive MaterialDesign Controls Test",
+  "description": "Complete test of all MaterialDesign control types and styles added to TestWpfApp",
+  "steps": [
+    {
+      "action": "click",
+      "element": "id=OutlinedButton",
+      "description": "Test Outlined Button style"
+    },
+    {
+      "action": "click", 
+      "element": "id=FlatButton",
+      "description": "Test Flat Button style"
+    },
+    {
+      "action": "click",
+      "element": "id=IconButton", 
+      "description": "Test Icon Button style"
+    },
+    {
+      "action": "click",
+      "element": "id=FloatingActionButton",
+      "description": "Test Floating Action Button style"
+    },
+    {
+      "action": "type",
+      "element": "id=FilledTextBox",
+      "text": "Filled TextBox Test",
+      "description": "Test Filled TextBox style"
+    },
+    {
+      "action": "type",
+      "element": "id=FloatingHintTextBox", 
+      "text": "Floating Hint Test",
+      "description": "Test Floating Hint TextBox style"
+    },
+    {
+      "action": "click",
+      "element": "id=SwitchToggleButton",
+      "description": "Test Switch-style ToggleButton"
+    },
+    {
+      "action": "click",
+      "element": "id=ActionToggleButton",
+      "description": "Test Action-style ToggleButton"
+    },
+    {
+      "action": "click",
+      "element": "id=FlatToggleButton", 
+      "description": "Test Flat-style ToggleButton"
+    },
+    {
+      "action": "click",
+      "element": "name=Messages",
+      "description": "Test Badged control (click the Messages button)"
+    },
+    {
+      "action": "click",
+      "element": "id=Chip1",
+      "description": "Test Action Chip control"
+    },
+    {
+      "action": "click",
+      "element": "id=Chip2", 
+      "description": "Test Filter Chip control"
+    },
+    {
+      "action": "click",
+      "element": "id=Chip3",
+      "description": "Test Choice Chip control"
+    },
+    {
+      "action": "click",
+      "element": "id=DeletableChip",
+      "description": "Test Deletable Chip control"
+    },
+    {
+      "action": "interact",
+      "element": "id=CircularProgressBar",
+      "control_type": "progressbar",
+      "interaction": "get-value",
+      "description": "Get Circular ProgressBar value"
+    },
+    {
+      "action": "interact",
+      "element": "id=TestGridSplitter",
+      "control_type": "gridsplitter", 
+      "interaction": "drag",
+      "value": "5,5",
+      "description": "Test GridSplitter drag interaction"
+    }
+  ],
+  "validation": {
+    "check_status_updates": true,
+    "expected_controls": [
+      "OutlinedButton",
+      "FlatButton", 
+      "IconButton",
+      "FloatingActionButton",
+      "FilledTextBox",
+      "FloatingHintTextBox",
+      "SwitchToggleButton",
+      "ActionToggleButton",
+      "FlatToggleButton",
+      "TestTimePicker",
+      "TestRatingBar",
+      "Chip1",
+      "Chip2", 
+      "Chip3",
+      "DeletableChip",
+      "TestColorPicker",
+      "TestClock",
+      "CircularProgressBar",
+      "DiscreteSlider",
+      "BadgedControl",
+      "TestGridSplitter"
+    ]
+  }
+}
