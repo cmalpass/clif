@@ -185,7 +185,7 @@ public class TextInputValidator : ValidatorBase<string>
         _maxLength = maxLength;
         _allowEmpty = allowEmpty;
 
-        AddRule(new LengthRule(allowEmpty ? 0 : 4, maxLength));
+        AddRule(new LengthRule(allowEmpty ? 0 : 1, maxLength));
         AddRule(new NoInjectionRule());
         AddRule(new SafeCharactersRule());
     }
