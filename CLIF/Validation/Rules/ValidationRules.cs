@@ -174,7 +174,7 @@ public class LengthRule : ValidationRule<string>
 
         if (length > _maxLength)
         {
-            return Failure($"Input cannot exceed {_maxLength} characters (maximum length)");
+            return Failure($"Input cannot exceed {_maxLength} characters");
         }
 
         return Success();
