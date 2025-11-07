@@ -22,6 +22,16 @@ public class ShellViewModel : Screen
     private int _selectedTabIndex;
     private SampleData _selectedDataGridItem;
     private bool _isExpanderExpanded;
+    private System.DateTime _selectedTime;
+    private double _ratingValue;
+    private bool _switchToggleIsChecked;
+    private bool _actionToggleIsChecked;
+    private bool _flatToggleIsChecked;
+    private System.Windows.Media.Color _selectedColor;
+    private double _discreteSliderValue;
+    private bool _chip1IsChecked;
+    private bool _chip2IsChecked;
+    private bool _chip3IsChecked;
 
     public ShellViewModel()
     {
@@ -48,6 +58,10 @@ public class ShellViewModel : Screen
         SliderValue = 50;
         ProgressBarValue = 30;
         SelectedTabIndex = 0;
+        SelectedTime = System.DateTime.Now;
+        RatingValue = 3.0;
+        SelectedColor = System.Windows.Media.Colors.Blue;
+        DiscreteSliderValue = 5.0;
     }
 
     // Properties with Caliburn.Micro naming conventions
@@ -220,6 +234,116 @@ public class ShellViewModel : Screen
                 UpdateStatus("Expander opened");
         }
     }
+    
+    public System.DateTime SelectedTime
+    {
+        get => _selectedTime;
+        set
+        {
+            _selectedTime = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Time selected: {value.ToShortTimeString()}");
+        }
+    }
+    
+    public double RatingValue
+    {
+        get => _ratingValue;
+        set
+        {
+            _ratingValue = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Rating: {value} stars");
+        }
+    }
+    
+    public bool SwitchToggleIsChecked
+    {
+        get => _switchToggleIsChecked;
+        set
+        {
+            _switchToggleIsChecked = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Switch toggle is {(value ? "ON" : "OFF")}");
+        }
+    }
+    
+    public bool ActionToggleIsChecked
+    {
+        get => _actionToggleIsChecked;
+        set
+        {
+            _actionToggleIsChecked = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Action toggle is {(value ? "ON" : "OFF")}");
+        }
+    }
+    
+    public bool FlatToggleIsChecked
+    {
+        get => _flatToggleIsChecked;
+        set
+        {
+            _flatToggleIsChecked = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Flat toggle is {(value ? "ON" : "OFF")}");
+        }
+    }
+    
+    public System.Windows.Media.Color SelectedColor
+    {
+        get => _selectedColor;
+        set
+        {
+            _selectedColor = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Color selected: {value}");
+        }
+    }
+    
+    public double DiscreteSliderValue
+    {
+        get => _discreteSliderValue;
+        set
+        {
+            _discreteSliderValue = value;
+            NotifyOfPropertyChange();
+            UpdateStatus($"Discrete slider: {value}");
+        }
+    }
+    
+    public bool Chip1IsChecked
+    {
+        get => _chip1IsChecked;
+        set
+        {
+            _chip1IsChecked = value;
+            NotifyOfPropertyChange();
+            if (value) UpdateStatus("Action Chip selected");
+        }
+    }
+    
+    public bool Chip2IsChecked
+    {
+        get => _chip2IsChecked;
+        set
+        {
+            _chip2IsChecked = value;
+            NotifyOfPropertyChange();
+            if (value) UpdateStatus("Filter Chip selected");
+        }
+    }
+    
+    public bool Chip3IsChecked
+    {
+        get => _chip3IsChecked;
+        set
+        {
+            _chip3IsChecked = value;
+            NotifyOfPropertyChange();
+            if (value) UpdateStatus("Choice Chip selected");
+        }
+    }
 
     // Action methods - Caliburn.Micro will wire these automatically
 
@@ -253,6 +377,52 @@ public class ShellViewModel : Screen
     public void ToolBarToggle(string parameter)
     {
         UpdateStatus($"ToolBar toggle: {parameter}");
+    }
+    
+    public void OutlinedButton()
+    {
+        UpdateStatus("Outlined button clicked!");
+    }
+    
+    public void FlatButton()
+    {
+        UpdateStatus("Flat button clicked!");
+    }
+    
+    public void IconButton()
+    {
+        UpdateStatus("Icon button clicked!");
+    }
+    
+    public void FloatingActionButton()
+    {
+        UpdateStatus("Floating Action Button clicked!");
+    }
+    
+    public void ShowSnackbar()
+    {
+        UpdateStatus("Snackbar message displayed");
+        // In real app, you'd use MaterialDesign's MessageQueue
+    }
+    
+    public void Chip1()
+    {
+        UpdateStatus("Action Chip clicked!");
+    }
+    
+    public void Chip2()
+    {
+        Chip2IsChecked = !Chip2IsChecked;
+    }
+    
+    public void Chip3()
+    {
+        Chip3IsChecked = !Chip3IsChecked;
+    }
+    
+    public void DeletableChip()
+    {
+        UpdateStatus("Deletable chip action triggered");
     }
 
     private void UpdateStatus(string message)
