@@ -233,6 +233,27 @@ public class InvalidCharactersRule : ValidationRule<string>
     public override string RuleName => "InvalidCharacters";
 
     /// <summary>
+    /// Checks if a colon at the given position is part of a Windows drive letter pattern
+    /// </summary>
+    private static bool IsWindowsDriveLetterColon(string input, int index)
+    {
+        // Typical drive-letter pattern "C:\" or "C:/"
+        if (index > 0 && char.IsLetter(input[index - 1]) && 
+            (index + 1 < input.Length && (input[index + 1] == '\\' || input[index + 1] == '/')))
+        {
+            return true;
+        }
+
+        // Also allow the simple "C:" form when at index 1
+        if (index == 1 && input.Length > 1 && char.IsLetter(input[0]))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Validates that the input does not contain invalid file path characters
     /// </summary>
     /// <param name="input">The input to validate</param>
@@ -250,19 +271,9 @@ public class InvalidCharactersRule : ValidationRule<string>
             var c = input[i];
 
             // Allow colon when it appears as part of a drive letter (e.g., "C:\")
-            if (c == ':')
+            if (c == ':' && IsWindowsDriveLetterColon(input, i))
             {
-                // Typical drive-letter pattern "C:\" or "C:/"
-                if (i > 0 && char.IsLetter(input[i - 1]) && (i + 1 < input.Length && (input[i + 1] == '\\' || input[i + 1] == '/')))
-                {
-                    continue;
-                }
-
-                // Also allow the simple "C:" form when at index 1
-                if (i == 1 && input.Length > 1 && char.IsLetter(input[0]))
-                {
-                    continue;
-                }
+                continue;
             }
 
             if (InvalidChars.Contains(c))

@@ -137,19 +137,25 @@ if (!result.IsValid)
 
 **Validation Rules:**
 - Must not be null
-- Can be empty string (valid for clearing fields)
+- Must not be empty or whitespace-only (by default)
 - Can contain any characters including special chars and newlines
+- Use `allowEmpty = true` parameter if empty strings should be allowed
 
 **Usage Examples:**
 ```csharp
 // ✓ Valid
 validator.Validate("Hello World");                     // Normal text
 validator.Validate("Test123!@#");                      // With special chars
-validator.Validate("");                                // Empty (for clearing)
 validator.Validate("Line1\nLine2");                    // With newline
+
+// Valid only with allowEmpty = true
+var validatorWithEmpty = new TextInputValidator(allowEmpty: true);
+validatorWithEmpty.Validate("");                       // Empty (for clearing)
 
 // ✗ Invalid
 validator.Validate(null);                              // Null
+validator.Validate("");                                // Empty (when allowEmpty = false)
+validator.Validate("   ");                             // Whitespace only
 ```
 
 ## ValidationResult Pattern
