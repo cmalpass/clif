@@ -298,7 +298,11 @@ public class ScriptServiceTests : IDisposable
             {
                 File.Delete(_tempScriptPath);
             }
-            catch
+            catch (IOException)
+            {
+                // Ignore cleanup errors in tests
+            }
+            catch (UnauthorizedAccessException)
             {
                 // Ignore cleanup errors in tests
             }
