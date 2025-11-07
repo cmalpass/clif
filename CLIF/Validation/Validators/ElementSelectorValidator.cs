@@ -180,7 +180,7 @@ public class TextInputValidator : ValidatorBase<string>
     /// </summary>
     /// <param name="maxLength">Maximum allowed text length</param>
     /// <param name="allowEmpty">Whether empty text is allowed</param>
-    public TextInputValidator(int maxLength = 200, bool allowEmpty = false)
+    public TextInputValidator(int maxLength = 10000, bool allowEmpty = false)
     {
         _maxLength = maxLength;
         _allowEmpty = allowEmpty;
