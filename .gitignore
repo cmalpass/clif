@@ -12,3 +12,9 @@ specs/*
 tools/ValidatorDebugger/
 tools/ValidatorDebug/bin/
 tools/ValidatorDebug/obj/
+clif-mcp/node_modules
+node_modules
+clif-mcp/node_modules
+dist/
+clif-mcp/dist/
+clif-mcp/examples/test-client.js
