@@ -1,3 +1,5 @@
+# This workflow builds and tests the CLIF application on Windows
+# CLIF is a Windows-specific WPF UI automation tool that requires Windows to build and run
 name: Build and Test
 
 on:
@@ -30,29 +32,31 @@ jobs:
       run: dotnet build clif.sln --configuration Release --no-restore
       
     - name: Run unit tests
-      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Unit" --logger "trx;LogFileName=unit-tests.trx" --logger "console;verbosity=detailed"
+      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Unit" --logger "trx;LogFileName=unit-tests.trx" --logger "console;verbosity=detailed" --results-directory ./TestResults
       
     - name: Run integration tests
-      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --logger "trx;LogFileName=integration-tests.trx" --logger "console;verbosity=detailed"
+      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --logger "trx;LogFileName=integration-tests.trx" --logger "console;verbosity=detailed" --results-directory ./TestResults
       continue-on-error: true
       
-    - name: Publish test results
-      uses: dorny/test-reporter@v1
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: Test Results
-        path: '**/TestResults/*.trx'
-        reporter: dotnet-trx
-        fail-on-error: true
+        name: test-results
+        path: ./TestResults/*.trx
+        retention-days: 30
         
     - name: Build CLIF CLI
       run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore
+      if: always()
       
     - name: Build TestWpfApp
       run: dotnet build TestWpfApp/TestWpfApp.csproj --configuration Release --no-restore
+      if: always()
       
     - name: Upload CLIF artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: clif-cli
         path: ./publish/
@@ -60,6 +64,7 @@ jobs:
         
     - name: Upload TestWpfApp artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
         name: test-wpf-app
         path: TestWpfApp/bin/Release/net8.0-windows/

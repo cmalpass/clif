@@ -1,5 +1,7 @@
 # CLIF - Comprehensive WPF UI Automation CLI
 
+[![Build and Test](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml)
+
 A powerful .NET CLI tool for automating Windows Presentation Foundation (WPF) applications through UI automation using FlaUI.
 
 ## Features
