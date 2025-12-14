@@ -61,12 +61,12 @@ jobs:
         retention-days: 30
         
     - name: Build CLIF CLI
-      run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore
-      if: success() || failure()
+      run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore --no-build
+      if: success()
       
     - name: Build TestWpfApp
       run: dotnet build TestWpfApp/TestWpfApp.csproj --configuration Release --no-restore
-      if: success() || failure()
+      if: success()
       
     - name: Upload CLIF artifact
       uses: actions/upload-artifact@v4
