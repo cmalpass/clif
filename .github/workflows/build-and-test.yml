@@ -1,0 +1,66 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Display .NET version
+      run: dotnet --version
+      
+    - name: Restore dependencies
+      run: dotnet restore clif.sln
+      
+    - name: Build solution
+      run: dotnet build clif.sln --configuration Release --no-restore
+      
+    - name: Run unit tests
+      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Unit" --logger "trx;LogFileName=unit-tests.trx" --logger "console;verbosity=detailed"
+      
+    - name: Run integration tests
+      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --logger "trx;LogFileName=integration-tests.trx" --logger "console;verbosity=detailed"
+      continue-on-error: true
+      
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results
+        path: '**/TestResults/*.trx'
+        reporter: dotnet-trx
+        fail-on-error: true
+        
+    - name: Build CLIF CLI
+      run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore
+      
+    - name: Build TestWpfApp
+      run: dotnet build TestWpfApp/TestWpfApp.csproj --configuration Release --no-restore
+      
+    - name: Upload CLIF artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: clif-cli
+        path: ./publish/
+        retention-days: 30
+        
+    - name: Upload TestWpfApp artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-wpf-app
+        path: TestWpfApp/bin/Release/net8.0-windows/
+        retention-days: 30
