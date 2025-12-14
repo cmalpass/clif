@@ -32,10 +32,20 @@ jobs:
       run: dotnet build clif.sln --configuration Release --no-restore
       
     - name: Run unit tests
-      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Unit" --logger "trx;LogFileName=unit-tests.trx" --logger "console;verbosity=detailed" --results-directory ./TestResults
+      run: |
+        dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
+          --filter "FullyQualifiedName~Unit" `
+          --logger "trx;LogFileName=unit-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory ./TestResults
       
     - name: Run integration tests
-      run: dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build --filter "FullyQualifiedName~Integration" --logger "trx;LogFileName=integration-tests.trx" --logger "console;verbosity=detailed" --results-directory ./TestResults
+      run: |
+        dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
+          --filter "FullyQualifiedName~Integration" `
+          --logger "trx;LogFileName=integration-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory ./TestResults
       continue-on-error: true
       
     - name: Upload test results
@@ -48,11 +58,11 @@ jobs:
         
     - name: Build CLIF CLI
       run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore
-      if: always()
+      if: success() || failure()
       
     - name: Build TestWpfApp
       run: dotnet build TestWpfApp/TestWpfApp.csproj --configuration Release --no-restore
-      if: always()
+      if: success() || failure()
       
     - name: Upload CLIF artifact
       uses: actions/upload-artifact@v4
