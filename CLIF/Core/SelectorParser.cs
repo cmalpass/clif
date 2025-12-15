@@ -7,62 +7,71 @@ public class SelectorParser
 {
     public static AutomationElement? FindElement(AutomationElement root, string selector)
     {
-        // Simple selector parsing - can be enhanced
-        if (selector.StartsWith("name="))
+        var (selectorType, selectorValue) = ParseSelectorType(selector);
+        
+        switch (selectorType)
         {
-            var name = selector.Substring(5);
-            return root.FindFirstDescendant(cf => cf.ByName(name));
+            case "name":
+                return root.FindFirstDescendant(cf => cf.ByName(selectorValue));
+            case "id":
+                return root.FindFirstDescendant(cf => cf.ByAutomationId(selectorValue));
+            case "class":
+                return root.FindFirstDescendant(cf => cf.ByClassName(selectorValue));
+            case "type":
+                if (Enum.TryParse<ControlType>(selectorValue, true, out var ct))
+                {
+                    return root.FindFirstDescendant(cf => cf.ByControlType(ct));
+                }
+                break;
         }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindFirstDescendant(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindFirstDescendant(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindFirstDescendant(cf => cf.ByControlType(ct));
-            }
-        }
-
+        
         // Default to name search
         return root.FindFirstDescendant(cf => cf.ByName(selector));
     }
 
     public static AutomationElement[] FindElements(AutomationElement root, string selector)
     {
-        // Similar logic to FindElementBySelector but returning all matches
-        if (selector.StartsWith("name="))
+        var (selectorType, selectorValue) = ParseSelectorType(selector);
+        
+        switch (selectorType)
         {
-            var name = selector.Substring(5);
-            return root.FindAllDescendants(cf => cf.ByName(name));
+            case "name":
+                return root.FindAllDescendants(cf => cf.ByName(selectorValue));
+            case "id":
+                return root.FindAllDescendants(cf => cf.ByAutomationId(selectorValue));
+            case "class":
+                return root.FindAllDescendants(cf => cf.ByClassName(selectorValue));
+            case "type":
+                if (Enum.TryParse<ControlType>(selectorValue, true, out var ct))
+                {
+                    return root.FindAllDescendants(cf => cf.ByControlType(ct));
+                }
+                break;
         }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindAllDescendants(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindAllDescendants(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindAllDescendants(cf => cf.ByControlType(ct));
-            }
-        }
-
+        
         return root.FindAllDescendants(cf => cf.ByName(selector));
+    }
+
+    private static (string selectorType, string selectorValue) ParseSelectorType(string selector)
+    {
+        if (selector.StartsWith(AutomationConstants.NameSelector))
+        {
+            return ("name", selector[AutomationConstants.NameSelector.Length..]);
+        }
+        else if (selector.StartsWith(AutomationConstants.IdSelector))
+        {
+            return ("id", selector[AutomationConstants.IdSelector.Length..]);
+        }
+        else if (selector.StartsWith(AutomationConstants.ClassSelector))
+        {
+            return ("class", selector[AutomationConstants.ClassSelector.Length..]);
+        }
+        else if (selector.StartsWith(AutomationConstants.TypeSelector))
+        {
+            return ("type", selector[AutomationConstants.TypeSelector.Length..]);
+        }
+        
+        // Default to name search
+        return ("name", selector);
     }
 }

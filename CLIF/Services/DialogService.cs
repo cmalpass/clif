@@ -4,6 +4,7 @@ using FlaUI.Core.Input;
 using FlaUI.UIA3;
 using Microsoft.Extensions.Logging;
 using System.Runtime.InteropServices;
+using CLIF.Core;
 
 namespace CLIF.Services;
 
@@ -32,6 +33,7 @@ public class DialogService : IDialogService
     private const uint WM_KEYDOWN = 0x0100;
     private const int VK_RETURN = 0x0D;
     private const int VK_ESCAPE = 0x1B;
+    private const uint BM_CLICK = 0x00F5;
 
     public DialogService(ILogger<DialogService> logger)
     {
@@ -64,13 +66,13 @@ public class DialogService : IDialogService
 
                         // Bring dialog to foreground
                         SetForegroundWindow(dialogHandle);
-                        Thread.Sleep(100);
+                        Thread.Sleep(AutomationConstants.ShortDelayMs);
 
                         // Try to find and click OK button first
                         IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
                         if (okButton != IntPtr.Zero)
                         {
-                            PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
+                            PostMessage(okButton, BM_CLICK, IntPtr.Zero, IntPtr.Zero);
                             _logger.LogInformation("Clicked OK button on dialog");
                         }
                         else
@@ -80,7 +82,7 @@ public class DialogService : IDialogService
                             _logger.LogInformation("Sent Enter key to dismiss dialog");
                         }
 
-                        Thread.Sleep(200); // Allow time for dialog to close
+                        Thread.Sleep(AutomationConstants.ValidationDelayMs); // Allow time for dialog to close
                         break; // Handle one dialog at a time
                     }
                 }
@@ -90,7 +92,7 @@ public class DialogService : IDialogService
                 {
                     var desktop = automation.GetDesktop();
                     var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
-                        .Where(w => w.IsOffscreen == false)
+                        .Where(w => !w.IsOffscreen)
                         .ToArray();
 
                     foreach (var dialog in dialogs)
@@ -114,7 +116,7 @@ public class DialogService : IDialogService
                                 {
                                     dismissButton.Click();
                                     _logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
-                                    await Task.Delay(200);
+                                    await Task.Delay(AutomationConstants.ValidationDelayMs);
                                     break;
                                 }
                                 else
@@ -122,7 +124,7 @@ public class DialogService : IDialogService
                                     // Send Escape to close dialog
                                     Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
                                     _logger.LogInformation("Sent Escape key to dismiss dialog");
-                                    await Task.Delay(200);
+                                    await Task.Delay(AutomationConstants.ValidationDelayMs);
                                     break;
                                 }
                             }

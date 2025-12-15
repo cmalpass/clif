@@ -10,8 +10,6 @@ public static class AutomationConstants
     public const string CustomControlType = "Custom";
     public const string CheckBoxControlType = "CheckBox";
 
-    public const string TestWpfAppSampleData = "TestWpfApp.SampleData";
-
     public const string ClickAction = "CLICK";
     public const string TypeAction = "TYPE";
     public const string SetValueAction = "SET_VALUE";

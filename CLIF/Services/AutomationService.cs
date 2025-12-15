@@ -330,10 +330,9 @@ public class AutomationService : IAutomationService, IDisposable
                     validationResult
                 );
 
-                if (success)
-                    return OperationResult.Ok(validationResult);
-                else
-                    return OperationResult.Fail(validationResult);
+                return success
+                    ? OperationResult.Ok(validationResult)
+                    : OperationResult.Fail(validationResult);
             }
             catch (Exception ex)
             {
