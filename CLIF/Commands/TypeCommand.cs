@@ -67,9 +67,17 @@ public class TypeCommand : Command
                 }
                 
                 Console.WriteLine($"Typing text '{text}' into element: {elementPath}");
-                await _automationService.TypeTextAsync(element, text);
-                Console.WriteLine("Text input completed successfully.");
-                await _captureService.LogInteractionAsync("TYPE command completed successfully");
+                var result = await _automationService.TypeTextAsync(element, text);
+                if (result.Success)
+                {
+                    Console.WriteLine("Text input completed successfully.");
+                    await _captureService.LogInteractionAsync("TYPE command completed successfully");
+                }
+                else
+                {
+                    Console.WriteLine($"Text input failed: {result.Message}");
+                    await _captureService.LogInteractionAsync($"Text input failed: {result.Message}", LogLevel.Error);
+                }
             }
             catch (Exception ex)
             {

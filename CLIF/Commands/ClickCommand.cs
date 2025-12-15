@@ -60,9 +60,17 @@ public class ClickCommand : Command
                 }
                 
                 Console.WriteLine($"Clicking element: {elementPath}");
-                await _automationService.ClickAsync(element);
-                Console.WriteLine("Click completed successfully.");
-                await _captureService.LogInteractionAsync("CLICK command completed successfully");
+                var result = await _automationService.ClickAsync(element);
+                if (result.Success)
+                {
+                    Console.WriteLine("Click completed successfully.");
+                    await _captureService.LogInteractionAsync("CLICK command completed successfully");
+                }
+                else
+                {
+                    Console.WriteLine($"Click failed: {result.Message}");
+                    await _captureService.LogInteractionAsync($"Click failed: {result.Message}", LogLevel.Error);
+                }
             }
             catch (Exception ex)
             {

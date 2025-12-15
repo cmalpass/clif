@@ -15,11 +15,11 @@ public interface IAutomationService
     Task<AutomationElement[]> FindElementsAsync(string selector);
 
     // Basic interactions
-    Task<bool> ClickAsync(AutomationElement element);
-    Task<bool> DoubleClickAsync(AutomationElement element);
-    Task<bool> RightClickAsync(AutomationElement element);
-    Task<bool> TypeTextAsync(AutomationElement element, string text);
-    Task<bool> SetValueAsync(AutomationElement element, string value);
+    Task<OperationResult> ClickAsync(AutomationElement element);
+    Task<OperationResult> DoubleClickAsync(AutomationElement element);
+    Task<OperationResult> RightClickAsync(AutomationElement element);
+    Task<OperationResult> TypeTextAsync(AutomationElement element, string text);
+    Task<OperationResult> SetValueAsync(AutomationElement element, string value);
 
     // Advanced control interactions
     Task<bool> SelectComboBoxItemAsync(AutomationElement element, string itemText);

@@ -25,6 +25,8 @@ class Program
         
         // Register services
         services.AddTransient<IProcessService, ProcessService>();
+        services.AddTransient<IDataGridAutomationService, DataGridAutomationService>();
+        services.AddTransient<IDialogService, DialogService>();
         services.AddTransient<IAutomationService, AutomationService>();
         services.AddTransient<IElementTreeService, ElementTreeService>();
         services.AddTransient<IScriptService, ScriptService>();

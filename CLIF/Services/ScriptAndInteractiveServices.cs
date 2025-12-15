@@ -233,7 +233,8 @@ public class ScriptService : IScriptService
                     if (typeElement != null)
                     {
                         Console.WriteLine($"⌨️  Typing '{step.Value}' into: {step.Element}");
-                        return await _automationService.TypeTextAsync(typeElement, step.Value);
+                        var result = await _automationService.TypeTextAsync(typeElement, step.Value);
+                        return result.Success;
                     }
                     return false;
 
@@ -243,7 +244,8 @@ public class ScriptService : IScriptService
                     if (clickElement != null)
                     {
                         Console.WriteLine($"🖱️  Clicking: {step.Element}");
-                        return await _automationService.ClickAsync(clickElement);
+                        var result = await _automationService.ClickAsync(clickElement);
+                        return result.Success;
                     }
                     return false;
 
@@ -270,7 +272,8 @@ public class ScriptService : IScriptService
                         }
                         else
                         {
-                            return await _automationService.SetValueAsync(valueElement, step.Value);
+                            var result = await _automationService.SetValueAsync(valueElement, step.Value);
+                            return result.Success;
                         }
                     }
                     return false;
@@ -594,9 +597,9 @@ public class InteractiveService : IInteractiveService
             return false;
         }
 
-        var success = await _automationService.ClickAsync(element);
-        Console.WriteLine(success ? $"✓ Clicked: {selector}" : $"✗ Failed to click: {selector}");
-        return success;
+        var result = await _automationService.ClickAsync(element);
+        Console.WriteLine(result.Success ? $"✓ Clicked: {selector}" : $"✗ Failed to click: {selector}");
+        return result.Success;
     }
 
     private async Task<bool> ExecuteTypeAsync(string selector, string text)
@@ -614,9 +617,9 @@ public class InteractiveService : IInteractiveService
             return false;
         }
 
-        var success = await _automationService.TypeTextAsync(element, text);
-        Console.WriteLine(success ? $"✓ Typed text into: {selector}" : $"✗ Failed to type into: {selector}");
-        return success;
+        var result = await _automationService.TypeTextAsync(element, text);
+        Console.WriteLine(result.Success ? $"✓ Typed text into: {selector}" : $"✗ Failed to type into: {selector}");
+        return result.Success;
     }
 
     private async Task<bool> ExecuteGetTextAsync(string selector)

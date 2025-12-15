@@ -14,6 +14,8 @@ public class AutomationService : IAutomationService, IDisposable
 {
     private readonly ILogger<AutomationService> _logger;
     private readonly ISessionCaptureService _captureService;
+    private readonly IDataGridAutomationService _dataGridService;
+    private readonly IDialogService _dialogService;
     private UIA3Automation? _automation;
     private FlaUI.Core.Application? _application;
     private AutomationElement? _rootElement;
@@ -21,27 +23,12 @@ public class AutomationService : IAutomationService, IDisposable
     public bool IsAttached { get; private set; }
     public int? AttachedProcessId { get; private set; }
 
-    // Windows API for dialog handling
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string? className, string? windowTitle);
-
-    private const uint WM_KEYDOWN = 0x0100;
-    private const int VK_RETURN = 0x0D;
-    private const int VK_ESCAPE = 0x1B;
-
-    public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)
+    public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService, IDataGridAutomationService dataGridService, IDialogService dialogService)
     {
         _logger = logger;
         _captureService = captureService;
+        _dataGridService = dataGridService;
+        _dialogService = dialogService;
     }
 
     public async Task<bool> AttachToProcessAsync(int processId)
@@ -146,7 +133,7 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
-    public async Task<bool> ClickAsync(AutomationElement element)
+    public async Task<OperationResult> ClickAsync(AutomationElement element)
     {
         return await Task.Run(async () =>
         {
@@ -159,7 +146,7 @@ public class AutomationService : IAutomationService, IDisposable
                 _logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
 
                 // Wait for potential state changes
-                await Task.Delay(300);
+                await Task.Delay(AutomationConstants.DefaultDelayMs);
 
                 // Validate click had an effect
                 var afterState = await CaptureElementStateAsync(element);
@@ -178,74 +165,74 @@ public class AutomationService : IAutomationService, IDisposable
                 }
 
                 // Check for and handle any modal dialogs that may have appeared
-                await Task.Delay(100); // Small delay to allow dialog to appear
+                await Task.Delay(AutomationConstants.ShortDelayMs); // Small delay to allow dialog to appear
                 await HandleModalDialogsAsync();
 
                 // Capture screenshot after interaction
                 await _captureService.CaptureAfterInteractionAsync(
-                    "CLICK",
+                    AutomationConstants.ClickAction,
                     element.AutomationId ?? element.Name ?? "Unknown",
                     true,
                     validationResult
                 );
 
-                return true;
+                return OperationResult.Ok(validationResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error clicking element");
-                return false;
+                return OperationResult.Fail("Error clicking element", ex);
             }
         });
     }
 
-    public async Task<bool> DoubleClickAsync(AutomationElement element)
+    public async Task<OperationResult> DoubleClickAsync(AutomationElement element)
     {
         return await Task.Run(() =>
         {
             try
             {
                 element.DoubleClick();
-                return true;
+                return OperationResult.Ok();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error double-clicking element");
-                return false;
+                return OperationResult.Fail("Error double-clicking element", ex);
             }
         });
     }
 
-    public async Task<bool> RightClickAsync(AutomationElement element)
+    public async Task<OperationResult> RightClickAsync(AutomationElement element)
     {
         return await Task.Run(() =>
         {
             try
             {
                 element.RightClick();
-                return true;
+                return OperationResult.Ok();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error right-clicking element");
-                return false;
+                return OperationResult.Fail("Error right-clicking element", ex);
             }
         });
     }
 
-    public async Task<bool> TypeTextAsync(AutomationElement element, string text)
+    public async Task<OperationResult> TypeTextAsync(AutomationElement element, string text)
     {
         return await Task.Run(async () =>
         {
             try
             {
                 element.Focus();
-                await Task.Delay(100); // Small delay to ensure focus
+                await Task.Delay(AutomationConstants.ShortDelayMs); // Small delay to ensure focus
                 Keyboard.Type(text);
                 _logger.LogInformation($"Typed text '{text}' into element");
 
                 // Validate text was actually entered
-                await Task.Delay(200); // Allow time for text to register
+                await Task.Delay(AutomationConstants.ValidationDelayMs); // Allow time for text to register
                 var actualText = await GetElementTextAsync(element);
                 string validationResult;
                 bool success = true;
@@ -263,23 +250,23 @@ public class AutomationService : IAutomationService, IDisposable
 
                 // Capture screenshot after interaction
                 await _captureService.CaptureAfterInteractionAsync(
-                    "TYPE",
+                    AutomationConstants.TypeAction,
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{text}'",
                     success,
                     validationResult
                 );
 
-                return true;
+                return OperationResult.Ok(validationResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error typing text");
-                return false;
+                return OperationResult.Fail("Error typing text", ex);
             }
         });
     }
 
-    public async Task<bool> SetValueAsync(AutomationElement element, string value)
+    public async Task<OperationResult> SetValueAsync(AutomationElement element, string value)
     {
         return await Task.Run(async () =>
         {
@@ -296,11 +283,11 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     // Fallback to typing
                     element.Focus();
-                    await Task.Delay(100);
+                    await Task.Delay(AutomationConstants.ShortDelayMs);
 
                     // Clear existing text and type new value
                     element.Focus();
-                    await Task.Delay(100);
+                    await Task.Delay(AutomationConstants.ShortDelayMs);
 
                     // Select all and replace
                     var textBox = element.AsTextBox();
@@ -317,7 +304,7 @@ public class AutomationService : IAutomationService, IDisposable
                 }
 
                 // Validate the value was set
-                await Task.Delay(200);
+                await Task.Delay(AutomationConstants.ValidationDelayMs);
                 var afterText = await GetElementTextAsync(element);
                 string validationResult;
                 bool success;
@@ -337,18 +324,21 @@ public class AutomationService : IAutomationService, IDisposable
 
                 // Capture screenshot after interaction
                 await _captureService.CaptureAfterInteractionAsync(
-                    string.IsNullOrEmpty(value) ? "CLEAR" : "SET_VALUE",
+                    string.IsNullOrEmpty(value) ? AutomationConstants.ClearAction : AutomationConstants.SetValueAction,
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{value}'",
                     success,
                     validationResult
                 );
 
-                return success;
+                if (success)
+                    return OperationResult.Ok(validationResult);
+                else
+                    return OperationResult.Fail(validationResult);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error setting value");
-                return false;
+                return OperationResult.Fail("Error setting value", ex);
             }
         });
     }
@@ -513,63 +503,12 @@ public class AutomationService : IAutomationService, IDisposable
 
     private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
     {
-        // Simple selector parsing - can be enhanced
-        if (selector.StartsWith("name="))
-        {
-            var name = selector.Substring(5);
-            return root.FindFirstDescendant(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindFirstDescendant(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindFirstDescendant(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindFirstDescendant(cf => cf.ByControlType(ct));
-            }
-        }
-
-        // Default to name search
-        return root.FindFirstDescendant(cf => cf.ByName(selector));
+        return SelectorParser.FindElement(root, selector);
     }
 
     private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
     {
-        // Similar logic to FindElementBySelector but returning all matches
-        if (selector.StartsWith("name="))
-        {
-            var name = selector.Substring(5);
-            return root.FindAllDescendants(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindAllDescendants(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindAllDescendants(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindAllDescendants(cf => cf.ByControlType(ct));
-            }
-        }
-
-        return root.FindAllDescendants(cf => cf.ByName(selector));
+        return SelectorParser.FindElements(root, selector);
     }
 
     // Advanced control interaction methods
@@ -1031,50 +970,12 @@ public class AutomationService : IAutomationService, IDisposable
 
     public async Task<bool> SelectDataGridRowAsync(AutomationElement element, int rowIndex)
     {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
-                {
-                    dataGrid.Rows[rowIndex].Click();
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
-                return false;
-            }
-        });
+        return await _dataGridService.SelectDataGridRowAsync(element, rowIndex);
     }
 
     public async Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex)
     {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
-                {
-                    var row = dataGrid.Rows[rowIndex];
-                    if (columnIndex < row.Cells.Length)
-                    {
-                        row.Cells[columnIndex].Click();
-                        return true;
-                    }
-                }
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
-                return false;
-            }
-        });
+        return await _dataGridService.SelectDataGridCellAsync(element, rowIndex, columnIndex);
     }
 
     public async Task<bool> InvokeMenuItemAsync(AutomationElement element)
@@ -1324,35 +1225,7 @@ public class AutomationService : IAutomationService, IDisposable
 
     public async Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element)
     {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null)
-                {
-                    var results = new List<Dictionary<string, object>>();
-
-                    foreach (var row in dataGrid.Rows)
-                    {
-                        var rowData = new Dictionary<string, object>();
-                        for (int i = 0; i < row.Cells.Length; i++)
-                        {
-                            rowData[$"Column{i}"] = row.Cells[i].Value ?? string.Empty;
-                        }
-                        results.Add(rowData);
-                    }
-
-                    return results.ToArray();
-                }
-                return Array.Empty<Dictionary<string, object>>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting DataGrid data");
-                return Array.Empty<Dictionary<string, object>>();
-            }
-        });
+        return await _dataGridService.GetDataGridDataAsync(element);
     }
 
     public async Task<bool> GetToggleButtonStateAsync(AutomationElement element)
@@ -1523,408 +1396,52 @@ public class AutomationService : IAutomationService, IDisposable
 
     private async Task HandleModalDialogsAsync()
     {
-        await Task.Run(async () =>
-        {
-            try
-            {
-                // Common Windows dialog class names and titles
-                var dialogPatterns = new[]
-                {
-                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
-                    new { ClassName = (string?)null, Title = "Button Click" }, // Our specific MessageBox title
-                    new { ClassName = (string?)null, Title = "Information" },
-                    new { ClassName = (string?)null, Title = "Warning" },
-                    new { ClassName = (string?)null, Title = "Error" },
-                    new { ClassName = (string?)null, Title = "Confirm" }
-                };
-
-                foreach (var pattern in dialogPatterns)
-                {
-                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
-                    if (dialogHandle != IntPtr.Zero)
-                    {
-                        _logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
-
-                        // Bring dialog to foreground
-                        SetForegroundWindow(dialogHandle);
-                        Thread.Sleep(100);
-
-                        // Try to find and click OK button first
-                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
-                        if (okButton != IntPtr.Zero)
-                        {
-                            PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
-                            _logger.LogInformation("Clicked OK button on dialog");
-                        }
-                        else
-                        {
-                            // Fallback: Send Enter key to dismiss dialog
-                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
-                            _logger.LogInformation("Sent Enter key to dismiss dialog");
-                        }
-
-                        Thread.Sleep(200); // Allow time for dialog to close
-                        break; // Handle one dialog at a time
-                    }
-                }
-
-                // Also try FlaUI approach for more complex dialogs
-                if (_automation != null)
-                {
-                    var desktop = _automation.GetDesktop();
-                    var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
-                        .Where(w => w.IsOffscreen == false)
-                        .ToArray();
-
-                    foreach (var dialog in dialogs)
-                    {
-                        try
-                        {
-                            // Check if this window might be a dialog (has certain characteristics)
-                            if (dialog.Name.Contains("Information") || dialog.Name.Contains("Button Click") ||
-                                dialog.Name.Contains("Warning") || dialog.Name.Contains("Error"))
-                            {
-                                _logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
-
-                                // Look for OK, Yes, or Close buttons
-                                var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
-                                var dismissButton = buttons.FirstOrDefault(b =>
-                                    b.Name?.ToLower().Contains("ok") == true ||
-                                    b.Name?.ToLower().Contains("yes") == true ||
-                                    b.Name?.ToLower().Contains("close") == true);
-
-                                if (dismissButton != null)
-                                {
-                                    dismissButton.Click();
-                                    _logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
-                                    await Task.Delay(200);
-                                    break;
-                                }
-                                else
-                                {
-                                    // Send Escape to close dialog
-                                    Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
-                                    _logger.LogInformation("Sent Escape key to dismiss dialog");
-                                    await Task.Delay(200);
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug($"Error in dialog handling: {ex.Message}");
-            }
-        });
+        await _dialogService.HandleModalDialogsAsync(_automation);
     }
 
     // DataGrid-specific checkbox operations
     public async Task<bool> SetDataGridCheckboxAsync(string dataGridSelector, int rowIndex, bool isChecked)
     {
-        return await Task.Run(() =>
+        var dataGrid = await FindElementAsync(dataGridSelector);
+        if (dataGrid == null)
         {
-            try
-            {
-                var dataGrid = FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null)
-                {
-                    _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
-                    return false;
-                }
-
-                // Get all data rows (excluding NewItemPlaceholder)
-                var dataRows = dataGrid.FindAllDescendants(cf =>
-                    cf.ByControlType(ControlType.DataItem)
-                    .And(cf.ByName("TestWpfApp.SampleData")));
-
-                if (rowIndex >= dataRows.Length)
-                {
-                    _logger.LogWarning($"Row index {rowIndex} out of range. Found {dataRows.Length} rows.");
-                    return false;
-                }
-
-                var row = dataRows[rowIndex];
-
-                // Find the checkbox cell by looking for cells that contain checkboxes
-                AutomationElement? checkboxCell = null;
-                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-                foreach (var cell in cells)
-                {
-                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                    if (cellCheckbox != null)
-                    {
-                        checkboxCell = cell;
-                        break;
-                    }
-                }
-
-                if (checkboxCell == null)
-                {
-                    _logger.LogWarning($"Checkbox cell not found in row {rowIndex}");
-                    return false;
-                }
-
-                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-
-                if (checkbox != null)
-                {
-                    var checkboxElement = checkbox.AsCheckBox();
-                    var currentState = checkboxElement.IsChecked ?? false;
-
-                    _logger.LogInformation($"Row {rowIndex} checkbox current state: {currentState}, target state: {isChecked}");
-
-                    if (currentState != isChecked)
-                    {
-                        checkboxElement.Toggle();
-                        _logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {isChecked}");
-
-                        // Verify the change - remove await from lambda
-                        Task.Delay(100).Wait();
-                        var newState = checkboxElement.IsChecked ?? false;
-                        _logger.LogInformation($"Verified checkbox state in row {rowIndex}: {newState}");
-
-                        return newState == isChecked;
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"Checkbox in row {rowIndex} already in desired state: {isChecked}");
-                        return true;
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning($"Checkbox not found in row {rowIndex} cell");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to set DataGrid checkbox at row {rowIndex}");
-                return false;
-            }
-        });
+            _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+            return false;
+        }
+        return await _dataGridService.SetDataGridCheckboxAsync(dataGrid, rowIndex, isChecked);
     }
 
     public async Task<bool> SetDataGridCheckboxByNameAsync(string dataGridSelector, string rowName, bool isChecked)
     {
-        return await Task.Run(() =>
+        var dataGrid = await FindElementAsync(dataGridSelector);
+        if (dataGrid == null)
         {
-            try
-            {
-                var dataGrid = FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null) return false;
-
-                // Find row by name cell content
-                var nameCell = dataGrid.FindFirstDescendant(cf =>
-                    cf.ByControlType(ControlType.Custom)
-                    .And(cf.ByName(rowName)));
-
-                if (nameCell == null)
-                {
-                    _logger.LogWarning($"Row with name '{rowName}' not found");
-                    return false;
-                }
-
-                // Get the parent row
-                var row = nameCell.Parent;
-                if (row == null) return false;
-
-                // Find checkbox cell in this row
-                AutomationElement? checkboxCell = null;
-                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-                foreach (var cell in cells)
-                {
-                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                    if (cellCheckbox != null)
-                    {
-                        checkboxCell = cell;
-                        break;
-                    }
-                }
-
-                if (checkboxCell == null) return false;
-
-                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-
-                if (checkbox != null)
-                {
-                    var checkboxElement = checkbox.AsCheckBox();
-                    var currentState = checkboxElement.IsChecked ?? false;
-                    if (currentState != isChecked)
-                    {
-                        checkboxElement.Toggle();
-                        _logger.LogInformation($"Toggled checkbox for row '{rowName}' to {isChecked}");
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to set DataGrid checkbox for row '{rowName}'");
-                return false;
-            }
-        });
+            _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+            return false;
+        }
+        return await _dataGridService.SetDataGridCheckboxByNameAsync(dataGrid, rowName, isChecked);
     }
 
     public async Task<bool> ToggleDataGridCheckboxAsync(string dataGridSelector, int rowIndex)
     {
-        return await Task.Run(() =>
+        var dataGrid = await FindElementAsync(dataGridSelector);
+        if (dataGrid == null)
         {
-            try
-            {
-                var dataGrid = FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null) return false;
-
-                var dataRows = dataGrid.FindAllDescendants(cf =>
-                    cf.ByControlType(ControlType.DataItem)
-                    .And(cf.ByName("TestWpfApp.SampleData")));
-
-                if (rowIndex >= dataRows.Length) return false;
-
-                var row = dataRows[rowIndex];
-
-                // Find checkbox cell in this row
-                AutomationElement? checkboxCell = null;
-                var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-                foreach (var cell in cells)
-                {
-                    var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                    if (cellCheckbox != null)
-                    {
-                        checkboxCell = cell;
-                        break;
-                    }
-                }
-
-                if (checkboxCell == null) return false;
-
-                var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-
-                if (checkbox != null)
-                {
-                    var checkboxElement = checkbox.AsCheckBox();
-                    var currentState = checkboxElement.IsChecked ?? false;
-                    checkboxElement.Toggle();
-                    _logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {!currentState}");
-                    return true;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to toggle DataGrid checkbox at row {rowIndex}");
-                return false;
-            }
-        });
+            _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+            return false;
+        }
+        return await _dataGridService.ToggleDataGridCheckboxAsync(dataGrid, rowIndex);
     }
 
     public async Task<bool[]> GetDataGridCheckboxStatesAsync(string dataGridSelector)
     {
-        return await Task.Run(() =>
+        var dataGrid = await FindElementAsync(dataGridSelector);
+        if (dataGrid == null)
         {
-            try
-            {
-                var dataGrid = FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null)
-                {
-                    _logger.LogWarning($"DataGrid not found with selector: {dataGridSelector}");
-                    return new bool[0];
-                }
-
-                _logger.LogInformation($"DataGrid found: {dataGrid.Name}, ControlType: {dataGrid.ControlType}");
-
-                // Try to find all DataItem descendants without the name filter first
-                var allDataItems = dataGrid.FindAllDescendants(cf => cf.ByControlType(ControlType.DataItem));
-                _logger.LogInformation($"Found {allDataItems.Length} DataItem descendants");
-
-                // Log the names of all DataItems
-                for (int i = 0; i < allDataItems.Length; i++)
-                {
-                    _logger.LogInformation($"DataItem {i}: Name='{allDataItems[i].Name}', ClassName='{allDataItems[i].ClassName}'");
-                }
-
-                // Now try the original filter
-                var dataRows = dataGrid.FindAllDescendants(cf =>
-                    cf.ByControlType(ControlType.DataItem)
-                    .And(cf.ByName("TestWpfApp.SampleData")));
-
-                _logger.LogInformation($"Found {dataRows.Length} filtered DataRows with name 'TestWpfApp.SampleData'");
-
-                // If the filtered search didn't work, try excluding the NewItemPlaceholder
-                if (dataRows.Length == 0 && allDataItems.Length > 0)
-                {
-                    dataRows = allDataItems.Where(item => !item.Name.Contains("NewItemPlaceholder")).ToArray();
-                    _logger.LogInformation($"Using fallback: Found {dataRows.Length} DataRows excluding NewItemPlaceholder");
-                }
-
-                var states = new List<bool>();
-
-                foreach (var row in dataRows)
-                {
-                    _logger.LogInformation($"Processing row: {row.Name}");
-
-                    // Find the checkbox cell by looking for cells that contain checkboxes
-                    AutomationElement? checkboxCell = null;
-                    var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-                    _logger.LogInformation($"Found {cells.Length} custom cells in row: {row.Name}");
-
-                    foreach (var cell in cells)
-                    {
-                        _logger.LogInformation($"Checking cell: '{cell.Name}' for checkbox");
-                        var checkbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                        if (checkbox != null)
-                        {
-                            _logger.LogInformation($"Found checkbox in cell: '{cell.Name}'");
-                            checkboxCell = cell;
-                            break;
-                        }
-                    }
-
-                    if (checkboxCell != null)
-                    {
-                        _logger.LogInformation($"Found checkbox cell in row: {row.Name}");
-
-                        var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                        if (checkbox != null)
-                        {
-                            var isChecked = checkbox.AsCheckBox().IsChecked ?? false;
-                            _logger.LogInformation($"Checkbox in row '{row.Name}' is {isChecked}");
-                            states.Add(isChecked);
-                        }
-                        else
-                        {
-                            _logger.LogWarning($"Checkbox not found in cell for row: {row.Name}");
-                            states.Add(false);
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Checkbox cell not found for row: {row.Name}");
-                        states.Add(false);
-                    }
-                }
-
-                _logger.LogInformation($"Returning {states.Count} checkbox states");
-                return states.ToArray();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get DataGrid checkbox states");
-                return new bool[0];
-            }
-        });
+            _logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+            return new bool[0];
+        }
+        return await _dataGridService.GetDataGridCheckboxStatesAsync(dataGrid);
     }
 
     public void Dispose()
