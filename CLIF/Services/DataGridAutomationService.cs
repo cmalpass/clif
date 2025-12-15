@@ -24,16 +24,37 @@ public class DataGridAutomationService : IDataGridAutomationService
         _logger = logger;
     }
 
+    private AutomationElement[] GetDataRows(AutomationElement dataGrid)
+    {
+        var allDataRows = dataGrid.FindAllDescendants(cf =>
+            cf.ByControlType(ControlType.DataItem));
+        return allDataRows.Where(row => 
+            !string.IsNullOrEmpty(row.Name) && 
+            !row.Name.Contains("NewItemPlaceholder")).ToArray();
+    }
+
+    private AutomationElement? FindCheckboxCell(AutomationElement row)
+    {
+        var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
+
+        foreach (var cell in cells)
+        {
+            var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
+            if (cellCheckbox != null)
+            {
+                return cell;
+            }
+        }
+
+        return null;
+    }
+
     public async Task<bool> SetDataGridCheckboxAsync(AutomationElement dataGrid, int rowIndex, bool isChecked)
     {
         try
         {
             // Get all data rows (excluding NewItemPlaceholder)
-            var allDataRows = dataGrid.FindAllDescendants(cf =>
-                cf.ByControlType(ControlType.DataItem));
-            var dataRows = allDataRows.Where(row => 
-                !string.IsNullOrEmpty(row.Name) && 
-                !row.Name.Contains("NewItemPlaceholder")).ToArray();
+            var dataRows = GetDataRows(dataGrid);
 
             if (rowIndex >= dataRows.Length)
             {
@@ -44,18 +65,7 @@ public class DataGridAutomationService : IDataGridAutomationService
             var row = dataRows[rowIndex];
 
             // Find the checkbox cell by looking for cells that contain checkboxes
-            AutomationElement? checkboxCell = null;
-            var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-            foreach (var cell in cells)
-            {
-                var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                if (cellCheckbox != null)
-                {
-                    checkboxCell = cell;
-                    break;
-                }
-            }
+            var checkboxCell = FindCheckboxCell(row);
 
             if (checkboxCell == null)
             {
@@ -123,18 +133,7 @@ public class DataGridAutomationService : IDataGridAutomationService
             if (row == null) return false;
 
             // Find checkbox cell in this row
-            AutomationElement? checkboxCell = null;
-            var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-            foreach (var cell in cells)
-            {
-                var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                if (cellCheckbox != null)
-                {
-                    checkboxCell = cell;
-                    break;
-                }
-            }
+            var checkboxCell = FindCheckboxCell(row);
 
             if (checkboxCell == null) return false;
 
@@ -165,29 +164,14 @@ public class DataGridAutomationService : IDataGridAutomationService
     {
         try
         {
-            var allDataRows = dataGrid.FindAllDescendants(cf =>
-                cf.ByControlType(ControlType.DataItem));
-            var dataRows = allDataRows.Where(row => 
-                !string.IsNullOrEmpty(row.Name) && 
-                !row.Name.Contains("NewItemPlaceholder")).ToArray();
+            var dataRows = GetDataRows(dataGrid);
 
             if (rowIndex >= dataRows.Length) return false;
 
             var row = dataRows[rowIndex];
 
             // Find checkbox cell in this row
-            AutomationElement? checkboxCell = null;
-            var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-
-            foreach (var cell in cells)
-            {
-                var cellCheckbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
-                if (cellCheckbox != null)
-                {
-                    checkboxCell = cell;
-                    break;
-                }
-            }
+            var checkboxCell = FindCheckboxCell(row);
 
             if (checkboxCell == null) return false;
 
@@ -227,10 +211,8 @@ public class DataGridAutomationService : IDataGridAutomationService
                 _logger.LogInformation($"DataItem {i}: Name='{allDataItems[i].Name}', ClassName='{allDataItems[i].ClassName}'");
             }
 
-            // Filter to exclude NewItemPlaceholder and empty names
-            var dataRows = allDataItems.Where(item => 
-                !string.IsNullOrEmpty(item.Name) && 
-                !item.Name.Contains("NewItemPlaceholder")).ToArray();
+            // Use helper method to filter data rows
+            var dataRows = GetDataRows(dataGrid);
 
             _logger.LogInformation($"Found {dataRows.Length} DataRows after filtering (excluding NewItemPlaceholder)");
 
