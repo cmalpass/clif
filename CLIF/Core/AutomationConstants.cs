@@ -6,10 +6,6 @@ public static class AutomationConstants
     public const int ShortDelayMs = 100;
     public const int ValidationDelayMs = 200;
 
-    public const string DataItemControlType = "DataItem";
-    public const string CustomControlType = "Custom";
-    public const string CheckBoxControlType = "CheckBox";
-
     public const string ClickAction = "CLICK";
     public const string TypeAction = "TYPE";
     public const string SetValueAction = "SET_VALUE";

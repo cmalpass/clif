@@ -46,48 +46,7 @@ public class DialogService : IDialogService
         {
             try
             {
-                // Common Windows dialog class names and titles
-                var dialogPatterns = new[]
-                {
-                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
-                    new { ClassName = (string?)null, Title = "Button Click" }, // Our specific MessageBox title
-                    new { ClassName = (string?)null, Title = "Information" },
-                    new { ClassName = (string?)null, Title = "Warning" },
-                    new { ClassName = (string?)null, Title = "Error" },
-                    new { ClassName = (string?)null, Title = "Confirm" }
-                };
-
-                foreach (var pattern in dialogPatterns)
-                {
-                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
-                    if (dialogHandle != IntPtr.Zero)
-                    {
-                        _logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
-
-                        // Bring dialog to foreground
-                        SetForegroundWindow(dialogHandle);
-                        Thread.Sleep(AutomationConstants.ShortDelayMs);
-
-                        // Try to find and click OK button first
-                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
-                        if (okButton != IntPtr.Zero)
-                        {
-                            PostMessage(okButton, BM_CLICK, IntPtr.Zero, IntPtr.Zero);
-                            _logger.LogInformation("Clicked OK button on dialog");
-                        }
-                        else
-                        {
-                            // Fallback: Send Enter key to dismiss dialog
-                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
-                            _logger.LogInformation("Sent Enter key to dismiss dialog");
-                        }
-
-                        Thread.Sleep(AutomationConstants.ValidationDelayMs); // Allow time for dialog to close
-                        break; // Handle one dialog at a time
-                    }
-                }
-
-                // Also try FlaUI approach for more complex dialogs
+                // Try FlaUI managed approach first
                 if (automation != null)
                 {
                     var desktop = automation.GetDesktop();
@@ -105,6 +64,18 @@ public class DialogService : IDialogService
                             {
                                 _logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
 
+                                // Try to bring dialog to foreground using managed code
+                                try
+                                {
+                                    var window = dialog.AsWindow();
+                                    window?.SetForeground();
+                                }
+                                catch
+                                {
+                                    // Fallback to Win32 if managed approach fails
+                                    SetForegroundWindow(dialog.Properties.NativeWindowHandle);
+                                }
+
                                 // Look for OK, Yes, or Close buttons
                                 var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
                                 var dismissButton = buttons.FirstOrDefault(b =>
@@ -117,15 +88,15 @@ public class DialogService : IDialogService
                                     dismissButton.Click();
                                     _logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
                                     await Task.Delay(AutomationConstants.ValidationDelayMs);
-                                    break;
+                                    return; // Successfully handled
                                 }
                                 else
                                 {
-                                    // Send Escape to close dialog
+                                    // Send Escape to close dialog using managed keyboard
                                     Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
                                     _logger.LogInformation("Sent Escape key to dismiss dialog");
                                     await Task.Delay(AutomationConstants.ValidationDelayMs);
-                                    break;
+                                    return; // Successfully handled
                                 }
                             }
                         }
@@ -133,6 +104,47 @@ public class DialogService : IDialogService
                         {
                             _logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
                         }
+                    }
+                }
+
+                // Fallback to Win32 API for native dialogs not in UI Automation tree
+                var dialogPatterns = new[]
+                {
+                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
+                    new { ClassName = (string?)null, Title = "Button Click" },
+                    new { ClassName = (string?)null, Title = "Information" },
+                    new { ClassName = (string?)null, Title = "Warning" },
+                    new { ClassName = (string?)null, Title = "Error" },
+                    new { ClassName = (string?)null, Title = "Confirm" }
+                };
+
+                foreach (var pattern in dialogPatterns)
+                {
+                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
+                    if (dialogHandle != IntPtr.Zero)
+                    {
+                        _logger.LogInformation($"Found native Win32 dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
+
+                        // Bring dialog to foreground
+                        SetForegroundWindow(dialogHandle);
+                        Thread.Sleep(AutomationConstants.ShortDelayMs);
+
+                        // Try to find and click OK button first
+                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
+                        if (okButton != IntPtr.Zero)
+                        {
+                            PostMessage(okButton, BM_CLICK, IntPtr.Zero, IntPtr.Zero);
+                            _logger.LogInformation("Clicked OK button on native dialog");
+                        }
+                        else
+                        {
+                            // Fallback: Send Enter key to dismiss dialog
+                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                            _logger.LogInformation("Sent Enter key to dismiss native dialog");
+                        }
+
+                        Thread.Sleep(AutomationConstants.ValidationDelayMs);
+                        break; // Handle one dialog at a time
                     }
                 }
             }
