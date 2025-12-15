@@ -287,88 +287,79 @@ public class DataGridAutomationService : IDataGridAutomationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get DataGrid checkbox states");
-            return new bool[0];
+            return Array.Empty<bool>();
         }
     }
 
-    public async Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element)
+    public Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element)
     {
-        return await Task.Run(() =>
+        try
         {
-            try
+            var dataGrid = element.AsDataGridView();
+            if (dataGrid != null)
             {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null)
+                var results = new List<Dictionary<string, object>>();
+
+                foreach (var row in dataGrid.Rows)
                 {
-                    var results = new List<Dictionary<string, object>>();
-
-                    foreach (var row in dataGrid.Rows)
+                    var rowData = new Dictionary<string, object>();
+                    for (int i = 0; i < row.Cells.Length; i++)
                     {
-                        var rowData = new Dictionary<string, object>();
-                        for (int i = 0; i < row.Cells.Length; i++)
-                        {
-                            rowData[$"Column{i}"] = row.Cells[i].Value ?? string.Empty;
-                        }
-                        results.Add(rowData);
+                        rowData[$"Column{i}"] = row.Cells[i].Value ?? string.Empty;
                     }
-
-                    return results.ToArray();
+                    results.Add(rowData);
                 }
-                return Array.Empty<Dictionary<string, object>>();
+
+                return Task.FromResult(results.ToArray());
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting DataGrid data");
-                return Array.Empty<Dictionary<string, object>>();
-            }
-        });
+            return Task.FromResult(Array.Empty<Dictionary<string, object>>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting DataGrid data");
+            return Task.FromResult(Array.Empty<Dictionary<string, object>>());
+        }
     }
 
-    public async Task<bool> SelectDataGridRowAsync(AutomationElement element, int rowIndex)
+    public Task<bool> SelectDataGridRowAsync(AutomationElement element, int rowIndex)
     {
-        return await Task.Run(() =>
+        try
         {
-            try
+            var dataGrid = element.AsDataGridView();
+            if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
             {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
-                {
-                    dataGrid.Rows[rowIndex].Click();
-                    return true;
-                }
-                return false;
+                dataGrid.Rows[rowIndex].Click();
+                return Task.FromResult(true);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
-                return false;
-            }
-        });
+            return Task.FromResult(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
+            return Task.FromResult(false);
+        }
     }
 
-    public async Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex)
+    public Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex)
     {
-        return await Task.Run(() =>
+        try
         {
-            try
+            var dataGrid = element.AsDataGridView();
+            if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
             {
-                var dataGrid = element.AsDataGridView();
-                if (dataGrid != null && rowIndex < dataGrid.Rows.Length)
+                var row = dataGrid.Rows[rowIndex];
+                if (columnIndex < row.Cells.Length)
                 {
-                    var row = dataGrid.Rows[rowIndex];
-                    if (columnIndex < row.Cells.Length)
-                    {
-                        row.Cells[columnIndex].Click();
-                        return true;
-                    }
+                    row.Cells[columnIndex].Click();
+                    return Task.FromResult(true);
                 }
-                return false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
-                return false;
-            }
-        });
+            return Task.FromResult(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
+            return Task.FromResult(false);
+        }
     }
 }
