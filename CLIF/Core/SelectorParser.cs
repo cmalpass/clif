@@ -54,6 +54,7 @@ public class SelectorParser
 
     private static (string selectorType, string selectorValue) ParseSelectorType(string selector)
     {
+        // StartsWith check ensures selector is long enough for range operator
         if (selector.StartsWith(AutomationConstants.NameSelector))
         {
             return ("name", selector[AutomationConstants.NameSelector.Length..]);
