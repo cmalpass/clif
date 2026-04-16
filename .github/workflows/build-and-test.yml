@@ -26,6 +26,8 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
 
     - name: Display .NET info
       run: |
@@ -74,10 +76,14 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln
 
+    # Rebuild is required because .NET build outputs contain absolute paths and
+    # cannot be reliably shared between jobs via artifacts on Windows runners.
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
 
@@ -127,10 +133,14 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln
 
+    # Rebuild is required because .NET build outputs contain absolute paths and
+    # cannot be reliably shared between jobs via artifacts on Windows runners.
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
 
