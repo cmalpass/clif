@@ -108,11 +108,9 @@ public class SearchTool : ToolBase
                 return Task.FromResult(ErrorResult("No window found. Use clif_launch or clif_list_windows first."));
             }
 
-            // First take a snapshot to register all elements
-            var snapshotBuilder = new SnapshotBuilder(_elementRegistry);
-            snapshotBuilder.BuildSnapshot(handle!, window);
-
-            // Now search through the tree
+            // Search directly through the live tree. Do not rebuild the snapshot here,
+            // because BuildSnapshot clears and regenerates the window registry, which
+            // invalidates previously issued element refs as a hidden side effect.
             var results = new List<string>();
             SearchElement(window, handle!, name, automationId, controlTypeFilter, className, results, 0);
 

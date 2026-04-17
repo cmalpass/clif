@@ -83,7 +83,7 @@ public class McpServer
                 Id = request.Id,
                 Error = new JsonRpcError
                 {
-                    Code = -32603,
+                    Code = -32601,
                     Message = ex.Message,
                 },
             };

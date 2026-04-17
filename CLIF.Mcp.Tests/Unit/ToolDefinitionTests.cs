@@ -361,16 +361,15 @@ public class ToolDefinitionTests
 
     private static WindowSessionManager CreateMinimalWindowSessionManager()
     {
-        // WindowSessionManager creates a UIA3Automation in its constructor.
-        // On Linux this will throw, so we catch and skip if needed.
-        try
+        // WindowSessionManager creates a UIA3Automation in its constructor and
+        // requires Windows. Fail fast with a clear message rather than returning
+        // null and causing a later NullReferenceException.
+        if (!OperatingSystem.IsWindows())
         {
-            return new WindowSessionManager();
+            throw new PlatformNotSupportedException(
+                "ToolDefinitionTests require Windows because WindowSessionManager depends on UIA3Automation.");
         }
-        catch
-        {
-            // Return null and tests depending on it will be skipped at runtime
-            return null!;
-        }
+
+        return new WindowSessionManager();
     }
 }

@@ -21,6 +21,7 @@ public class WindowSessionManager : IDisposable
 
     private readonly UIA3Automation _automation;
     private readonly Dictionary<string, Window> _windows = new();
+    private readonly Dictionary<nint, string> _nativeHandleToHandle = new();
     private int _windowCounter;
 
     public WindowSessionManager()
@@ -41,9 +42,16 @@ public class WindowSessionManager : IDisposable
         var psi = new ProcessStartInfo
         {
             FileName = appPath,
-            Arguments = args != null ? string.Join(" ", args) : string.Empty,
             UseShellExecute = true,
         };
+
+        if (args != null)
+        {
+            foreach (var arg in args)
+            {
+                psi.ArgumentList.Add(arg);
+            }
+        }
 
         var process = Process.Start(psi);
         if (process == null)
@@ -119,7 +127,8 @@ public class WindowSessionManager : IDisposable
     public (string handle, Window window) AttachToWindow(string title)
     {
         var desktop = _automation.GetDesktop();
-        var window = desktop.FindFirstDescendant(cf => cf.ByName(title))?.AsWindow();
+        var window = desktop.FindFirstDescendant(cf =>
+            cf.ByControlType(ControlType.Window).And(cf.ByName(title)))?.AsWindow();
 
         if (window == null)
         {
@@ -131,12 +140,27 @@ public class WindowSessionManager : IDisposable
     }
 
     /// <summary>
-    /// Register a window and return its handle.
+    /// Register a window and return its handle. De-duplicates by native window handle
+    /// so the same window always gets the same logical handle.
     /// </summary>
     public string RegisterWindow(Window window)
     {
+        var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
+        if (nativeHandle != default && _nativeHandleToHandle.TryGetValue(nativeHandle, out var existingHandle))
+        {
+            // Update the window object in case it was refreshed, but keep the same handle
+            _windows[existingHandle] = window;
+            return existingHandle;
+        }
+
         var handle = $"w{++_windowCounter}";
         _windows[handle] = window;
+
+        if (nativeHandle != default)
+        {
+            _nativeHandleToHandle[nativeHandle] = handle;
+        }
+
         return handle;
     }
 
@@ -200,14 +224,20 @@ public class WindowSessionManager : IDisposable
     {
         var window = GetWindow(handle)
             ?? throw new InvalidOperationException($"Window not found: {handle}");
+        var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
         window.Close();
         _windows.Remove(handle);
+        if (nativeHandle != default)
+        {
+            _nativeHandleToHandle.Remove(nativeHandle);
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
         _windows.Clear();
+        _nativeHandleToHandle.Clear();
         _automation.Dispose();
         GC.SuppressFinalize(this);
     }

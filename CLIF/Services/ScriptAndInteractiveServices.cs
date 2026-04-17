@@ -380,7 +380,6 @@ public class ScriptService : IScriptService
             var json = JsonSerializer.Serialize(script, new JsonSerializerOptions
             {
                 WriteIndented = true,
-                PropertyNameCaseInsensitive = true,
             });
             await File.WriteAllTextAsync(scriptPath, json);
         }

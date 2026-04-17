@@ -173,7 +173,7 @@ public class McpServerTests
 
         responses.Should().HaveCount(1);
         responses[0].Error.Should().NotBeNull();
-        responses[0].Error!.Code.Should().Be(-32603);
+        responses[0].Error!.Code.Should().Be(-32601);
         responses[0].Error!.Message.Should().Contain("Unknown method");
     }
 
