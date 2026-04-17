@@ -184,6 +184,14 @@ public class TextInputValidator : ValidatorBase<string>
     /// <param name="allowEmpty">Whether empty text is allowed</param>
     public TextInputValidator(int minLength = 4, int maxLength = 300, bool allowEmpty = false)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(minLength);
+        ArgumentOutOfRangeException.ThrowIfNegative(maxLength);
+
+        if (minLength > maxLength)
+        {
+            throw new ArgumentException("Minimum length cannot be greater than maximum length.", nameof(minLength));
+        }
+
         _minLength = minLength;
         _maxLength = maxLength;
         _allowEmpty = allowEmpty;
@@ -209,6 +217,12 @@ public class TextInputValidator : ValidatorBase<string>
         if (!_allowEmpty && string.IsNullOrWhiteSpace(text))
         {
             return ValidationResult.Failure("Text input cannot be empty");
+        }
+
+        // When allowEmpty is true and the text is empty, skip length checks
+        if (_allowEmpty && text.Length == 0)
+        {
+            return ValidateRules(text);
         }
 
         // Check minimum length

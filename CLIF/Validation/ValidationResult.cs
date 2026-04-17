@@ -46,10 +46,11 @@ public class ValidationResult
     /// </summary>
     /// <param name="error">The validation error</param>
     /// <returns>A failed validation result</returns>
-    public static ValidationResult Failure(ValidationError error) =>
-        error != null
-            ? new ValidationResult().AddError(error)
-            : new ValidationResult().AddError(string.Empty);
+    public static ValidationResult Failure(ValidationError error)
+    {
+        ArgumentNullException.ThrowIfNull(error);
+        return new ValidationResult().AddError(error);
+    }
 
     /// <summary>
     /// Adds an error to the validation result
@@ -70,7 +71,8 @@ public class ValidationResult
     /// <returns>This validation result for method chaining</returns>
     public ValidationResult AddError(ValidationError error)
     {
-        _errors.Add(error ?? new ValidationError(string.Empty));
+        ArgumentNullException.ThrowIfNull(error);
+        _errors.Add(error);
         return this;
     }
 
