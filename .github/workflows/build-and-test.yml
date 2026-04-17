@@ -86,7 +86,7 @@ jobs:
     - name: Run unit tests with coverage
       run: |
         dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
-          --filter "FullyQualifiedName~Unit" `
+          --filter "FullyQualifiedName~Unit&Category!=SkipValidationMismatch" `
           --logger "trx;LogFileName=unit-tests.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `

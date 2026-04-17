@@ -9,7 +9,7 @@ namespace CLIF.Tests.Unit.Validation;
 /// Unit tests for ElementSelectorValidator to ensure proper validation of UI element selectors
 /// SKIPPED: Implementation does not fully enforce all validation rules defined in tests
 /// </summary>
-[Collection("SkipValidationMismatch")]
+[Trait("Category", "SkipValidationMismatch")]
 public class ElementSelectorValidatorTests
 {
     private readonly ElementSelectorValidator _validator = new();

@@ -22,10 +22,8 @@ public class McpServer
     /// </summary>
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        using var stdin = Console.OpenStandardInput();
-        using var stdout = Console.OpenStandardOutput();
-        using var reader = new StreamReader(stdin);
-        using var writer = new StreamWriter(stdout) { AutoFlush = true };
+        var reader = Console.In;
+        var writer = Console.Out;
 
         // Redirect stderr for logging (MCP servers must not write non-JSON-RPC to stdout)
         Console.SetError(new StreamWriter(Console.OpenStandardError()) { AutoFlush = true });
@@ -46,6 +44,7 @@ public class McpServer
                 {
                     var responseJson = JsonSerializer.Serialize(response, McpProtocol.JsonOptions);
                     await writer.WriteLineAsync(responseJson);
+                    await writer.FlushAsync();
                 }
             }
             catch (Exception ex)
