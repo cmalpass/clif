@@ -139,13 +139,20 @@ public class FilePathValidator : ValidatorBase<string>
                 Environment.GetFolderPath(Environment.SpecialFolder.Windows),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "System32"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SysWOW64")
             };
 
             foreach (var restrictedPath in restrictedPaths.Where(p => !string.IsNullOrEmpty(p)))
             {
-                if (fullPath.StartsWith(restrictedPath, StringComparison.OrdinalIgnoreCase))
+                // Ensure comparison is against a directory boundary so that e.g.
+                // C:\ProgramDataBackup is not incorrectly treated as restricted.
+                var normalizedRestrictedPath = restrictedPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    + Path.DirectorySeparatorChar;
+                var normalizedFullPath = fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    + Path.DirectorySeparatorChar;
+                if (normalizedFullPath.StartsWith(normalizedRestrictedPath, StringComparison.OrdinalIgnoreCase))
                 {
                     result.AddError($"Access to restricted system directory: {restrictedPath}");
                     break;
