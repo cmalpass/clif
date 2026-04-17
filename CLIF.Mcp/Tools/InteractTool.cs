@@ -589,7 +589,7 @@ public class InteractTool : ToolBase
         }
 
         var current = element.Patterns.Toggle.Pattern.ToggleState.ValueOrDefault;
-        var isOn = current == FlaUI.Core.Definitions.ToggleState.On;
+        var isOn = current == ToggleState.On;
 
         if (isOn == desired)
         {

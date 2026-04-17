@@ -14,6 +14,11 @@ namespace CLIF.Mcp.Core;
 /// </summary>
 public class WindowSessionManager : IDisposable
 {
+    private const int WindowSearchRetries = 10;
+    private const int WindowSearchDelayMs = 500;
+    private const int AppLaunchDelayMs = 1000;
+    private const int InputIdleTimeoutMs = 5000;
+
     private readonly UIA3Automation _automation;
     private readonly Dictionary<string, Window> _windows = new();
     private int _windowCounter;
@@ -48,14 +53,14 @@ public class WindowSessionManager : IDisposable
 
         try
         {
-            process.WaitForInputIdle(5000);
+            process.WaitForInputIdle(InputIdleTimeoutMs);
         }
         catch
         {
             // Some processes don't support WaitForInputIdle
         }
 
-        Thread.Sleep(1000);
+        Thread.Sleep(AppLaunchDelayMs);
 
         var desktop = _automation.GetDesktop();
         Window? window = null;
@@ -75,9 +80,9 @@ public class WindowSessionManager : IDisposable
                     .Select(w => w.Title)
                     .Where(t => !string.IsNullOrEmpty(t)));
 
-            for (int i = 0; i < 10 && window == null; i++)
+            for (int i = 0; i < WindowSearchRetries && window == null; i++)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(WindowSearchDelayMs);
                 var windows = desktop.FindAllChildren(
                     cf => cf.ByControlType(ControlType.Window));
 

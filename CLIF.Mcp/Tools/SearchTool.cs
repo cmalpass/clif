@@ -13,6 +13,8 @@ namespace CLIF.Mcp.Tools;
 /// </summary>
 public class SearchTool : ToolBase
 {
+    private const int MaxSearchDepth = 15;
+
     private readonly WindowSessionManager _sessionManager;
     private readonly ElementRegistry _elementRegistry;
 
@@ -144,7 +146,7 @@ public class SearchTool : ToolBase
         List<string> results,
         int depth)
     {
-        if (depth > 15) return;
+        if (depth > MaxSearchDepth) return;
 
         try
         {
