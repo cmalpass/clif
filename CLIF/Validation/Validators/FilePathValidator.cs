@@ -146,7 +146,13 @@ public class FilePathValidator : ValidatorBase<string>
 
             foreach (var restrictedPath in restrictedPaths.Where(p => !string.IsNullOrEmpty(p)))
             {
-                if (fullPath.StartsWith(restrictedPath, StringComparison.OrdinalIgnoreCase))
+                // Ensure comparison is against a directory boundary so that e.g.
+                // C:\ProgramDataBackup is not incorrectly treated as restricted.
+                var normalizedRestricted = restrictedPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    + Path.DirectorySeparatorChar;
+                var normalizedFull = fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    + Path.DirectorySeparatorChar;
+                if (normalizedFull.StartsWith(normalizedRestricted, StringComparison.OrdinalIgnoreCase))
                 {
                     result.AddError($"Access to restricted system directory: {restrictedPath}");
                     break;
