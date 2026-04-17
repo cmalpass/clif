@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWpfApp", "TestWpfApp\Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLIF.Mcp", "CLIF.Mcp\CLIF.Mcp.csproj", "{DA728111-C27E-4304-990C-F27574872EF6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLIF.Mcp.Tests", "CLIF.Mcp.Tests\CLIF.Mcp.Tests.csproj", "{F552FA2A-9144-4186-8C5C-AF895B423135}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{DA728111-C27E-4304-990C-F27574872EF6}.Release|x64.Build.0 = Release|Any CPU
 		{DA728111-C27E-4304-990C-F27574872EF6}.Release|x86.ActiveCfg = Release|Any CPU
 		{DA728111-C27E-4304-990C-F27574872EF6}.Release|x86.Build.0 = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|x64.Build.0 = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Debug|x86.Build.0 = Debug|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|x64.ActiveCfg = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|x64.Build.0 = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|x86.ActiveCfg = Release|Any CPU
+		{F552FA2A-9144-4186-8C5C-AF895B423135}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

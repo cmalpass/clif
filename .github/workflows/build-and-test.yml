@@ -92,6 +92,14 @@ jobs:
           --collect:"XPlat Code Coverage" `
           --results-directory ./TestResults
 
+    - name: Run MCP unit tests
+      run: |
+        dotnet test CLIF.Mcp.Tests/CLIF.Mcp.Tests.csproj --configuration Release --no-build `
+          --logger "trx;LogFileName=mcp-unit-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory ./TestResults
+
     - name: Upload unit test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -107,7 +115,7 @@ jobs:
       if: always()
       with:
         name: Unit Test Results
-        path: ./TestResults/unit-tests.trx
+        path: ./TestResults/*.trx
         reporter: dotnet-trx
         fail-on-error: true
 
