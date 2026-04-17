@@ -1,5 +1,7 @@
 CLIF/bin/*
 CLIF/obj/*
+CLIF.Mcp/bin/*
+CLIF.Mcp/obj/*
 CLIF.Tests/bin/*
 CLIF.Tests/obj/*
 TestWpfApp/bin/*
