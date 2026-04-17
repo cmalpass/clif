@@ -1,0 +1,352 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CLIF.Mcp</name>
+    </assembly>
+    <members>
+        <member name="T:CLIF.Mcp.Core.ElementRegistry">
+            <summary>
+            Maps semantic element references (e.g. "w1e5") to FlaUI AutomationElements.
+            Refs are scoped to windows and regenerated on each snapshot.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.ElementRegistry.ClearWindow(System.String)">
+            <summary>
+            Clear all elements for a window (called before each new snapshot).
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.ElementRegistry.Register(System.String,FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+            Register an element and return its ref id.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.ElementRegistry.GetElement(System.String)">
+            <summary>
+            Get an element by its ref id.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.ElementRegistry.HasElement(System.String)">
+            <summary>
+            Check if a ref exists.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Core.SnapshotBuilder">
+            <summary>
+            Builds agent-friendly accessibility snapshots from UI Automation trees.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.SnapshotBuilder.BuildSnapshot(System.String,FlaUI.Core.AutomationElements.AutomationElement)">
+            <summary>
+            Build a text snapshot of the accessibility tree rooted at the given element.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Core.WindowSessionManager">
+            <summary>
+            Manages UI Automation sessions, window tracking, and application launching.
+            </summary>
+        </member>
+        <member name="P:CLIF.Mcp.Core.WindowSessionManager.Automation">
+            <summary>
+            Provides access to the underlying UIA3Automation instance.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.LaunchApp(System.String,System.String[])">
+            <summary>
+            Launch an application and return the window handle and Window object.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.AttachToWindow(System.String)">
+            <summary>
+            Attach to an existing window by its title.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.RegisterWindow(FlaUI.Core.AutomationElements.Window)">
+            <summary>
+            Register a window and return its handle.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.GetWindow(System.String)">
+            <summary>
+            Get a window by its handle.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.ListWindows">
+            <summary>
+            List all currently open windows on the desktop.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.FocusWindow(System.String)">
+            <summary>
+            Focus a window by its handle.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.CloseWindow(System.String)">
+            <summary>
+            Close a window by its handle.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.Core.WindowSessionManager.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:CLIF.Mcp.McpServer">
+            <summary>
+            MCP Server that handles JSON-RPC 2.0 over stdio.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.McpServer.RunAsync(System.Threading.CancellationToken)">
+            <summary>
+            Run the MCP server, reading JSON-RPC requests from stdin and writing responses to stdout.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpProtocol">
+            <summary>
+            MCP Protocol message types and JSON-RPC serialization options.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.JsonRpcRequest">
+            <summary>
+            JSON-RPC 2.0 request message.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.JsonRpcResponse">
+            <summary>
+            JSON-RPC 2.0 response message.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.JsonRpcError">
+            <summary>
+            JSON-RPC 2.0 error object.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpServerInfo">
+            <summary>
+            MCP server information returned during initialization.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpCapabilities">
+            <summary>
+            MCP server capabilities advertised during initialization.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.ToolsCapability">
+            <summary>
+            Tools capability descriptor.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpInitializeResult">
+            <summary>
+            MCP initialization result returned to the client.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpTool">
+            <summary>
+            MCP tool definition exposed via tools/list.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpToolsListResult">
+            <summary>
+            MCP tools/list response.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpToolCallParams">
+            <summary>
+            Parameters for a tools/call request.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpToolResult">
+            <summary>
+            Result returned from an MCP tool execution.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.McpContent">
+            <summary>
+            A single content item in a tool result (text, image, etc.).
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.ToolRegistry">
+            <summary>
+            Registry for MCP tools - maps tool names to handlers.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolRegistry.RegisterTool(CLIF.Mcp.ITool)">
+            <summary>
+            Register an MCP tool implementation.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolRegistry.GetToolDefinitions">
+            <summary>
+            Return definitions for all registered tools.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolRegistry.ExecuteToolAsync(System.String,System.Nullable{System.Text.Json.JsonElement})">
+            <summary>
+            Execute a tool by name with the given arguments.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.ITool">
+            <summary>
+            Interface for MCP tools.
+            </summary>
+        </member>
+        <member name="P:CLIF.Mcp.ITool.Name">
+            <summary>
+            Unique tool name (e.g. "clif_click").
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ITool.GetDefinition">
+            <summary>
+            Return the MCP tool definition.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ITool.ExecuteAsync(System.Nullable{System.Text.Json.JsonElement})">
+            <summary>
+            Execute the tool with the provided JSON arguments.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.ToolBase">
+            <summary>
+            Base class for MCP tools with common utilities.
+            </summary>
+        </member>
+        <member name="P:CLIF.Mcp.ToolBase.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:CLIF.Mcp.ToolBase.Description">
+            <summary>
+            Human-readable description shown to MCP clients.
+            </summary>
+        </member>
+        <member name="P:CLIF.Mcp.ToolBase.InputSchema">
+            <summary>
+            JSON Schema describing the tool's input parameters.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetDefinition">
+            <inheritdoc />
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.ExecuteAsync(System.Nullable{System.Text.Json.JsonElement})">
+            <inheritdoc />
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.TextResult(System.String)">
+            <summary>
+            Helper to create a text result.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.ErrorResult(System.String)">
+            <summary>
+            Helper to create an error result.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.ImageResult(System.Byte[],System.String)">
+            <summary>
+            Helper to create an image result.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetArgument``1(System.Nullable{System.Text.Json.JsonElement},System.String)">
+            <summary>
+            Extract a typed argument from the JSON arguments.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetStringArgument(System.Nullable{System.Text.Json.JsonElement},System.String)">
+            <summary>
+            Extract a string argument.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetBoolArgument(System.Nullable{System.Text.Json.JsonElement},System.String,System.Boolean)">
+            <summary>
+            Extract a boolean argument with a default value.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetIntArgument(System.Nullable{System.Text.Json.JsonElement},System.String,System.Int32)">
+            <summary>
+            Extract an integer argument with a default value.
+            </summary>
+        </member>
+        <member name="M:CLIF.Mcp.ToolBase.GetDoubleArgument(System.Nullable{System.Text.Json.JsonElement},System.String,System.Double)">
+            <summary>
+            Extract a double argument with a default value.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.BatchTool">
+            <summary>
+            MCP tool to execute multiple actions in a single call for better performance.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ClickTool">
+            <summary>
+            MCP tool to click an element by its ref.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.GetTextTool">
+            <summary>
+            MCP tool to extract text content from an element.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.InteractTool">
+            <summary>
+            Consolidated MCP tool for advanced WPF control interactions.
+            Supports ComboBox, DataGrid, TreeView, TabControl, Slider, Menu, ToggleButton, Expander, and more.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.LaunchTool">
+            <summary>
+            MCP tool to launch a Windows application and return its window handle.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ScreenshotTool">
+            <summary>
+            MCP tool to capture screenshots and return them as base64-encoded images.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ScriptTool">
+            <summary>
+            MCP tool to execute a CLIF JSON automation script.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ScriptDefinition">
+            <summary>
+            Minimal script definition for MCP parsing.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ScriptStepDefinition">
+            <summary>
+            Minimal script step definition for MCP parsing.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.SearchTool">
+            <summary>
+            MCP tool to search for elements in a window's UI tree by various criteria.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.SnapshotTool">
+            <summary>
+            MCP tool to capture an accessibility snapshot of a window's UI tree.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.TypeTool">
+            <summary>
+            MCP tool to type text into an element (appends to existing content).
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.FillTool">
+            <summary>
+            MCP tool to clear an element's value and fill with new content (replaces existing).
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.ListWindowsTool">
+            <summary>
+            MCP tool to list all open windows on the desktop.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.FocusWindowTool">
+            <summary>
+            MCP tool to bring a window to the foreground.
+            </summary>
+        </member>
+        <member name="T:CLIF.Mcp.Tools.CloseWindowTool">
+            <summary>
+            MCP tool to close a window.
+            </summary>
+        </member>
+    </members>
+</doc>
