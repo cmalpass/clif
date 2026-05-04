@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using CLIF.Core;
-using Newtonsoft.Json;
 
 namespace CLIF.Services;
 
@@ -66,7 +66,10 @@ public class ScriptService : IScriptService
 
         try
         {
-            var script = JsonConvert.DeserializeObject<Script>(jsonContent);
+            var script = JsonSerializer.Deserialize<Script>(jsonContent, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            });
             if (script == null)
             {
                 result.Success = false;
@@ -358,7 +361,10 @@ public class ScriptService : IScriptService
                 return null;
 
             var content = await File.ReadAllTextAsync(scriptPath);
-            return JsonConvert.DeserializeObject<Script>(content);
+            return JsonSerializer.Deserialize<Script>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            });
         }
         catch (Exception ex)
         {
@@ -371,7 +377,10 @@ public class ScriptService : IScriptService
     {
         try
         {
-            var json = JsonConvert.SerializeObject(script, Formatting.Indented);
+            var json = JsonSerializer.Serialize(script, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+            });
             await File.WriteAllTextAsync(scriptPath, json);
         }
         catch (Exception ex)

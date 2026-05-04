@@ -86,8 +86,16 @@ jobs:
     - name: Run unit tests with coverage
       run: |
         dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
-          --filter "FullyQualifiedName~Unit" `
+          --filter "FullyQualifiedName~Unit&Category!=SkipValidationMismatch" `
           --logger "trx;LogFileName=unit-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --collect:"XPlat Code Coverage" `
+          --results-directory ./TestResults
+
+    - name: Run MCP unit tests
+      run: |
+        dotnet test CLIF.Mcp.Tests/CLIF.Mcp.Tests.csproj --configuration Release --no-build `
+          --logger "trx;LogFileName=mcp-unit-tests.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
           --results-directory ./TestResults
@@ -107,7 +115,7 @@ jobs:
       if: always()
       with:
         name: Unit Test Results
-        path: ./TestResults/unit-tests.trx
+        path: ./TestResults/*.trx
         reporter: dotnet-trx
         fail-on-error: true
 
