@@ -1,6 +1,7 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
+using System.IO;
 
 namespace CLIF.Tests.WpfUI;
 
@@ -26,9 +27,9 @@ public class WpfUiCollection : ICollectionFixture<WpfTestAppFixture> { }
 ///   </item>
 /// </list>
 /// If the binary cannot be found or the launch fails the fixture marks itself as
-/// unavailable; individual tests call <see cref="SkipIfUnavailable"/> which throws
-/// <see cref="Xunit.SkipException"/> so they are reported as skipped rather than
-/// passing silently.
+/// unavailable; individual tests call <see cref="SkipIfUnavailable"/> which throws an
+/// exception prefixed with <see cref="Xunit.Sdk.DynamicSkipToken.Value"/> so the xUnit 2.x
+/// runner reports them as <em>Skipped</em> rather than silently passing.
 /// </remarks>
 public sealed class WpfTestAppFixture : IDisposable
 {
@@ -112,14 +113,20 @@ public sealed class WpfTestAppFixture : IDisposable
     }
 
     /// <summary>
-    /// Throws <see cref="Xunit.SkipException"/> (reporting the test as Skipped) when
-    /// the TestWpfApp could not be launched.  Call this at the start of every test.
+    /// Throws an exception recognised by the xUnit 2.x runner as a skip signal when the
+    /// TestWpfApp could not be launched, so the test is reported as <em>Skipped</em>
+    /// rather than passing silently.  Call this at the start of every test.
     /// </summary>
     public void SkipIfUnavailable()
     {
         if (!IsAvailable)
         {
-            Assert.Skip(UnavailableReason ?? "TestWpfApp is not available.");
+            // Prefixing the exception message with DynamicSkipToken.Value ("$XunitDynamicSkip$")
+            // is the xUnit 2.x contract for runtime-conditional skipping. The runner strips the
+            // prefix and uses the remainder as the skip reason.
+            throw new Exception(
+                Xunit.Sdk.DynamicSkipToken.Value
+                + (UnavailableReason ?? "TestWpfApp is not available."));
         }
     }
 
