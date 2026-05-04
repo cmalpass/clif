@@ -7,7 +7,7 @@ namespace CLIF.Tests.Unit.Validation;
 /// Unit tests for ValidationResult to ensure proper success/failure state handling
 /// SKIPPED: Implementation does not fully match test expectations
 /// </summary>
-[Collection("SkipValidationMismatch")]
+[Trait("Category", "SkipValidationMismatch")]
 public class ValidationResultTests
 {
     [Fact]

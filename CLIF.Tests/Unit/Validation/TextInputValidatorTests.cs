@@ -9,7 +9,7 @@ namespace CLIF.Tests.Unit.Validation;
 /// Unit tests for TextInputValidator to ensure proper validation and sanitization of text inputs
 /// SKIPPED: Implementation does not fully enforce all validation rules defined in tests
 /// </summary>
-[Collection("SkipValidationMismatch")]
+[Trait("Category", "SkipValidationMismatch")]
 public class TextInputValidatorTests
 {
     private readonly TextInputValidator _validator = new();

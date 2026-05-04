@@ -10,7 +10,7 @@ namespace CLIF.Tests;
 /// Infrastructure integration tests to verify core components are accessible and functional
 /// SKIPPED: SanitizationHelper behavior differs from test expectations
 /// </summary>
-[Collection("SkipValidationMismatch")]
+[Trait("Category", "SkipValidationMismatch")]
 public class InfrastructureTests
 {
     [Fact]

@@ -2,7 +2,7 @@
 
 [![Build and Test](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml)
 
-A powerful .NET CLI tool for automating Windows Presentation Foundation (WPF) applications through UI automation using FlaUI.
+A powerful .NET CLI tool and MCP server for automating Windows desktop applications through UI automation using FlaUI.
 
 ## Features
 
@@ -15,6 +15,7 @@ A powerful .NET CLI tool for automating Windows Presentation Foundation (WPF) ap
 📊 **Session Capture**: Automatic screenshot capture and logging for all interactions
 📸 **Window-Focused Screenshots**: Brings target window to foreground before capturing
 🎛️ **Interactive Command System**: Advanced interact command for complex WPF control manipulation
+🤖 **MCP Server**: Model Context Protocol server for AI agent integration (Copilot, Claude, VS Code, etc.)
 🔧 **Extensible Architecture**: Modular design with dependency injection and comprehensive logging
 
 ## Installation
@@ -78,6 +79,120 @@ clif script examples/comprehensive-wpf-test.json --process-id 1234
 clif interactive --process-id 1234
 
 # Interactive mode is currently under development
+```
+
+## MCP Server (AI Agent Integration)
+
+CLIF includes a standalone MCP (Model Context Protocol) server that allows AI agents to automate Windows desktop applications. The MCP server is inspired by [FlaUI-MCP](https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
+
+### Quick Start
+
+```bash
+# Build the MCP server
+cd CLIF.Mcp
+dotnet build
+
+# Run the MCP server (JSON-RPC over stdio)
+dotnet run --project CLIF.Mcp
+```
+
+### MCP Client Configuration
+
+Configure your AI tool to use CLIF as an MCP server:
+
+**GitHub Copilot / Claude Desktop / VS Code:**
+```json
+{
+  "mcpServers": {
+    "clif": {
+      "type": "local",
+      "command": "dotnet",
+      "args": ["run", "--project", "C:\\path\\to\\CLIF.Mcp"]
+    }
+  }
+}
+```
+
+**Using compiled executable:**
+```json
+{
+  "mcpServers": {
+    "clif": {
+      "type": "local",
+      "command": "C:\\path\\to\\CLIF.Mcp.exe"
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `clif_launch` | Launch a Windows application and get its window handle |
+| `clif_snapshot` | Get an accessibility snapshot with semantic element refs |
+| `clif_click` | Click an element (supports Invoke, Toggle, Selection patterns) |
+| `clif_type` | Type text into an element (append) |
+| `clif_fill` | Clear and fill an element's value (replace) |
+| `clif_get_text` | Extract text content from an element |
+| `clif_screenshot` | Capture a screenshot (element, window, or full screen) |
+| `clif_list_windows` | List all open windows with handles |
+| `clif_focus` | Bring a window to the foreground |
+| `clif_close` | Close a window |
+| `clif_batch` | Execute multiple actions in a single call |
+| `clif_interact` | Advanced WPF control interactions (ComboBox, DataGrid, TreeView, etc.) |
+| `clif_search_elements` | Search for elements by name, ID, type, or class |
+| `clif_run_script` | Execute a CLIF JSON automation script |
+
+### MCP Workflow Example
+
+```
+Agent: "Open Calculator and compute 7 × 8"
+
+1. clif_launch { "app": "calc.exe" }
+   → "Window handle: w1, Title: Calculator"
+
+2. clif_snapshot { "handle": "w1" }
+   → "- window "Calculator" [ref=w1e1]
+        - button "7" [ref=w1e47]
+        - button "×" [ref=w1e35]
+        - button "8" [ref=w1e48]
+        - button "=" [ref=w1e38]"
+
+3. clif_batch { "actions": [
+     { "action": "click", "ref": "w1e47" },
+     { "action": "click", "ref": "w1e35" },
+     { "action": "click", "ref": "w1e48" },
+     { "action": "click", "ref": "w1e38" }
+   ]}
+   → "1. click: Invoked 7
+      2. click: Invoked Multiply
+      3. click: Invoked 8
+      4. click: Invoked Equals"
+
+4. clif_screenshot { "handle": "w1" }
+   → [Base64 PNG showing "56"]
+```
+
+### Advanced MCP Interactions
+
+The `clif_interact` tool provides access to all of CLIF's advanced WPF control capabilities:
+
+```json
+// Select from a ComboBox
+{ "ref": "w1e10", "controlType": "combobox", "action": "select", "value": "Option B" }
+
+// Get DataGrid data
+{ "ref": "w1e20", "controlType": "datagrid", "action": "get_data" }
+
+// Expand a TreeView node
+{ "ref": "w1e30", "controlType": "tree", "action": "expand", "value": "Documents" }
+
+// Select a tab
+{ "ref": "w1e40", "controlType": "tabcontrol", "action": "select", "value": "Settings" }
+
+// Set a slider value
+{ "ref": "w1e50", "controlType": "slider", "action": "set_value", "value": "75" }
 ```
 
 ### Explore Application Structure
@@ -344,8 +459,18 @@ CLIF is built with a comprehensive modular architecture:
 - **Service Layer**: Abstracted services for automation, process management, and scripting
 - **FlaUI Integration**: Direct integration with FlaUI.Core and FlaUI.UIA3 for UI automation
 - **Session Management**: Comprehensive capture and logging system
+- **MCP Server** (`CLIF.Mcp`): Standalone MCP server with JSON-RPC 2.0 over stdio for AI agent integration
 - **Dependency Injection**: Microsoft.Extensions.DependencyInjection for service management
 - **Configuration Management**: JSON-based configuration with environment support
+
+### Project Structure
+
+| Project | Description |
+|---------|-------------|
+| `CLIF` | Main CLI application with commands, services, and validation |
+| `CLIF.Mcp` | Standalone MCP server for AI agent integration |
+| `CLIF.Tests` | Unit and integration tests |
+| `TestWpfApp` | Sample WPF application for testing |
 
 ## TestWpfApp - Example Application
 
@@ -399,6 +524,10 @@ The TestWpfApp demonstrates that CLIF works seamlessly with modern MVVM applicat
 ## License
 
 This project is licensed under the MIT License - see LICENSE file for details.
+
+### Attribution
+
+The CLIF MCP server (CLIF.Mcp) was inspired by [FlaUI-MCP](https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman (MIT License). The MCP protocol implementation, element registry pattern, and snapshot builder architecture draw from that project's design.
 
 ## Troubleshooting
 
