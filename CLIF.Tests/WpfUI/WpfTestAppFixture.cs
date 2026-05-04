@@ -28,8 +28,9 @@ public class WpfUiCollection : ICollectionFixture<WpfTestAppFixture> { }
 /// </list>
 /// If the binary cannot be found or the launch fails the fixture marks itself as
 /// unavailable; individual tests call <see cref="SkipIfUnavailable"/> which throws an
-/// exception prefixed with <see cref="Xunit.Sdk.DynamicSkipToken.Value"/> so the xUnit 2.x
-/// runner reports them as <em>Skipped</em> rather than silently passing.
+/// exception whose message starts with the xUnit dynamic-skip token
+/// (<c>"$XunitDynamicSkip$"</c>) so the xUnit 2.x runner reports them as
+/// <em>Skipped</em> rather than silently passing.
 /// </remarks>
 public sealed class WpfTestAppFixture : IDisposable
 {
@@ -121,11 +122,12 @@ public sealed class WpfTestAppFixture : IDisposable
     {
         if (!IsAvailable)
         {
-            // Prefixing the exception message with DynamicSkipToken.Value ("$XunitDynamicSkip$")
-            // is the xUnit 2.x contract for runtime-conditional skipping. The runner strips the
-            // prefix and uses the remainder as the skip reason.
+            // Prefixing the exception message with "$XunitDynamicSkip$" is the
+            // xUnit 2.x contract for runtime-conditional skipping (DynamicSkipToken.Value
+            // is internal so we use the literal string). The runner strips the prefix
+            // and uses the remainder as the skip reason.
             throw new Exception(
-                Xunit.Sdk.DynamicSkipToken.Value
+                "$XunitDynamicSkip$"
                 + (UnavailableReason ?? "TestWpfApp is not available."));
         }
     }
