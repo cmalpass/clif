@@ -43,6 +43,12 @@ public sealed class WpfTestAppFixture : IDisposable
     /// </summary>
     public bool IsAvailable { get; private set; }
 
+    /// <summary>
+    /// Gets a human-readable description of why the app is unavailable, or
+    /// <c>null</c> when <see cref="IsAvailable"/> is <c>true</c>.
+    /// </summary>
+    public string? UnavailableReason { get; private set; }
+
     /// <summary>Initialises the fixture and attempts to start the TestWpfApp.</summary>
     public WpfTestAppFixture()
     {
@@ -54,6 +60,7 @@ public sealed class WpfTestAppFixture : IDisposable
         var exePath = ResolveTestWpfAppPath();
         if (exePath is null)
         {
+            UnavailableReason = "TestWpfApp.exe not found. Build the solution first, or set the TEST_WPF_APP_PATH environment variable.";
             return;
         }
 
@@ -64,8 +71,9 @@ public sealed class WpfTestAppFixture : IDisposable
             App.WaitWhileMainHandleIsMissing(TimeSpan.FromSeconds(15));
             IsAvailable = true;
         }
-        catch
+        catch (Exception ex)
         {
+            UnavailableReason = $"Failed to launch TestWpfApp ('{exePath}'): {ex.GetType().Name}: {ex.Message}";
             Cleanup();
         }
     }
