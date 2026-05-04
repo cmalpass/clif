@@ -7,14 +7,15 @@
   </RunConfiguration>
 
   <!--
-    TestRunParameters allow callers (CI pipeline or local developer) to override
-    the path to the TestWpfApp binary consumed by WpfTestAppFixture.  Set
-    TEST_WPF_APP_PATH as an environment variable instead of changing this file.
+    Set TEST_WPF_APP_PATH as an environment variable to override the TestWpfApp
+    binary location used by WpfTestAppFixture.  The <EnvironmentVariables> section
+    below is the correct mechanism: variables defined here are injected into the
+    test-host process and read by Environment.GetEnvironmentVariable().
+    Uncomment and set the value to redirect the fixture to a specific binary.
   -->
-  <TestRunParameters>
-    <!-- Override example: set to an absolute path to TestWpfApp.exe -->
-    <!-- <Parameter name="TEST_WPF_APP_PATH" value="" /> -->
-  </TestRunParameters>
+  <EnvironmentVariables>
+    <!-- <Variable name="TEST_WPF_APP_PATH" value="C:\path\to\TestWpfApp.exe" /> -->
+  </EnvironmentVariables>
 
   <TestAdapterSettings>
     <xUnit>

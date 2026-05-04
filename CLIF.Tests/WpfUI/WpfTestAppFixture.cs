@@ -2,7 +2,7 @@ using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
 
-namespace CLIF.Tests.Integration;
+namespace CLIF.Tests.WpfUI;
 
 /// <summary>
 /// Declares the xUnit collection that shares a single <see cref="WpfTestAppFixture"/>
@@ -26,8 +26,9 @@ public class WpfUiCollection : ICollectionFixture<WpfTestAppFixture> { }
 ///   </item>
 /// </list>
 /// If the binary cannot be found or the launch fails the fixture marks itself as
-/// unavailable; individual tests should check <see cref="IsAvailable"/> and return
-/// early rather than failing.
+/// unavailable; individual tests call <see cref="SkipIfUnavailable"/> which throws
+/// <see cref="Xunit.SkipException"/> so they are reported as skipped rather than
+/// passing silently.
 /// </remarks>
 public sealed class WpfTestAppFixture : IDisposable
 {
@@ -80,7 +81,8 @@ public sealed class WpfTestAppFixture : IDisposable
 
     private static string? ResolveTestWpfAppPath()
     {
-        // Allow CI or a developer to pin an explicit path.
+        // Allow CI or a developer to pin an explicit path via the TEST_WPF_APP_PATH
+        // environment variable.  In .runsettings this can be set under <EnvironmentVariables>.
         var envPath = Environment.GetEnvironmentVariable("TEST_WPF_APP_PATH");
         if (envPath is not null && File.Exists(envPath))
         {
@@ -107,6 +109,18 @@ public sealed class WpfTestAppFixture : IDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Throws <see cref="Xunit.SkipException"/> (reporting the test as Skipped) when
+    /// the TestWpfApp could not be launched.  Call this at the start of every test.
+    /// </summary>
+    public void SkipIfUnavailable()
+    {
+        if (!IsAvailable)
+        {
+            Assert.Skip(UnavailableReason ?? "TestWpfApp is not available.");
+        }
     }
 
     /// <summary>

@@ -2,7 +2,7 @@ using FlaUI.Core.Definitions;
 using FluentAssertions;
 using Xunit;
 
-namespace CLIF.Tests.Integration;
+namespace CLIF.Tests.WpfUI;
 
 /// <summary>
 /// End-to-end WPF UI automation tests that drive the running <c>TestWpfApp</c>
@@ -12,8 +12,9 @@ namespace CLIF.Tests.Integration;
 /// These tests require <c>TestWpfApp.exe</c> to be compiled and launchable.
 /// The <see cref="WpfTestAppFixture"/> starts and owns the process for the
 /// lifetime of the collection.  When the app cannot be launched (e.g. build
-/// artefacts absent, headless without UIA support) every test returns early
-/// rather than failing, so that the regular CI build stays green.
+/// artefacts absent, or a runner without UI Automation support) every test is
+/// marked as <c>Skipped</c> via <see cref="WpfTestAppFixture.SkipIfUnavailable"/>,
+/// so failures are visible in the test report rather than silently passing.
 ///
 /// Run these tests specifically with:
 /// <code>
@@ -36,11 +37,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void MainWindow_ShouldHaveCorrectTitle()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         window.Should().NotBeNull();
@@ -51,11 +48,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void MainWindow_ShouldNotBeOffscreen()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         window.IsOffscreen.Should().BeFalse("the main window should be visible on screen");
@@ -67,11 +60,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTextBox_WhenTextSet_ShouldContainNewText()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var textBox = window
@@ -91,11 +80,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestCheckBox_WhenToggled_ShouldChangeState()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var checkBox = window
@@ -115,11 +100,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestComboBox_WhenItemSelected_ShouldReflectSelection()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var comboBox = window
@@ -139,11 +120,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void ToggleButton_WhenClicked_WindowShouldRemainVisible()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var button = window
@@ -164,11 +141,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTreeView_ShouldContainRootNode()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var treeView = window.FindFirstDescendant(cf => cf.ByAutomationId("TestTreeView"));
@@ -189,11 +162,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTabControl_WhenSecondTabSelected_ShouldUpdateIndex()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var tabControl = window
@@ -212,11 +181,7 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void RadioButton2_WhenSelected_ShouldBeChecked()
     {
-        if (!_fixture.IsAvailable)
-        {
-            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
-            return;
-        }
+        _fixture.SkipIfUnavailable();
 
         var window = _fixture.GetMainWindow();
         var radio = window
