@@ -36,7 +36,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void MainWindow_ShouldHaveCorrectTitle()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         window.Should().NotBeNull();
@@ -47,7 +51,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void MainWindow_ShouldNotBeOffscreen()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         window.IsOffscreen.Should().BeFalse("the main window should be visible on screen");
@@ -59,7 +67,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTextBox_WhenTextSet_ShouldContainNewText()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var textBox = window
@@ -79,7 +91,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestCheckBox_WhenToggled_ShouldChangeState()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var checkBox = window
@@ -99,7 +115,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestComboBox_WhenItemSelected_ShouldReflectSelection()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var comboBox = window
@@ -119,7 +139,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void ToggleButton_WhenClicked_WindowShouldRemainVisible()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var button = window
@@ -140,7 +164,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTreeView_ShouldContainRootNode()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var treeView = window.FindFirstDescendant(cf => cf.ByAutomationId("TestTreeView"));
@@ -161,7 +189,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void TestTabControl_WhenSecondTabSelected_ShouldUpdateIndex()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var tabControl = window
@@ -180,7 +212,11 @@ public class WpfUiIntegrationTests
     [Trait("Category", "WpfUI")]
     public void RadioButton2_WhenSelected_ShouldBeChecked()
     {
-        if (!_fixture.IsAvailable) return;
+        if (!_fixture.IsAvailable)
+        {
+            Console.WriteLine($"[WpfUI] Skipped – {_fixture.UnavailableReason}");
+            return;
+        }
 
         var window = _fixture.GetMainWindow();
         var radio = window
