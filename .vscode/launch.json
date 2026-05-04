@@ -1,5 +1,5 @@
 {
-  // Launch configurations for debugging TestWpfApp
+  // Launch configurations for debugging CLIF and TestWpfApp.
   // Use VS Code Debug (Omnisharp/CoreCLR) to start the WPF exe and capture any exceptions.
   "version": "0.2.0",
   "configurations": [
@@ -14,12 +14,7 @@
       "stopAtEntry": false,
       "console": "internalConsole",
       "internalConsoleOptions": "openOnSessionStart"
-    }
-  ]
-}
-{
-  "version": "0.2.0",
-  "configurations": [
+    },
     {
       "name": ".NET Core Launch (console)",
       "type": "coreclr",

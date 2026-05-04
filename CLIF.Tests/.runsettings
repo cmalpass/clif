@@ -5,14 +5,30 @@
     <ResultsDirectory>./TestResults</ResultsDirectory>
     <TargetFramework>net8.0-windows</TargetFramework>
   </RunConfiguration>
-  
+
+  <!--
+    TestRunParameters allow callers (CI pipeline or local developer) to override
+    the path to the TestWpfApp binary consumed by WpfTestAppFixture.  Set
+    TEST_WPF_APP_PATH as an environment variable instead of changing this file.
+  -->
+  <TestRunParameters>
+    <!-- Override example: set to an absolute path to TestWpfApp.exe -->
+    <!-- <Parameter name="TEST_WPF_APP_PATH" value="" /> -->
+  </TestRunParameters>
+
   <TestAdapterSettings>
     <xUnit>
       <DiagnosticMessages>false</DiagnosticMessages>
+      <!--
+        CollectionPerAssembly: each test class that does not declare a collection
+        is placed in its own implicit collection, preventing cross-class
+        parallelism for tests that share mutable state.
+        Tests in the "WpfUI" collection always run sequentially (one shared fixture).
+      -->
       <CollectionBehavior>CollectionPerAssembly</CollectionBehavior>
     </xUnit>
   </TestAdapterSettings>
-  
+
   <LoggerRunSettings>
     <Loggers>
       <Logger friendlyName="console" enabled="True">
