@@ -13,5 +13,9 @@
     "**/obj": true,
     "**/.vs": true
   },
-  "dotnet.defaultSolution": "${workspaceFolder}/clif.sln"
+  "dotnet.defaultSolution": "${workspaceFolder}/clif.sln",
+  // Point the VS Code .NET test runner at the project-level runsettings file so
+  // that xUnit collection behaviour, results directory and target framework are
+  // applied consistently whether tests are run from the editor or the terminal.
+  "dotnet.testRunSettings": "${workspaceFolder}/CLIF.Tests/.runsettings"
 }
