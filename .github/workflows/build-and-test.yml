@@ -179,3 +179,76 @@ jobs:
         } else {
           Write-Host "Integration tests passed successfully."
         }
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # WPF UI Tests
+  # Launches TestWpfApp.exe and exercises it end-to-end via FlaUI / UIA3.
+  # windows-latest runners provide a full interactive desktop session so WPF
+  # windows and UI Automation are available.  continue-on-error is set to true
+  # because the job is informational for PRs; failures are surfaced as warnings.
+  # ────────────────────────────────────────────────────────────────────────────
+  wpf-ui-tests:
+    name: WPF UI Tests
+    runs-on: windows-latest
+    needs: build
+
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore clif.sln
+
+    # Rebuild is required because .NET build outputs contain absolute paths and
+    # cannot be reliably shared between jobs via artifacts on Windows runners.
+    - name: Build solution
+      run: dotnet build clif.sln --configuration Release --no-restore
+
+    - name: Run WPF UI tests
+      id: wpf-ui-tests
+      run: |
+        dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
+          --filter "Category=WpfUI" `
+          --logger "trx;LogFileName=wpf-ui-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory ./TestResults
+      continue-on-error: true
+
+    - name: Upload WPF UI test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: wpf-ui-test-results
+        path: ./TestResults/*.trx
+        retention-days: 30
+
+    - name: Generate WPF UI test report
+      uses: dorny/test-reporter@v2
+      if: always()
+      with:
+        name: WPF UI Test Results
+        path: ./TestResults/wpf-ui-tests.trx
+        reporter: dotnet-trx
+        fail-on-error: false
+
+    - name: WPF UI test outcome summary
+      if: always()
+      shell: pwsh
+      run: |
+        if ("${{ steps.wpf-ui-tests.outcome }}" -eq "failure") {
+          Write-Host "::warning::WPF UI tests had failures."
+          Write-Host "Ensure TestWpfApp builds successfully and the runner has a desktop session with UI Automation support."
+          Write-Host "Set the TEST_WPF_APP_PATH environment variable to override the TestWpfApp binary location."
+        } else {
+          Write-Host "WPF UI tests passed successfully."
+        }

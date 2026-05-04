@@ -38,6 +38,62 @@
         "kind": "test",
         "isDefault": true
       }
+    },
+    {
+      "label": "test:unit",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "${workspaceFolder}/CLIF.Tests/CLIF.Tests.csproj",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~Unit",
+        "--logger",
+        "console;verbosity=normal",
+        "--results-directory",
+        "${workspaceFolder}/TestResults"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "test:integration",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "${workspaceFolder}/CLIF.Tests/CLIF.Tests.csproj",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName~Integration",
+        "--logger",
+        "console;verbosity=normal",
+        "--results-directory",
+        "${workspaceFolder}/TestResults"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "test:wpf-ui",
+      "detail": "Launches TestWpfApp.exe (via WpfTestAppFixture) and runs FlaUI-based UI automation tests. Requires the solution to be built first.",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "test",
+        "${workspaceFolder}/CLIF.Tests/CLIF.Tests.csproj",
+        "--no-build",
+        "--filter",
+        "Category=WpfUI",
+        "--logger",
+        "console;verbosity=detailed",
+        "--results-directory",
+        "${workspaceFolder}/TestResults"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test",
+      "dependsOn": "build"
     }
   ]
 }
