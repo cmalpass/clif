@@ -106,7 +106,8 @@ jobs:
       with:
         name: unit-test-results
         path: |
-          ./TestResults/*.trx
+          ./TestResults/unit-tests.trx
+          ./TestResults/mcp-unit-tests.trx
           ./TestResults/**/coverage.cobertura.xml
         retention-days: 30
 
@@ -115,7 +116,9 @@ jobs:
       if: always()
       with:
         name: Unit Test Results
-        path: ./TestResults/*.trx
+        path: |
+          ./TestResults/unit-tests.trx
+          ./TestResults/mcp-unit-tests.trx
         reporter: dotnet-trx
         fail-on-error: true
 

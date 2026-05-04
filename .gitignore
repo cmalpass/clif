@@ -16,3 +16,4 @@ specs/*
 tools/ValidatorDebugger/
 tools/ValidatorDebug/bin/
 tools/ValidatorDebug/obj/
+TestResults/*
