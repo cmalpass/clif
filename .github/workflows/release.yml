@@ -1,0 +1,156 @@
+name: Release Windows Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# This workflow intentionally uses the repository's current action-tag convention.
+# Before a 1.0 release, pin every third-party action below to a reviewed full commit SHA
+# and keep those pins updated by Dependabot.
+
+permissions:
+  contents: read
+
+jobs:
+  build-release:
+    name: Build Windows release artifacts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # packages.lock.json is not tracked yet, so locked restore cannot be enabled
+      # without making every tagged release fail. Add lock files and --locked-mode
+      # in the dedicated dependency-management follow-up.
+      - name: Restore dependency graph
+        run: dotnet restore clif.sln
+
+      - name: Publish self-contained Windows binaries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $releaseRoot = Join-Path $env:RUNNER_TEMP 'clif-release'
+          $stagingRoot = Join-Path $releaseRoot 'staging'
+          $assetRoot = Join-Path $releaseRoot 'assets'
+
+          New-Item -ItemType Directory -Force -Path $stagingRoot, $assetRoot | Out-Null
+
+          $projects = @(
+            @{ Name = 'CLIF'; Project = 'CLIF/CLIF.csproj' },
+            @{ Name = 'CLIF.Mcp'; Project = 'CLIF.Mcp/CLIF.Mcp.csproj' }
+          )
+
+          foreach ($rid in @('win-x64', 'win-arm64')) {
+            foreach ($project in $projects) {
+              $publishDirectory = Join-Path $stagingRoot "$($project.Name)-$rid"
+              dotnet publish $project.Project `
+                --configuration Release `
+                --runtime $rid `
+                --self-contained true `
+                --no-restore `
+                --output $publishDirectory `
+                -p:Version=$version `
+                -p:InformationalVersion="$version+${{ github.sha }}" `
+                -p:ContinuousIntegrationBuild=true `
+                -p:DebugType=none `
+                -p:DebugSymbols=false
+
+              if ($LASTEXITCODE -ne 0) {
+                throw "Publishing $($project.Name) for $rid failed."
+              }
+
+              $archive = Join-Path $assetRoot "$($project.Name)-$version-$rid.zip"
+              Compress-Archive -Path (Join-Path $publishDirectory '*') -DestinationPath $archive -CompressionLevel Optimal
+            }
+          }
+
+          Get-ChildItem -Path $assetRoot -File -Filter '*.zip' |
+            Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "{0} *{1}" -f $_.Hash.ToLowerInvariant(), $_.Path.Substring($assetRoot.Length + 1) } |
+            Set-Content -NoNewline -Encoding ascii (Join-Path $assetRoot 'SHA256SUMS.txt')
+
+      - name: Upload SBOM input
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-publish-directories
+          path: ${{ runner.temp }}/clif-release/staging
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload unsigned release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-release-assets
+          path: ${{ runner.temp }}/clif-release/assets
+          if-no-files-found: error
+          retention-days: 7
+
+  generate-sbom:
+    name: Generate SBOM
+    needs: build-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download published binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: release-publish-directories
+          path: release-publish-directories
+
+      # Anchore maintains this action and Syft, which produces a CycloneDX SBOM.
+      # It is intentionally not a container image built from unreviewed shell commands.
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: release-publish-directories
+          format: cyclonedx-json
+          output-file: CLIF-${{ github.ref_name }}.cdx.json
+          upload-artifact: false
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-sbom
+          path: CLIF-${{ github.ref_name }}.cdx.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-release:
+    name: Publish GitHub release
+    needs: [build-release, generate-sbom]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: unsigned-release-assets
+          path: release-assets
+
+      - name: Download SBOM
+        uses: actions/download-artifact@v4
+        with:
+          name: release-sbom
+          path: release-assets
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" release-assets/* \
+            --repo "${{ github.repository }}" \
+            --title "CLIF ${{ github.ref_name }}" \
+            --generate-notes \
+            --verify-tag
