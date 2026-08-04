@@ -4,6 +4,8 @@
 
 A powerful .NET CLI tool and MCP server for automating Windows desktop applications through UI automation using FlaUI.
 
+> **Project status:** CLIF is under active development. The production automation backend is Windows UI Automation–based; the Avalonia application in this repository is a compatibility fixture, not a macOS or Linux automation backend. The MCP server is an early-release component intended for trusted local development environments, not untrusted agent input or production desktop control. See [SECURITY.md](SECURITY.md), [SUPPORT.md](SUPPORT.md), and [CHANGELOG.md](CHANGELOG.md).
+
 ## Features
 
 🔧 **Process Attachment**: Attach to running WPF processes by process ID with robust error handling

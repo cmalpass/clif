@@ -1,0 +1,8 @@
+# Default review ownership for this repository.
+* @cmalpass
+
+# Desktop automation and MCP changes require maintainer review.
+/CLIF/ @cmalpass
+/CLIF.Mcp/ @cmalpass
+/CLIF.Tests/ @cmalpass
+/.github/ @cmalpass
