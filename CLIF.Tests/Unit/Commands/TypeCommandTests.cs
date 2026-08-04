@@ -67,4 +67,23 @@ public class TypeCommandTests
         _typeCommand.Should().BeAssignableTo<Command>();
         _typeCommand.Name.Should().Be("type");
     }
+
+    [Fact]
+    public async Task InvokeAsync_WhenTypingFails_ShouldReturnNonZero()
+    {
+        // Arrange
+        _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
+        _mockAutomationService.Setup(service => service.FindElementAsync("id=TestTextBox"))
+            .ReturnsAsync(new Mock<FlaUI.Core.AutomationElements.AutomationElement>().Object);
+        _mockAutomationService.Setup(service => service.TypeTextAsync(It.IsAny<FlaUI.Core.AutomationElements.AutomationElement>(), "hello"))
+            .ReturnsAsync(false);
+        var rootCommand = new RootCommand();
+        rootCommand.Add(_typeCommand);
+
+        // Act
+        var result = await rootCommand.InvokeAsync(new[] { "type", "--process-id", "1234", "--element", "id=TestTextBox", "--text", "hello" });
+
+        // Assert
+        result.Should().NotBe(0);
+    }
 }
