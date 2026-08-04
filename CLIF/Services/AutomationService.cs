@@ -156,7 +156,15 @@ public class AutomationService : IAutomationService, IDisposable
                 // Capture state before click for validation
                 var beforeState = await CaptureElementStateAsync(element);
 
-                element.Click();
+                var invokePattern = element.Patterns.Invoke.PatternOrDefault;
+                if (invokePattern != null)
+                {
+                    invokePattern.Invoke();
+                }
+                else
+                {
+                    element.Click();
+                }
                 _logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
 
                 // Wait for potential state changes
@@ -957,8 +965,17 @@ public class AutomationService : IAutomationService, IDisposable
                 var datePicker = element.AsDateTimePicker();
                 if (datePicker != null)
                 {
-                    datePicker.SelectedDate = date;
-                    return true;
+                    try
+                    {
+                        datePicker.SelectedDate = date;
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(
+                            ex,
+                            "Native DateTimePicker setter was rejected; trying standard Value-pattern fallbacks.");
+                    }
                 }
 
                 // Avalonia's DatePicker is not exposed as the native UIA

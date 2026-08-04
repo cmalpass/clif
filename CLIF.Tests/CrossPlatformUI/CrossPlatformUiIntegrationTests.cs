@@ -33,7 +33,15 @@ public sealed class CrossPlatformUiIntegrationTests
         var button = window.FindFirstDescendant(cf => cf.ByAutomationId("TestButton"));
 
         button.Should().NotBeNull();
-        button!.AsButton().Click();
+        var invokePattern = button!.Patterns.Invoke.PatternOrDefault;
+        if (invokePattern != null)
+        {
+            invokePattern.Invoke();
+        }
+        else
+        {
+            button.AsButton().Click();
+        }
 
         // UIA events from Avalonia are delivered asynchronously on the UI thread.
         Thread.Sleep(200);

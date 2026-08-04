@@ -143,6 +143,11 @@ public partial class MainWindow : Window
         SetStatus("Hidden button clicked");
     }
 
+    private void SetKnownDate(object? sender, RoutedEventArgs e)
+    {
+        DateControl.SelectedDate = new DateTimeOffset(2026, 2, 20, 0, 0, 0, TimeSpan.Zero);
+    }
+
     private void ShowAbout(object? sender, RoutedEventArgs e)
     {
         SetStatus("CLIF cross-platform fixture v1");

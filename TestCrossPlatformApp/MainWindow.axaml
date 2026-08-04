@@ -204,6 +204,10 @@
                           SelectedDate="2026-01-15"
                           AutomationProperties.AutomationId="TestDatePicker"
                           AutomationProperties.Name="Test date picker" />
+              <Button Content="Set date to 2026-02-20"
+                      Click="SetKnownDate"
+                      AutomationProperties.AutomationId="SetKnownDateButton"
+                      AutomationProperties.Name="Set date to 2026-02-20" />
               <TextBlock Text="Selected date" />
               <Border Background="#EEEAFB" Padding="10" CornerRadius="4">
                 <TextBlock x:Name="SelectedDateText"

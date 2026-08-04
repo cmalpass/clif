@@ -50,15 +50,15 @@ public sealed class CrossPlatformClifIntegrationTests : IntegrationTestBase
 
     [Fact]
     [Trait("Category", "CrossPlatformUI")]
-    public async Task AutomationService_ShouldSelectDateAndTableRow()
+    public async Task AutomationService_ShouldSelectFixtureDateAndTableRow()
     {
         _fixture.SkipIfUnavailable();
 
         (await AutomationService.AttachToProcessAsync(_fixture.App!.ProcessId)).Should().BeTrue();
 
-        var datePicker = await AutomationService.FindElementAsync("id=TestDatePicker");
-        datePicker.Should().NotBeNull();
-        (await AutomationService.SetDatePickerAsync(datePicker!, new DateTime(2026, 2, 20))).Should().BeTrue();
+        var setDateButton = await AutomationService.FindElementAsync("id=SetKnownDateButton");
+        setDateButton.Should().NotBeNull();
+        (await AutomationService.ClickAsync(setDateButton!)).Should().BeTrue();
 
         var selectedDate = await AutomationService.FindElementAsync("id=SelectedDateText");
         selectedDate.Should().NotBeNull();
