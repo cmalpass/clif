@@ -158,8 +158,14 @@ public class McpServerTests
             """{"jsonrpc":"2.0","id":5,"method":"tools/call"}""",
             """{"jsonrpc":"2.0","id":6,"method":"unknown/method"}""");
 
-        responses.Select(response => response.Error!.Code)
+        // The valid initialize request is intentionally interleaved so that the
+        // following initialized notification can activate the session.  Assert
+        // the canonical errors without assuming every response is an error.
+        responses.Where(response => response.Error is not null)
+            .Select(response => response.Error!.Code)
             .Should().Equal(-32700, -32600, -32600, -32602, -32601);
+        responses.Should().ContainSingle(response =>
+            response.Id?.GetString() == "4" && response.Error is null);
         responses[0].Id.Should().BeNull();
     }
 
