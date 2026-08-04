@@ -192,9 +192,10 @@ public partial class MainWindow : Window
         ActionLogControl.Text = _actionLog.ToString();
     }
 
-    private static void SetText(TextBlock control, string text)
+    private static void SetText(TextBlock control, string? text)
     {
-        control.Text = text;
-        AutomationProperties.SetName(control, text);
+        var value = text ?? string.Empty;
+        control.Text = value;
+        AutomationProperties.SetName(control, value);
     }
 }
