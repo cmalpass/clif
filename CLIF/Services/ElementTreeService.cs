@@ -183,7 +183,7 @@ public class ElementTreeService : IElementTreeService
 
     private ElementTreeNode? FindElementInTreeNode(ElementTreeNode node, string selector)
     {
-        if (node.Selector == selector || node.Name == selector || node.AutomationId == selector)
+        if (SelectorParser.TryParse(selector, out var criteria) && MatchesSelector(node, criteria))
         {
             return node;
         }
@@ -195,6 +195,14 @@ public class ElementTreeService : IElementTreeService
         }
 
         return null;
+    }
+
+    private static bool MatchesSelector(ElementTreeNode node, SelectorCriteria criteria)
+    {
+        return (criteria.AutomationId is null || string.Equals(node.AutomationId, criteria.AutomationId, StringComparison.Ordinal)) &&
+               (criteria.Name is null || string.Equals(node.Name, criteria.Name, StringComparison.Ordinal)) &&
+               (criteria.ClassName is null || string.Equals(node.ClassName, criteria.ClassName, StringComparison.Ordinal)) &&
+               (criteria.ControlType is null || string.Equals(node.ControlType, criteria.ControlType, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool MatchesCriteria(ElementTreeNode node, ElementSearchCriteria criteria)
@@ -243,13 +251,13 @@ public class ElementTreeService : IElementTreeService
         var parts = new List<string>();
 
         if (!string.IsNullOrEmpty(element.AutomationId))
-            return $"id={element.AutomationId}";
+            return $"id={SelectorParser.FormatValue(element.AutomationId)}";
 
         if (!string.IsNullOrEmpty(element.Name))
-            parts.Add($"name={element.Name}");
+            parts.Add($"name={SelectorParser.FormatValue(element.Name)}");
 
         if (!string.IsNullOrEmpty(element.ClassName))
-            parts.Add($"class={element.ClassName}");
+            parts.Add($"class={SelectorParser.FormatValue(element.ClassName)}");
 
         parts.Add($"type={element.ControlType}");
 

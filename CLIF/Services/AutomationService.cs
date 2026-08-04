@@ -6,8 +6,12 @@ using CLIF.Core;
 using System.Drawing;
 using FlaUI.Core.Input;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Conditions;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("CLIF.Tests")]
 
 namespace CLIF.Services;
 
@@ -522,63 +526,42 @@ public class AutomationService : IAutomationService, IDisposable
 
     private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
     {
-        // Simple selector parsing - can be enhanced
-        if (selector.StartsWith("name="))
-        {
-            var name = selector.Substring(5);
-            return root.FindFirstDescendant(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindFirstDescendant(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindFirstDescendant(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindFirstDescendant(cf => cf.ByControlType(ct));
-            }
-        }
-
-        // Default to name search
-        return root.FindFirstDescendant(cf => cf.ByName(selector));
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
+            : null;
     }
 
     private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
     {
-        // Similar logic to FindElementBySelector but returning all matches
-        if (selector.StartsWith("name="))
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
+            : Array.Empty<AutomationElement>();
+    }
+
+    private static ConditionBase CreateSelectorCondition(ConditionFactory conditionFactory, SelectorCriteria criteria)
+    {
+        var conditions = new List<ConditionBase>();
+
+        if (!string.IsNullOrEmpty(criteria.AutomationId))
+            conditions.Add(conditionFactory.ByAutomationId(criteria.AutomationId));
+
+        if (!string.IsNullOrEmpty(criteria.Name))
+            conditions.Add(conditionFactory.ByName(criteria.Name));
+
+        if (!string.IsNullOrEmpty(criteria.ClassName))
+            conditions.Add(conditionFactory.ByClassName(criteria.ClassName));
+
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
+            Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out var controlType))
         {
-            var name = selector.Substring(5);
-            return root.FindAllDescendants(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindAllDescendants(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindAllDescendants(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindAllDescendants(cf => cf.ByControlType(ct));
-            }
+            conditions.Add(conditionFactory.ByControlType(controlType));
         }
 
-        return root.FindAllDescendants(cf => cf.ByName(selector));
+        return conditions.Count switch
+        {
+            1 => conditions[0],
+            _ => new AndCondition(conditions)
+        };
     }
 
     // Advanced control interaction methods
@@ -1979,5 +1962,178 @@ public class AutomationService : IAutomationService, IDisposable
     public void Dispose()
     {
         DetachAsync().Wait();
+    }
+}
+
+/// <summary>
+/// Parses the selector format emitted by <see cref="ElementTreeService"/>.
+/// </summary>
+internal static class SelectorParser
+{
+    private static readonly string[] SupportedKeys = ["id", "name", "class", "type"];
+
+    internal static bool TryParse(string? selector, out SelectorCriteria criteria)
+    {
+        criteria = new SelectorCriteria();
+        if (string.IsNullOrWhiteSpace(selector))
+            return false;
+
+        var trimmedSelector = selector.Trim();
+        if (!trimmedSelector.Contains('='))
+        {
+            return criteria.TrySet("name", trimmedSelector);
+        }
+
+        var clauses = SplitClauses(trimmedSelector);
+        if (clauses.Count == 0)
+            return false;
+
+        foreach (var clause in clauses)
+        {
+            var separatorIndex = clause.IndexOf('=');
+            if (separatorIndex <= 0)
+                return false;
+
+            var key = clause[..separatorIndex].Trim().ToLowerInvariant();
+            if (!SupportedKeys.Contains(key, StringComparer.Ordinal))
+                return false;
+
+            var value = ParseValue(clause[(separatorIndex + 1)..].Trim());
+            if (value is null || !criteria.TrySet(key, value))
+                return false;
+        }
+
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
+            !Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out _))
+        {
+            return false;
+        }
+
+        return criteria.HasCriteria;
+    }
+
+    internal static string FormatValue(string value)
+    {
+        if (value.IndexOf('"') < 0 && value.IndexOf('\\') < 0 &&
+            !value.Contains(" and ", StringComparison.OrdinalIgnoreCase) &&
+            value == value.Trim())
+        {
+            return value;
+        }
+
+        return $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+    }
+
+    private static List<string> SplitClauses(string selector)
+    {
+        var clauses = new List<string>();
+        var start = 0;
+        var quoted = false;
+        var escaped = false;
+
+        for (var index = 0; index < selector.Length; index++)
+        {
+            var character = selector[index];
+            if (escaped)
+            {
+                escaped = false;
+                continue;
+            }
+
+            if (quoted && character == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (character == '"')
+            {
+                quoted = !quoted;
+                continue;
+            }
+
+            if (!quoted && index + 5 <= selector.Length &&
+                selector.AsSpan(index, 5).Equals(" and ", StringComparison.OrdinalIgnoreCase))
+            {
+                clauses.Add(selector[start..index].Trim());
+                start = index + 5;
+                index += 4;
+            }
+        }
+
+        if (quoted || escaped)
+            return [];
+
+        clauses.Add(selector[start..].Trim());
+        return clauses.Any(string.IsNullOrEmpty) ? [] : clauses;
+    }
+
+    private static string? ParseValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (value[0] != '"')
+            return value.Contains('"') ? null : value;
+
+        if (value.Length < 2 || value[^1] != '"')
+            return null;
+
+        var result = new System.Text.StringBuilder(value.Length - 2);
+        var escaped = false;
+        for (var index = 1; index < value.Length - 1; index++)
+        {
+            var character = value[index];
+            if (escaped)
+            {
+                if (character is not ('"' or '\\'))
+                    return null;
+
+                result.Append(character);
+                escaped = false;
+                continue;
+            }
+
+            if (character == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            result.Append(character);
+        }
+
+        return escaped ? null : result.ToString();
+    }
+}
+
+internal sealed class SelectorCriteria
+{
+    internal string? AutomationId { get; private set; }
+    internal string? Name { get; private set; }
+    internal string? ClassName { get; private set; }
+    internal string? ControlType { get; private set; }
+
+    internal bool HasCriteria => AutomationId is not null || Name is not null || ClassName is not null || ControlType is not null;
+
+    internal bool TrySet(string key, string value)
+    {
+        switch (key)
+        {
+            case "id" when AutomationId is null:
+                AutomationId = value;
+                return true;
+            case "name" when Name is null:
+                Name = value;
+                return true;
+            case "class" when ClassName is null:
+                ClassName = value;
+                return true;
+            case "type" when ControlType is null:
+                ControlType = value;
+                return true;
+            default:
+                return false;
+        }
     }
 }
