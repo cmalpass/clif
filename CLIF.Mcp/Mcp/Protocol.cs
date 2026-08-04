@@ -11,6 +11,11 @@ namespace CLIF.Mcp;
 /// </summary>
 public static class McpProtocol
 {
+    /// <summary>
+    /// The MCP protocol version implemented by this server.
+    /// </summary>
+    public const string SupportedProtocolVersion = "2025-06-18";
+
     public static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -29,6 +34,14 @@ public sealed class JsonRpcRequest
 
     [JsonPropertyName("id")]
     public JsonElement? Id { get; set; }
+
+    /// <summary>
+    /// Gets whether the incoming JSON-RPC object contained an <c>id</c> member.
+    /// This is kept separate from <see cref="Id"/> so an omitted id can be
+    /// handled as a notification.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasId { get; set; }
 
     [JsonPropertyName("method")]
     public string Method { get; set; } = string.Empty;
@@ -106,13 +119,40 @@ public sealed class ToolsCapability
 public sealed class McpInitializeResult
 {
     [JsonPropertyName("protocolVersion")]
-    public string ProtocolVersion { get; set; } = "2024-11-05";
+    public string ProtocolVersion { get; set; } = McpProtocol.SupportedProtocolVersion;
 
     [JsonPropertyName("capabilities")]
     public McpCapabilities Capabilities { get; set; } = new();
 
     [JsonPropertyName("serverInfo")]
     public McpServerInfo ServerInfo { get; set; } = new();
+}
+
+/// <summary>
+/// Parameters supplied by a client when it initializes an MCP session.
+/// </summary>
+public sealed class McpInitializeParams
+{
+    [JsonPropertyName("protocolVersion")]
+    public string ProtocolVersion { get; set; } = string.Empty;
+
+    [JsonPropertyName("capabilities")]
+    public JsonElement? Capabilities { get; set; }
+
+    [JsonPropertyName("clientInfo")]
+    public McpClientInfo? ClientInfo { get; set; }
+}
+
+/// <summary>
+/// Basic metadata about the MCP client opening the session.
+/// </summary>
+public sealed class McpClientInfo
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("version")]
+    public string Version { get; set; } = string.Empty;
 }
 
 /// <summary>

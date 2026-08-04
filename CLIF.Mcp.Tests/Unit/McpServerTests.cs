@@ -11,6 +11,11 @@ namespace CLIF.Mcp.Tests.Unit;
 /// </summary>
 public class McpServerTests
 {
+    private static string InitializeRequest(string id, string protocolVersion = McpProtocol.SupportedProtocolVersion) =>
+        "{\"jsonrpc\":\"2.0\",\"id\":" + id +
+        ",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"" + protocolVersion +
+        "\",\"capabilities\":{},\"clientInfo\":{\"name\":\"clif-tests\",\"version\":\"1.0\"}}}";
+
     /// <summary>
     /// Helper that sends JSON-RPC requests to the McpServer via in-memory streams
     /// and returns the responses.
@@ -65,7 +70,7 @@ public class McpServerTests
     {
         var registry = new ToolRegistry();
         var responses = await SendRequestsAsync(registry,
-            """{"jsonrpc":"2.0","id":1,"method":"initialize"}""");
+            InitializeRequest("1"));
 
         responses.Should().HaveCount(1);
         responses[0].Id.Should().NotBeNull();
@@ -74,7 +79,7 @@ public class McpServerTests
 
         var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("clif-mcp");
-        resultJson.Should().Contain("2024-11-05");
+        resultJson.Should().Contain(McpProtocol.SupportedProtocolVersion);
     }
 
     [Fact]
@@ -89,6 +94,92 @@ public class McpServerTests
     }
 
     [Fact]
+    public async Task Lifecycle_RequiresInitializeThenInitializedNotificationBeforeTools()
+    {
+        var responses = await SendRequestsAsync(new ToolRegistry(),
+            """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""",
+            InitializeRequest("2"),
+            """{"jsonrpc":"2.0","id":3,"method":"tools/list"}""",
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
+            """{"jsonrpc":"2.0","id":4,"method":"tools/list"}""",
+            InitializeRequest("5"));
+
+        responses.Should().HaveCount(5);
+        responses[0].Error!.Code.Should().Be(-32600);
+        responses[1].Error.Should().BeNull();
+        responses[2].Error!.Code.Should().Be(-32600);
+        responses[3].Error.Should().BeNull();
+        responses[4].Error!.Code.Should().Be(-32600);
+    }
+
+    [Fact]
+    public async Task Initialize_NegotiatesTheDocumentedSupportedProtocolVersion()
+    {
+        var responses = await SendRequestsAsync(new ToolRegistry(),
+            InitializeRequest("1", "2024-11-05"));
+
+        responses.Should().ContainSingle();
+        responses[0].Error.Should().BeNull();
+        JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions)
+            .Should().Contain(McpProtocol.SupportedProtocolVersion);
+    }
+
+    [Fact]
+    public async Task Initialize_RejectsAnInvalidProtocolVersion()
+    {
+        var responses = await SendRequestsAsync(new ToolRegistry(),
+            InitializeRequest("1", "not-a-protocol-version"));
+
+        responses.Should().ContainSingle();
+        responses[0].Error!.Code.Should().Be(-32602);
+    }
+
+    [Fact]
+    public async Task Notifications_NeverProduceResponsesOrAdvanceTheLifecycle()
+    {
+        var responses = await SendRequestsAsync(new ToolRegistry(),
+            InitializeRequestWithoutId(),
+            """{"jsonrpc":"2.0","method":"tools/list"}""",
+            """{"jsonrpc":"2.0","method":"unknown/method"}""",
+            """{"jsonrpc":"1.0","method":"tools/list"}""");
+
+        responses.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task InvalidMessages_ReturnCanonicalJsonRpcErrors()
+    {
+        var responses = await SendRequestsAsync(new ToolRegistry(),
+            "{",
+            "[]",
+            """{"jsonrpc":"1.0","id":3,"method":"initialize"}""",
+            InitializeRequest("4"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
+            """{"jsonrpc":"2.0","id":5,"method":"tools/call"}""",
+            """{"jsonrpc":"2.0","id":6,"method":"unknown/method"}""");
+
+        responses.Select(response => response.Error!.Code)
+            .Should().Equal(-32700, -32600, -32600, -32602, -32601);
+        responses[0].Id.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task HostFailures_ReturnInternalErrorWithoutExceptionDetails()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterTool(new ThrowingDefinitionTool());
+
+        var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
+            """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""");
+
+        responses.Should().HaveCount(2);
+        responses[1].Error!.Code.Should().Be(-32603);
+        responses[1].Error!.Message.Should().Be("Internal error.");
+    }
+
+    [Fact]
     public async Task ToolsList_ReturnsRegisteredTools()
     {
         var registry = new ToolRegistry();
@@ -96,11 +187,13 @@ public class McpServerTests
         registry.RegisterTool(new TestTool("clif_test2", "Test tool 2"));
 
         var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""");
 
-        responses.Should().HaveCount(1);
-        responses[0].Error.Should().BeNull();
-        var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
+        responses.Should().HaveCount(2);
+        responses[1].Error.Should().BeNull();
+        var resultJson = JsonSerializer.Serialize(responses[1].Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("clif_test1");
         resultJson.Should().Contain("clif_test2");
     }
@@ -111,11 +204,13 @@ public class McpServerTests
         var registry = new ToolRegistry();
 
         var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":3,"method":"tools/list"}""");
 
-        responses.Should().HaveCount(1);
-        responses[0].Error.Should().BeNull();
-        var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
+        responses.Should().HaveCount(2);
+        responses[1].Error.Should().BeNull();
+        var resultJson = JsonSerializer.Serialize(responses[1].Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("\"tools\":[]");
     }
 
@@ -126,11 +221,13 @@ public class McpServerTests
         registry.RegisterTool(new TestTool("clif_greet", "Greet someone"));
 
         var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"clif_greet","arguments":{"who":"World"}}}""");
 
-        responses.Should().HaveCount(1);
-        responses[0].Error.Should().BeNull();
-        var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
+        responses.Should().HaveCount(2);
+        responses[1].Error.Should().BeNull();
+        var resultJson = JsonSerializer.Serialize(responses[1].Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("TestTool executed");
     }
 
@@ -140,11 +237,13 @@ public class McpServerTests
         var registry = new ToolRegistry();
 
         var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"clif_nonexistent"}}""");
 
-        responses.Should().HaveCount(1);
-        responses[0].Error.Should().BeNull(); // JSON-RPC level is ok, error is in the tool result
-        var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
+        responses.Should().HaveCount(2);
+        responses[1].Error.Should().BeNull(); // JSON-RPC level is ok, error is in the tool result
+        var resultJson = JsonSerializer.Serialize(responses[1].Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("Unknown tool");
     }
 
@@ -155,12 +254,13 @@ public class McpServerTests
         registry.RegisterTool(new TestTool("clif_test", "Test"));
 
         var responses = await SendRequestsAsync(registry,
+            InitializeRequest("1"),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":6,"method":"tools/call"}""");
 
-        responses.Should().HaveCount(1);
-        responses[0].Error.Should().BeNull(); // Handled at tool call level
-        var resultJson = JsonSerializer.Serialize(responses[0].Result, McpProtocol.JsonOptions);
-        resultJson.Should().Contain("Missing params");
+        responses.Should().HaveCount(2);
+        responses[1].Error.Should().NotBeNull();
+        responses[1].Error!.Code.Should().Be(-32602);
     }
 
     [Fact]
@@ -174,7 +274,7 @@ public class McpServerTests
         responses.Should().HaveCount(1);
         responses[0].Error.Should().NotBeNull();
         responses[0].Error!.Code.Should().Be(-32601);
-        responses[0].Error!.Message.Should().Contain("Unknown method");
+        responses[0].Error!.Message.Should().Be("Method not found.");
     }
 
     [Fact]
@@ -184,7 +284,7 @@ public class McpServerTests
         registry.RegisterTool(new TestTool("clif_test", "Test"));
 
         var responses = await SendRequestsAsync(registry,
-            """{"jsonrpc":"2.0","id":1,"method":"initialize"}""",
+            InitializeRequest("1"),
             """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""",
             """{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"clif_test"}}""");
@@ -197,7 +297,7 @@ public class McpServerTests
     public async Task BlankLines_AreIgnored()
     {
         var registry = new ToolRegistry();
-        var input = "\n\n" + """{"jsonrpc":"2.0","id":1,"method":"initialize"}""" + "\n\n\n";
+        var input = "\n\n" + InitializeRequest("1") + "\n\n\n";
         using var inputStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(input));
         using var outputStream = new MemoryStream();
 
@@ -243,7 +343,7 @@ public class McpServerTests
         var registry = new ToolRegistry();
 
         var responses = await SendRequestsAsync(registry,
-            """{"jsonrpc":"2.0","id":42,"method":"initialize"}""");
+            InitializeRequest("42"));
 
         responses.Should().HaveCount(1);
         responses[0].Id.Should().NotBeNull();
@@ -256,7 +356,7 @@ public class McpServerTests
         var registry = new ToolRegistry();
 
         var responses = await SendRequestsAsync(registry,
-            """{"jsonrpc":"2.0","id":"request-abc","method":"initialize"}""");
+            InitializeRequest("\"request-abc\""));
 
         responses.Should().HaveCount(1);
         responses[0].Id.Should().NotBeNull();
@@ -285,5 +385,19 @@ public class McpServerTests
         {
             return Task.FromResult(TextResult("TestTool executed"));
         }
+    }
+
+    private static string InitializeRequestWithoutId() =>
+        "{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"" + McpProtocol.SupportedProtocolVersion +
+        "\",\"capabilities\":{},\"clientInfo\":{\"name\":\"clif-tests\",\"version\":\"1.0\"}}}";
+
+    private sealed class ThrowingDefinitionTool : ITool
+    {
+        public string Name => "clif_throwing_definition";
+
+        public McpTool GetDefinition() => throw new InvalidOperationException("sensitive internal detail");
+
+        public Task<McpToolResult> ExecuteAsync(JsonElement? arguments) =>
+            Task.FromResult(new McpToolResult());
     }
 }
