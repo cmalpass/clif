@@ -1,6 +1,7 @@
 // Licensed under the MIT License.
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
+using System.Globalization;
 using System.Text.Json;
 
 namespace CLIF.Mcp;
@@ -11,6 +12,7 @@ namespace CLIF.Mcp;
 public class McpServer
 {
     private readonly ToolRegistry _toolRegistry;
+    private McpSessionState _sessionState = McpSessionState.Uninitialized;
 
     public McpServer(ToolRegistry toolRegistry)
     {
@@ -36,64 +38,102 @@ public class McpServer
 
             try
             {
-                var request = JsonSerializer.Deserialize<JsonRpcRequest>(line, McpProtocol.JsonOptions);
-                if (request == null) continue;
+                if (!TryDeserializeRequest(line, out var request, out var errorResponse))
+                {
+                    await WriteResponseAsync(writer, errorResponse!);
+                    continue;
+                }
 
-                var response = await HandleRequestAsync(request);
+                var response = await HandleRequestAsync(request!);
                 if (response != null)
                 {
-                    var responseJson = JsonSerializer.Serialize(response, McpProtocol.JsonOptions);
-                    await writer.WriteLineAsync(responseJson);
-                    await writer.FlushAsync();
+                    await WriteResponseAsync(writer, response);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                Console.Error.WriteLine($"Error processing request: {ex.Message}");
+                break;
+            }
+            catch
+            {
+                await WriteResponseAsync(writer, CreateError(null, JsonRpcErrors.InternalError, "Internal error."));
             }
         }
     }
 
     private async Task<JsonRpcResponse?> HandleRequestAsync(JsonRpcRequest request)
     {
+        if (!request.HasId)
+        {
+            await HandleNotificationAsync(request);
+            return null;
+        }
+
+        if (!IsValidRequest(request))
+        {
+            return CreateError(request.Id, JsonRpcErrors.InvalidRequest, "Invalid request.");
+        }
+
         try
         {
-            object? result = request.Method switch
+            return request.Method switch
             {
-                "initialize" => HandleInitialize(),
-                "notifications/initialized" => null,
-                "tools/list" => HandleToolsList(),
-                "tools/call" => await HandleToolCallAsync(request),
-                _ => throw new InvalidOperationException($"Unknown method: {request.Method}"),
-            };
-
-            if (result == null) return null;
-
-            return new JsonRpcResponse
-            {
-                Id = request.Id,
-                Result = result,
+                "initialize" => HandleInitializeRequest(request),
+                "notifications/initialized" => CreateError(request.Id, JsonRpcErrors.InvalidRequest, "notifications/initialized must not include an id."),
+                "tools/list" => HandleToolsListRequest(request),
+                "tools/call" => await HandleToolCallRequestAsync(request),
+                _ => CreateError(request.Id, JsonRpcErrors.MethodNotFound, "Method not found."),
             };
         }
-        catch (Exception ex)
+        catch
         {
-            return new JsonRpcResponse
-            {
-                Id = request.Id,
-                Error = new JsonRpcError
-                {
-                    Code = -32601,
-                    Message = ex.Message,
-                },
-            };
+            return CreateError(request.Id, JsonRpcErrors.InternalError, "Internal error.");
         }
+    }
+
+    private async Task HandleNotificationAsync(JsonRpcRequest request)
+    {
+        if (!IsValidRequest(request)) return;
+
+        if (request.Method == "notifications/initialized")
+        {
+            if (_sessionState == McpSessionState.AwaitingInitialized)
+            {
+                _sessionState = McpSessionState.Active;
+            }
+
+            return;
+        }
+
+        if (_sessionState != McpSessionState.Active) return;
+
+        if (request.Method == "tools/call" && TryGetToolCallParams(request, out var callParams))
+        {
+            await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments);
+        }
+    }
+
+    private JsonRpcResponse HandleInitializeRequest(JsonRpcRequest request)
+    {
+        if (_sessionState != McpSessionState.Uninitialized)
+        {
+            return CreateError(request.Id, JsonRpcErrors.InvalidRequest, "Session is already initialized.");
+        }
+
+        if (!TryGetInitializeParams(request, out _))
+        {
+            return CreateError(request.Id, JsonRpcErrors.InvalidParams, "Invalid initialize parameters.");
+        }
+
+        _sessionState = McpSessionState.AwaitingInitialized;
+        return Success(request.Id, HandleInitialize());
     }
 
     private static McpInitializeResult HandleInitialize()
     {
         return new McpInitializeResult
         {
-            ProtocolVersion = "2024-11-05",
+            ProtocolVersion = McpProtocol.SupportedProtocolVersion,
             Capabilities = new McpCapabilities
             {
                 Tools = new ToolsCapability { ListChanged = false },
@@ -114,31 +154,142 @@ public class McpServer
         };
     }
 
-    private async Task<McpToolResult> HandleToolCallAsync(JsonRpcRequest request)
+    private JsonRpcResponse HandleToolsListRequest(JsonRpcRequest request)
     {
-        if (request.Params == null)
+        if (_sessionState != McpSessionState.Active)
         {
-            return ErrorResult("Missing params");
+            return CreateError(request.Id, JsonRpcErrors.InvalidRequest, "Session is not active.");
         }
 
-        var callParams = JsonSerializer.Deserialize<McpToolCallParams>(
-            request.Params.Value.GetRawText(),
-            McpProtocol.JsonOptions);
-
-        if (callParams == null)
+        if (request.Params.HasValue && request.Params.Value.ValueKind != JsonValueKind.Object)
         {
-            return ErrorResult("Invalid tool call params");
+            return CreateError(request.Id, JsonRpcErrors.InvalidParams, "Invalid tools/list parameters.");
         }
 
-        return await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments);
+        return Success(request.Id, HandleToolsList());
     }
 
-    private static McpToolResult ErrorResult(string message) => new()
+    private async Task<JsonRpcResponse> HandleToolCallRequestAsync(JsonRpcRequest request)
     {
-        Content = new List<McpContent>
+        if (_sessionState != McpSessionState.Active)
         {
-            new() { Type = "text", Text = message },
-        },
-        IsError = true,
+            return CreateError(request.Id, JsonRpcErrors.InvalidRequest, "Session is not active.");
+        }
+
+        if (!TryGetToolCallParams(request, out var callParams))
+        {
+            return CreateError(request.Id, JsonRpcErrors.InvalidParams, "Invalid tools/call parameters.");
+        }
+
+        return Success(request.Id, await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments));
+    }
+
+    private static bool TryDeserializeRequest(string line, out JsonRpcRequest? request, out JsonRpcResponse? errorResponse)
+    {
+        request = null;
+        errorResponse = null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(line);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                errorResponse = CreateError(null, JsonRpcErrors.InvalidRequest, "Invalid request.");
+                return false;
+            }
+
+            request = JsonSerializer.Deserialize<JsonRpcRequest>(line, McpProtocol.JsonOptions);
+            if (request == null)
+            {
+                errorResponse = CreateError(null, JsonRpcErrors.InvalidRequest, "Invalid request.");
+                return false;
+            }
+
+            request.HasId = document.RootElement.TryGetProperty("id", out _);
+            return true;
+        }
+        catch (JsonException)
+        {
+            errorResponse = CreateError(null, JsonRpcErrors.ParseError, "Parse error.");
+            return false;
+        }
+    }
+
+    private static bool IsValidRequest(JsonRpcRequest request)
+    {
+        if (request.JsonRpc != "2.0" || string.IsNullOrWhiteSpace(request.Method)) return false;
+        if (!request.HasId) return true;
+        if (!request.Id.HasValue) return false;
+
+        return request.Id.Value.ValueKind is JsonValueKind.String or JsonValueKind.Number or JsonValueKind.Null;
+    }
+
+    private static bool TryGetInitializeParams(JsonRpcRequest request, out McpInitializeParams initializeParams)
+    {
+        initializeParams = new McpInitializeParams();
+        if (!request.Params.HasValue || request.Params.Value.ValueKind != JsonValueKind.Object) return false;
+
+        try
+        {
+            initializeParams = JsonSerializer.Deserialize<McpInitializeParams>(request.Params.Value.GetRawText(), McpProtocol.JsonOptions) ?? new McpInitializeParams();
+            return IsProtocolVersion(initializeParams.ProtocolVersion) &&
+                   initializeParams.Capabilities.HasValue && initializeParams.Capabilities.Value.ValueKind == JsonValueKind.Object &&
+                   initializeParams.ClientInfo is { Name.Length: > 0, Version.Length: > 0 };
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsProtocolVersion(string value) =>
+        DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+
+    private static bool TryGetToolCallParams(JsonRpcRequest request, out McpToolCallParams callParams)
+    {
+        callParams = new McpToolCallParams();
+        if (!request.Params.HasValue || request.Params.Value.ValueKind != JsonValueKind.Object) return false;
+
+        try
+        {
+            callParams = JsonSerializer.Deserialize<McpToolCallParams>(request.Params.Value.GetRawText(), McpProtocol.JsonOptions) ?? new McpToolCallParams();
+            return !string.IsNullOrWhiteSpace(callParams.Name) &&
+                   (!callParams.Arguments.HasValue || callParams.Arguments.Value.ValueKind == JsonValueKind.Object);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private static JsonRpcResponse Success(JsonElement? id, object result) => new() { Id = id, Result = result };
+
+    private static JsonRpcResponse CreateError(JsonElement? id, int code, string message) => new()
+    {
+        Id = id,
+        Error = new JsonRpcError { Code = code, Message = message },
     };
+
+    private static async Task WriteResponseAsync(TextWriter writer, JsonRpcResponse response)
+    {
+        var responseJson = JsonSerializer.Serialize(response, McpProtocol.JsonOptions);
+        await writer.WriteLineAsync(responseJson);
+        await writer.FlushAsync();
+    }
+
+    private enum McpSessionState
+    {
+        Uninitialized,
+        AwaitingInitialized,
+        Active,
+    }
+
+    private static class JsonRpcErrors
+    {
+        public const int ParseError = -32700;
+        public const int InvalidRequest = -32600;
+        public const int MethodNotFound = -32601;
+        public const int InvalidParams = -32602;
+        public const int InternalError = -32603;
+    }
 }

@@ -111,7 +111,7 @@ public class ProtocolTests
     {
         var result = new McpInitializeResult();
 
-        result.ProtocolVersion.Should().Be("2024-11-05");
+        result.ProtocolVersion.Should().Be(McpProtocol.SupportedProtocolVersion);
         result.Capabilities.Should().NotBeNull();
         result.ServerInfo.Should().NotBeNull();
         result.ServerInfo.Name.Should().Be("clif-mcp");
@@ -123,7 +123,7 @@ public class ProtocolTests
     {
         var result = new McpInitializeResult
         {
-            ProtocolVersion = "2024-11-05",
+            ProtocolVersion = McpProtocol.SupportedProtocolVersion,
             Capabilities = new McpCapabilities
             {
                 Tools = new ToolsCapability { ListChanged = false },
@@ -139,7 +139,7 @@ public class ProtocolTests
         var deserialized = JsonSerializer.Deserialize<McpInitializeResult>(json, McpProtocol.JsonOptions);
 
         deserialized.Should().NotBeNull();
-        deserialized!.ProtocolVersion.Should().Be("2024-11-05");
+        deserialized!.ProtocolVersion.Should().Be(McpProtocol.SupportedProtocolVersion);
         deserialized.ServerInfo.Name.Should().Be("clif-mcp");
         deserialized.ServerInfo.Version.Should().Be("0.1.0");
         deserialized.Capabilities.Tools.Should().NotBeNull();
