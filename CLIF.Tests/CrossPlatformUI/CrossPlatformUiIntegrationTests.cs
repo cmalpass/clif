@@ -35,6 +35,9 @@ public sealed class CrossPlatformUiIntegrationTests
         button.Should().NotBeNull();
         button!.AsButton().Click();
 
+        // UIA events from Avalonia are delivered asynchronously on the UI thread.
+        Thread.Sleep(200);
+
         var status = window.FindFirstDescendant(cf => cf.ByAutomationId("StatusTextBlock"));
         status.Should().NotBeNull();
         status!.Name.Should().Be("Button clicked");

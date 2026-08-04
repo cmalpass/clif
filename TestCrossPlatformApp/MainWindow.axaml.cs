@@ -1,3 +1,4 @@
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
@@ -32,6 +33,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Avalonia's UIA provider does not reliably raise a Name-changed event
+        // when a TextBlock's Text is changed. Give mutable verification fields an
+        // explicit automation name and keep it synchronized with their visible text.
+        SetText(StatusControl, StatusControl.Text);
+        SetText(SelectedDateControl, SelectedDateControl.Text);
+        SetText(SelectedDataRowControl, SelectedDataRowControl.Text);
 
         SliderControl.PropertyChanged += (_, args) =>
         {
@@ -89,7 +97,7 @@ public partial class MainWindow : Window
             if (args.Property == DatePicker.SelectedDateProperty)
             {
                 var selectedDate = DateControl.SelectedDate;
-                SelectedDateControl.Text = selectedDate?.ToString("yyyy-MM-dd") ?? "No date selected";
+                SetText(SelectedDateControl, selectedDate?.ToString("yyyy-MM-dd") ?? "No date selected");
                 SetStatus($"Date selected: {SelectedDateControl.Text}");
             }
         };
@@ -106,7 +114,7 @@ public partial class MainWindow : Window
 
             if (DataTableControl.SelectedIndex >= 0)
             {
-                SelectedDataRowControl.Text = $"Selected row: {customerName}";
+                SetText(SelectedDataRowControl, $"Selected row: {customerName}");
                 SetStatus(SelectedDataRowControl.Text);
             }
         };
@@ -160,8 +168,8 @@ public partial class MainWindow : Window
         TabsControl.SelectedIndex = 0;
         DateControl.SelectedDate = DefaultDate;
         DataTableControl.SelectedIndex = 0;
-        SelectedDateControl.Text = DefaultDate.ToString("yyyy-MM-dd");
-        SelectedDataRowControl.Text = "Selected row: Alice Johnson";
+        SetText(SelectedDateControl, DefaultDate.ToString("yyyy-MM-dd"));
+        SetText(SelectedDataRowControl, "Selected row: Alice Johnson");
         SetStatus("Controls reset");
     }
 
@@ -173,9 +181,15 @@ public partial class MainWindow : Window
     private void SetStatus(string message)
     {
         _actionCount++;
-        StatusControl.Text = message;
+        SetText(StatusControl, message);
         ActionCountControl.Text = $"Actions: {_actionCount}";
         _actionLog.AppendLine($"{_actionCount:000}: {message}");
         ActionLogControl.Text = _actionLog.ToString();
+    }
+
+    private static void SetText(TextBlock control, string text)
+    {
+        control.Text = text;
+        AutomationProperties.SetName(control, text);
     }
 }
