@@ -4,6 +4,7 @@ using CLIF.Services;
 using FluentAssertions;
 using Moq;
 using System.CommandLine;
+using System.Runtime.CompilerServices;
 
 namespace CLIF.Tests.Unit.Commands;
 
@@ -74,7 +75,7 @@ public class TypeCommandTests
         // Arrange
         _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
         _mockAutomationService.Setup(service => service.FindElementAsync("id=TestTextBox"))
-            .ReturnsAsync(new Mock<FlaUI.Core.AutomationElements.AutomationElement>().Object);
+            .ReturnsAsync(CreateAutomationElement());
         _mockAutomationService.Setup(service => service.TypeTextAsync(It.IsAny<FlaUI.Core.AutomationElements.AutomationElement>(), "hello"))
             .ReturnsAsync(false);
         var rootCommand = new RootCommand();
@@ -86,4 +87,8 @@ public class TypeCommandTests
         // Assert
         result.Should().NotBe(0);
     }
+
+    private static FlaUI.Core.AutomationElements.AutomationElement CreateAutomationElement() =>
+        (FlaUI.Core.AutomationElements.AutomationElement)RuntimeHelpers.GetUninitializedObject(
+            typeof(FlaUI.Core.AutomationElements.AutomationElement));
 }

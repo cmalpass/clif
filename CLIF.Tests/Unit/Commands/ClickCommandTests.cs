@@ -6,6 +6,7 @@ using FluentAssertions;
 using Moq;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.Runtime.CompilerServices;
 
 namespace CLIF.Tests.Unit.Commands;
 
@@ -90,7 +91,7 @@ public class ClickCommandTests
         // Arrange
         _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
         _mockAutomationService.Setup(service => service.FindElementAsync("id=TestButton"))
-            .ReturnsAsync(new Mock<FlaUI.Core.AutomationElements.AutomationElement>().Object);
+            .ReturnsAsync(CreateAutomationElement());
         _mockAutomationService.Setup(service => service.ClickAsync(It.IsAny<FlaUI.Core.AutomationElements.AutomationElement>()))
             .ReturnsAsync(false);
         var rootCommand = new RootCommand();
@@ -102,4 +103,8 @@ public class ClickCommandTests
         // Assert
         result.Should().NotBe(0);
     }
+
+    private static FlaUI.Core.AutomationElements.AutomationElement CreateAutomationElement() =>
+        (FlaUI.Core.AutomationElements.AutomationElement)RuntimeHelpers.GetUninitializedObject(
+            typeof(FlaUI.Core.AutomationElements.AutomationElement));
 }

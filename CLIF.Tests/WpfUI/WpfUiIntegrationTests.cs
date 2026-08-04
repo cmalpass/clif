@@ -1,5 +1,6 @@
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Tools;
 using FluentAssertions;
 using Xunit;
 
@@ -83,10 +84,21 @@ public class WpfUiIntegrationTests
     {
         _fixture.SkipIfUnavailable();
 
-        var window = _fixture.GetMainWindow();
-        var checkBox = window
-            .FindFirstDescendant(cf => cf.ByAutomationId("TestCheckBox"))
-            ?.AsCheckBox();
+        // The fixture can obtain the native window handle before WPF has finished
+        // materialising its visual tree.  Test class order within the shared
+        // collection is intentionally unspecified, so this test may be the first
+        // consumer after startup. Retry the UIA lookup rather than assuming the
+        // control is immediately present, and bound the wait so a real regression
+        // still fails promptly.
+        var checkBox = Retry.WhileNull(
+                () => _fixture.GetMainWindow()
+                    .FindFirstDescendant(cf => cf.ByAutomationId("TestCheckBox"))
+                    ?.AsCheckBox(),
+                timeout: TimeSpan.FromSeconds(10),
+                interval: TimeSpan.FromMilliseconds(100),
+                throwOnTimeout: false,
+                ignoreException: true)
+            .Result;
 
         checkBox.Should().NotBeNull("TestCheckBox should exist in the main window");
 
