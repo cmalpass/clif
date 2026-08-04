@@ -253,6 +253,16 @@ jobs:
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
 
+    - name: Verify Avalonia fixture executable
+      shell: pwsh
+      run: |
+        $fixturePath = Join-Path $env:GITHUB_WORKSPACE 'TestCrossPlatformApp\bin\Release\net8.0\TestCrossPlatformApp.exe'
+        if (-not (Test-Path -LiteralPath $fixturePath -PathType Leaf)) {
+          throw "Expected Avalonia fixture executable was not produced: $fixturePath"
+        }
+        "TEST_CROSS_PLATFORM_APP_PATH=$fixturePath" >> $env:GITHUB_ENV
+        Write-Host "Fixture executable: $fixturePath"
+
     - name: Run cross-platform fixture UI tests
       run: |
         dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
@@ -260,7 +270,31 @@ jobs:
           --logger "trx;LogFileName=cross-platform-ui-tests.trx" `
           --logger "console;verbosity=detailed" `
           --results-directory ./TestResults
-      continue-on-error: true
+
+    - name: Assert Windows UI validation executed
+      if: always()
+      shell: pwsh
+      run: |
+        $trxPath = Join-Path $env:GITHUB_WORKSPACE 'TestResults\cross-platform-ui-tests.trx'
+        if (-not (Test-Path -LiteralPath $trxPath -PathType Leaf)) {
+          throw "Cross-platform UI test results were not produced: $trxPath"
+        }
+
+        [xml]$trx = Get-Content -LiteralPath $trxPath
+        $results = @($trx.SelectNodes("//*[local-name()='UnitTestResult']"))
+        $failed = @($results | Where-Object { $_.outcome -in @('Failed', 'Error') }).Count
+        $notExecuted = @($results | Where-Object { $_.outcome -eq 'NotExecuted' }).Count
+
+        Write-Host "Windows UI tests recorded: $($results.Count)"
+        Write-Host "Failed: $failed"
+        Write-Host "Not executed: $notExecuted"
+
+        if ($results.Count -eq 0) {
+          throw "No Windows UI test results were recorded."
+        }
+        if ($failed -gt 0 -or $notExecuted -gt 0) {
+          throw "Windows UI validation failed or was skipped."
+        }
 
     - name: Upload cross-platform UI test results
       uses: actions/upload-artifact@v4
@@ -277,7 +311,7 @@ jobs:
         name: Cross-platform UI Test Results
         path: ./TestResults/cross-platform-ui-tests.trx
         reporter: dotnet-trx
-        fail-on-error: false
+        fail-on-error: true
 
   # ────────────────────────────────────────────────────────────────────────────
   # WPF UI Tests
