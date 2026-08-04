@@ -83,4 +83,23 @@ public class ClickCommandTests
         _clickCommand.Should().BeAssignableTo<Command>();
         _clickCommand.Name.Should().Be("click");
     }
+
+    [Fact]
+    public async Task InvokeAsync_WhenClickFails_ShouldReturnNonZero()
+    {
+        // Arrange
+        _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
+        _mockAutomationService.Setup(service => service.FindElementAsync("id=TestButton"))
+            .ReturnsAsync(new Mock<FlaUI.Core.AutomationElements.AutomationElement>().Object);
+        _mockAutomationService.Setup(service => service.ClickAsync(It.IsAny<FlaUI.Core.AutomationElements.AutomationElement>()))
+            .ReturnsAsync(false);
+        var rootCommand = new RootCommand();
+        rootCommand.Add(_clickCommand);
+
+        // Act
+        var result = await rootCommand.InvokeAsync(new[] { "click", "--process-id", "1234", "--element", "id=TestButton" });
+
+        // Assert
+        result.Should().NotBe(0);
+    }
 }
