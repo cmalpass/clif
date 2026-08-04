@@ -100,6 +100,37 @@ public class AutomationServiceTests : IDisposable
         result.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData("id=TestButton", "TestButton", null, null, null)]
+    [InlineData("name=Submit and class=Button and type=Button", null, "Submit", "Button", "Button")]
+    [InlineData("name=\"Research and Development\" and type=Text", null, "Research and Development", null, "Text")]
+    [InlineData("Save", null, "Save", null, null)]
+    public void SelectorParser_WithSimpleAndCompoundSelectors_ShouldParseAllCriteria(
+        string selector,
+        string? expectedId,
+        string? expectedName,
+        string? expectedClass,
+        string? expectedType)
+    {
+        var parsed = SelectorParser.TryParse(selector, out var criteria);
+
+        parsed.Should().BeTrue();
+        criteria.AutomationId.Should().Be(expectedId);
+        criteria.Name.Should().Be(expectedName);
+        criteria.ClassName.Should().Be(expectedClass);
+        criteria.ControlType.Should().Be(expectedType);
+    }
+
+    [Theory]
+    [InlineData("name=Submit and name=Cancel")]
+    [InlineData("role=Button")]
+    [InlineData("type=NotAControlType")]
+    [InlineData("name=\"unterminated")]
+    public void SelectorParser_WithInvalidCompoundSelector_ShouldRejectIt(string selector)
+    {
+        SelectorParser.TryParse(selector, out _).Should().BeFalse();
+    }
+
     [Fact]
     public async Task FindElementAsync_WithInvalidSelector_ShouldReturnNull()
     {
