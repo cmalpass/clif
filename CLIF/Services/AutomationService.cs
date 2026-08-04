@@ -6,6 +6,7 @@ using CLIF.Core;
 using System.Drawing;
 using FlaUI.Core.Input;
 using FlaUI.Core.Definitions;
+using System.Globalization;
 using System.Runtime.InteropServices;
 
 namespace CLIF.Services;
@@ -155,7 +156,15 @@ public class AutomationService : IAutomationService, IDisposable
                 // Capture state before click for validation
                 var beforeState = await CaptureElementStateAsync(element);
 
-                element.Click();
+                var invokePattern = element.Patterns.Invoke.PatternOrDefault;
+                if (invokePattern != null)
+                {
+                    invokePattern.Invoke();
+                }
+                else
+                {
+                    element.Click();
+                }
                 _logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
 
                 // Wait for potential state changes
@@ -949,16 +958,49 @@ public class AutomationService : IAutomationService, IDisposable
 
     public async Task<bool> SetDatePickerAsync(AutomationElement element, DateTime date)
     {
-        return await Task.Run(() =>
+        var valueSet = await Task.Run(() =>
         {
             try
             {
                 var datePicker = element.AsDateTimePicker();
                 if (datePicker != null)
                 {
-                    datePicker.SelectedDate = date;
+                    try
+                    {
+                        datePicker.SelectedDate = date;
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(
+                            ex,
+                            "Native DateTimePicker setter was rejected; trying standard Value-pattern fallbacks.");
+                    }
+                }
+
+                // Avalonia's DatePicker is not exposed as the native UIA
+                // DateTimePicker control on Windows. When it exposes an editable
+                // value instead, use that standard UIA pattern.
+                var formattedDate = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                var valuePattern = element.Patterns.Value.PatternOrDefault;
+                if (valuePattern != null)
+                {
+                    valuePattern.SetValue(formattedDate);
                     return true;
                 }
+
+                var editor = element.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit));
+                var editorValuePattern = editor?.Patterns.Value.PatternOrDefault;
+                if (editorValuePattern != null)
+                {
+                    editorValuePattern.SetValue(formattedDate);
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "Date picker does not expose a DateTimePicker or Value UI Automation pattern. Control type: {ControlType}; class: {ClassName}",
+                    element.ControlType,
+                    element.ClassName);
                 return false;
             }
             catch (Exception ex)
@@ -967,6 +1009,13 @@ public class AutomationService : IAutomationService, IDisposable
                 return false;
             }
         });
+
+        if (valueSet)
+        {
+            await Task.Delay(200);
+        }
+
+        return valueSet;
     }
 
     public async Task<bool> SetCalendarDateAsync(AutomationElement element, DateTime date)

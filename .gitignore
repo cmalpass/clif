@@ -8,6 +8,10 @@ CLIF.Tests/bin/*
 CLIF.Tests/obj/*
 TestWpfApp/bin/*
 TestWpfApp/obj/*
+TestCrossPlatformApp/bin/*
+TestCrossPlatformApp/obj/*
+TestCrossPlatformApp.Tests/bin/*
+TestCrossPlatformApp.Tests/obj/*
 sessions/*
 bin/*
 obj/*

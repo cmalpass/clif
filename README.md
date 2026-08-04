@@ -24,6 +24,28 @@ A powerful .NET CLI tool and MCP server for automating Windows desktop applicati
 - .NET 8.0 or later
 - Windows OS (UI Automation is Windows-specific)
 
+### Cross-Platform Test Fixture
+
+The repository also includes `TestCrossPlatformApp`, an Avalonia-based desktop fixture that targets Windows, macOS, and Linux. It provides a stable control surface for future CLIF backends and cross-platform smoke tests while `TestWpfApp` remains the Windows/WPF compatibility fixture used by the current FlaUI integration tests.
+
+```bash
+dotnet run --project TestCrossPlatformApp/TestCrossPlatformApp.csproj
+```
+
+The fixture contract is documented in [TestCrossPlatformApp/README.md](TestCrossPlatformApp/README.md). Its controls use stable `AutomationProperties.AutomationId` values and visible state readouts so automation tests can verify effects instead of only checking that an interaction call returned.
+
+On Windows, the dedicated CLIF/UIA smoke tests can be run with:
+
+```powershell
+dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --filter "Category=CrossPlatformUI"
+```
+
+The display-free fixture contract tests can run on any supported desktop host:
+
+```bash
+dotnet test TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj
+```
+
 ### Build from Source
 ```bash
 git clone <repository-url>
