@@ -183,12 +183,13 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private void SetStatus(string message)
+    private void SetStatus(string? message)
     {
+        var value = message ?? string.Empty;
         _actionCount++;
-        SetText(StatusControl, message);
+        SetText(StatusControl, value);
         ActionCountControl.Text = $"Actions: {_actionCount}";
-        _actionLog.AppendLine($"{_actionCount:000}: {message}");
+        _actionLog.AppendLine($"{_actionCount:000}: {value}");
         ActionLogControl.Text = _actionLog.ToString();
     }
 
