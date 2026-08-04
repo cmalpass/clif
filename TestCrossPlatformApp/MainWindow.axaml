@@ -1,0 +1,267 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TestCrossPlatformApp.MainWindow"
+        Title="CLIF Cross-Platform Controls Test App"
+        Width="1280"
+        Height="900"
+        MinWidth="900"
+        MinHeight="650"
+        AutomationProperties.AutomationId="MainWindow"
+        AutomationProperties.Name="CLIF Cross-Platform Controls Test App">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="#352F55" Padding="18,14">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="4">
+          <TextBlock Text="CLIF Cross-Platform Controls Test App"
+                     FontSize="24"
+                     FontWeight="Bold"
+                     Foreground="White"
+                     AutomationProperties.AutomationId="AppTitle" />
+          <TextBlock Text="A stable, platform-neutral UI surface for automation and accessibility testing"
+                     Foreground="#E6E1FF" />
+        </StackPanel>
+        <TextBlock Grid.Column="1"
+                   Text="fixture-v1"
+                   VerticalAlignment="Center"
+                   Foreground="#E6E1FF"
+                   AutomationProperties.AutomationId="FixtureVersion" />
+      </Grid>
+    </Border>
+
+    <Menu DockPanel.Dock="Top" AutomationProperties.AutomationId="MainMenu">
+      <MenuItem Header="File" AutomationProperties.AutomationId="FileMenu">
+        <MenuItem Header="Reset controls"
+                  Click="ResetControls"
+                  AutomationProperties.AutomationId="ResetMenuItem" />
+        <Separator />
+        <MenuItem Header="Exit"
+                  Click="ExitApplication"
+                  AutomationProperties.AutomationId="ExitMenuItem" />
+      </MenuItem>
+      <MenuItem Header="Help" AutomationProperties.AutomationId="HelpMenu">
+        <MenuItem Header="About this fixture"
+                  Click="ShowAbout"
+                  AutomationProperties.AutomationId="AboutMenuItem" />
+      </MenuItem>
+    </Menu>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+      <Grid Margin="16" ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+        <Border Grid.Row="0" Grid.Column="0" Margin="0,0,8,8" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Basic controls" FontSize="18" FontWeight="Bold" />
+            <Button Content="Click me"
+                    Click="TestButtonClick"
+                    AutomationProperties.AutomationId="TestButton"
+                    AutomationProperties.Name="Click me" />
+            <ToggleButton x:Name="ToggleButton"
+                          Content="Toggle me"
+                          AutomationProperties.AutomationId="ToggleButton"
+                          AutomationProperties.Name="Toggle me" />
+            <TextBox x:Name="TestTextBox"
+                     Watermark="Enter text here"
+                     AutomationProperties.AutomationId="TestTextBox"
+                     AutomationProperties.Name="Test text box" />
+            <TextBox x:Name="FilledTextBox"
+                     Text="Initial value"
+                     Watermark="Replaceable value"
+                     AutomationProperties.AutomationId="FilledTextBox"
+                     AutomationProperties.Name="Filled text box" />
+            <CheckBox x:Name="TestCheckBox"
+                      Content="Check me"
+                      AutomationProperties.AutomationId="TestCheckBox"
+                      AutomationProperties.Name="Check me" />
+            <RadioButton x:Name="RadioButton1"
+                         GroupName="TestGroup"
+                         Content="Option 1"
+                         AutomationProperties.AutomationId="RadioButton1" />
+            <RadioButton x:Name="RadioButton2"
+                         GroupName="TestGroup"
+                         Content="Option 2"
+                         AutomationProperties.AutomationId="RadioButton2" />
+            <ComboBox x:Name="TestComboBox"
+                      SelectedIndex="0"
+                      AutomationProperties.AutomationId="TestComboBox"
+                      AutomationProperties.Name="Test combo box">
+              <ComboBoxItem Content="Item 1" AutomationProperties.AutomationId="ComboItem1" />
+              <ComboBoxItem Content="Item 2" AutomationProperties.AutomationId="ComboItem2" />
+              <ComboBoxItem Content="Item 3" AutomationProperties.AutomationId="ComboItem3" />
+              <ComboBoxItem Content="Item 4" AutomationProperties.AutomationId="ComboItem4" />
+            </ComboBox>
+            <ListBox x:Name="TestListBox"
+                     Height="110"
+                     SelectedIndex="0"
+                     AutomationProperties.AutomationId="TestListBox"
+                     AutomationProperties.Name="Test list box">
+              <ListBoxItem Content="List Item 1" AutomationProperties.AutomationId="ListItem1" />
+              <ListBoxItem Content="List Item 2" AutomationProperties.AutomationId="ListItem2" />
+              <ListBoxItem Content="List Item 3" AutomationProperties.AutomationId="ListItem3" />
+              <ListBoxItem Content="List Item 4" AutomationProperties.AutomationId="ListItem4" />
+            </ListBox>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="0" Grid.Column="1" Margin="0,0,8,8" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <StackPanel Spacing="8">
+            <TextBlock Text="State and range controls" FontSize="18" FontWeight="Bold" />
+            <TextBlock Text="Slider value" />
+            <Slider x:Name="TestSlider"
+                    Minimum="0"
+                    Maximum="100"
+                    Value="25"
+                    AutomationProperties.AutomationId="TestSlider"
+                    AutomationProperties.Name="Test slider" />
+            <TextBlock x:Name="SliderValueText"
+                       Text="25"
+                       AutomationProperties.AutomationId="SliderValueText" />
+            <TextBlock Text="Progress" />
+            <ProgressBar x:Name="TestProgressBar"
+                         Minimum="0"
+                         Maximum="100"
+                         Value="25"
+                         AutomationProperties.AutomationId="TestProgressBar"
+                         AutomationProperties.Name="Test progress bar" />
+            <Separator />
+            <TextBlock Text="Expandable content" />
+            <Expander x:Name="TestExpander"
+                      Header="Expandable section"
+                      AutomationProperties.AutomationId="TestExpander">
+              <StackPanel Margin="8" Spacing="8">
+                <TextBlock Text="This content is hidden until the expander opens."
+                           AutomationProperties.AutomationId="ExpandedContent" />
+                <Button Content="Hidden button"
+                        Click="HiddenButtonClick"
+                        AutomationProperties.AutomationId="HiddenButton" />
+              </StackPanel>
+            </Expander>
+            <TextBlock Text="Status" />
+            <Border Background="#EEEAFB" Padding="10" CornerRadius="4">
+              <TextBlock x:Name="StatusTextBlock"
+                         Text="Ready"
+                         TextWrapping="Wrap"
+                         AutomationProperties.AutomationId="StatusTextBlock" />
+            </Border>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="0" Grid.Column="2" Margin="0,0,0,8" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Hierarchical and tabbed controls" FontSize="18" FontWeight="Bold" />
+            <TreeView x:Name="TestTreeView"
+                      Height="180"
+                      AutomationProperties.AutomationId="TestTreeView"
+                      AutomationProperties.Name="Test tree view">
+              <TreeViewItem Header="Root Node"
+                            IsExpanded="True"
+                            AutomationProperties.AutomationId="RootNode">
+                <TreeViewItem Header="Child 1" AutomationProperties.AutomationId="Child1">
+                  <TreeViewItem Header="Grandchild 1" AutomationProperties.AutomationId="Grandchild1" />
+                  <TreeViewItem Header="Grandchild 2" AutomationProperties.AutomationId="Grandchild2" />
+                </TreeViewItem>
+                <TreeViewItem Header="Child 2" AutomationProperties.AutomationId="Child2" />
+              </TreeViewItem>
+            </TreeView>
+            <TabControl x:Name="TestTabControl"
+                        Height="180"
+                        SelectedIndex="0"
+                        AutomationProperties.AutomationId="TestTabControl"
+                        AutomationProperties.Name="Test tab control">
+              <TabItem Header="Tab 1" AutomationProperties.AutomationId="Tab1">
+                <TextBlock Text="Content of Tab 1" Margin="12" AutomationProperties.AutomationId="Tab1Content" />
+              </TabItem>
+              <TabItem Header="Tab 2" AutomationProperties.AutomationId="Tab2">
+                <TextBlock Text="Content of Tab 2" Margin="12" AutomationProperties.AutomationId="Tab2Content" />
+              </TabItem>
+              <TabItem Header="Tab 3" AutomationProperties.AutomationId="Tab3">
+                <TextBlock Text="Content of Tab 3" Margin="12" AutomationProperties.AutomationId="Tab3Content" />
+              </TabItem>
+            </TabControl>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Action log" FontSize="18" FontWeight="Bold" />
+            <TextBlock x:Name="ActionCountText"
+                       Text="Actions: 0"
+                       AutomationProperties.AutomationId="ActionCountText" />
+            <TextBox x:Name="ActionLogTextBox"
+                     Height="100"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     AutomationProperties.AutomationId="ActionLogTextBox"
+                     AutomationProperties.Name="Action log" />
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <Grid ColumnDefinitions="*,2*">
+            <StackPanel Grid.Column="0" Spacing="8">
+              <TextBlock Text="Date control" FontSize="18" FontWeight="Bold" />
+              <TextBlock Text="Choose a date" />
+              <DatePicker x:Name="TestDatePicker"
+                          SelectedDate="2026-01-15"
+                          AutomationProperties.AutomationId="TestDatePicker"
+                          AutomationProperties.Name="Test date picker" />
+              <TextBlock Text="Selected date" />
+              <Border Background="#EEEAFB" Padding="10" CornerRadius="4">
+                <TextBlock x:Name="SelectedDateText"
+                           Text="2026-01-15"
+                           AutomationProperties.AutomationId="SelectedDateText" />
+              </Border>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="24,0,0,0" Spacing="8">
+              <TextBlock Text="Tabular data" FontSize="18" FontWeight="Bold" />
+              <Grid ColumnDefinitions="1.3*,*,*" Background="#EEEAFB" Margin="0,0,0,2">
+                <TextBlock Grid.Column="0" Text="Customer" FontWeight="Bold" Padding="8,6" AutomationProperties.AutomationId="DataTableCustomerHeader" />
+                <TextBlock Grid.Column="1" Text="Plan" FontWeight="Bold" Padding="8,6" AutomationProperties.AutomationId="DataTablePlanHeader" />
+                <TextBlock Grid.Column="2" Text="Status" FontWeight="Bold" Padding="8,6" AutomationProperties.AutomationId="DataTableStatusHeader" />
+              </Grid>
+              <ListBox x:Name="TestDataTable"
+                       Height="150"
+                       SelectedIndex="0"
+                       AutomationProperties.AutomationId="TestDataTable"
+                       AutomationProperties.Name="Customer data table">
+                <ListBoxItem AutomationProperties.AutomationId="DataRow1" AutomationProperties.Name="Alice Johnson row">
+                  <Grid ColumnDefinitions="1.3*,*,*">
+                    <TextBlock Grid.Column="0" Text="Alice Johnson" Padding="8,6" AutomationProperties.AutomationId="DataRow1Customer" />
+                    <TextBlock Grid.Column="1" Text="Standard" Padding="8,6" AutomationProperties.AutomationId="DataRow1Plan" />
+                    <TextBlock Grid.Column="2" Text="Active" Padding="8,6" AutomationProperties.AutomationId="DataRow1Status" />
+                  </Grid>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.AutomationId="DataRow2" AutomationProperties.Name="Bob Smith row">
+                  <Grid ColumnDefinitions="1.3*,*,*">
+                    <TextBlock Grid.Column="0" Text="Bob Smith" Padding="8,6" AutomationProperties.AutomationId="DataRow2Customer" />
+                    <TextBlock Grid.Column="1" Text="Premium" Padding="8,6" AutomationProperties.AutomationId="DataRow2Plan" />
+                    <TextBlock Grid.Column="2" Text="Pending" Padding="8,6" AutomationProperties.AutomationId="DataRow2Status" />
+                  </Grid>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.AutomationId="DataRow3" AutomationProperties.Name="Casey Lee row">
+                  <Grid ColumnDefinitions="1.3*,*,*">
+                    <TextBlock Grid.Column="0" Text="Casey Lee" Padding="8,6" AutomationProperties.AutomationId="DataRow3Customer" />
+                    <TextBlock Grid.Column="1" Text="Standard" Padding="8,6" AutomationProperties.AutomationId="DataRow3Plan" />
+                    <TextBlock Grid.Column="2" Text="Inactive" Padding="8,6" AutomationProperties.AutomationId="DataRow3Status" />
+                  </Grid>
+                </ListBoxItem>
+              </ListBox>
+              <TextBlock x:Name="SelectedDataRowText"
+                         Text="Selected row: Alice Johnson"
+                         AutomationProperties.AutomationId="SelectedDataRowText" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Padding="16" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4">
+          <StackPanel Spacing="8">
+            <TextBlock Text="Fixture contract" FontSize="18" FontWeight="Bold" />
+            <TextBlock Text="The controls above intentionally use stable automation IDs and visible state readouts. New controls should be added with a corresponding behavior test and documented contract." TextWrapping="Wrap" />
+            <TextBlock Text="FixtureStatus: Ready"
+                       AutomationProperties.AutomationId="FixtureStatus" />
+          </StackPanel>
+        </Border>
+      </Grid>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

@@ -189,6 +189,97 @@ jobs:
         }
 
   # ────────────────────────────────────────────────────────────────────────────
+  # Cross-platform fixture build
+  # Builds the Avalonia fixture on all supported desktop runner families. This
+  # verifies that the portable test surface remains portable even though CLIF's
+  # current FlaUI backend and WPF fixture remain Windows-specific.
+  # ────────────────────────────────────────────────────────────────────────────
+  cross-platform-fixture:
+    name: Cross-platform fixture (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore cross-platform fixture
+      run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj
+
+    - name: Build cross-platform fixture
+      run: dotnet build TestCrossPlatformApp/TestCrossPlatformApp.csproj --configuration Release --no-restore
+
+    - name: Restore fixture contract tests
+      run: dotnet restore TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj
+
+    - name: Run fixture contract tests
+      run: dotnet test TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=minimal"
+
+  # Exercises the Avalonia fixture through the same Windows UI Automation path
+  # currently used by CLIF. This validates the portable fixture against the
+  # existing FlaUI/UIA3 backend without mixing it with the legacy WPF fixture.
+  cross-platform-ui-tests:
+    name: Cross-platform fixture UI tests
+    runs-on: windows-latest
+    needs: build
+
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore clif.sln
+
+    - name: Build solution
+      run: dotnet build clif.sln --configuration Release --no-restore
+
+    - name: Run cross-platform fixture UI tests
+      run: |
+        dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
+          --filter "Category=CrossPlatformUI" `
+          --logger "trx;LogFileName=cross-platform-ui-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory ./TestResults
+      continue-on-error: true
+
+    - name: Upload cross-platform UI test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: cross-platform-ui-test-results
+        path: ./TestResults/*.trx
+        retention-days: 30
+
+    - name: Generate cross-platform UI test report
+      uses: dorny/test-reporter@v2
+      if: always()
+      with:
+        name: Cross-platform UI Test Results
+        path: ./TestResults/cross-platform-ui-tests.trx
+        reporter: dotnet-trx
+        fail-on-error: false
+
+  # ────────────────────────────────────────────────────────────────────────────
   # WPF UI Tests
   # Launches TestWpfApp.exe and exercises it end-to-end via FlaUI / UIA3.
   # windows-latest runners provide a full interactive desktop session so WPF
