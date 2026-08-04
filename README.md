@@ -159,14 +159,14 @@ Configure your AI tool to use CLIF as an MCP server:
 | `clif_type` | Type text into an element (append) |
 | `clif_fill` | Clear and fill an element's value (replace) |
 | `clif_get_text` | Extract text content from an element |
-| `clif_screenshot` | Capture a screenshot (element, window, or full screen) |
+| `clif_screenshot` | Capture a specified element or registered window (full-screen capture requires host policy) |
 | `clif_list_windows` | List all open windows with handles |
 | `clif_focus` | Bring a window to the foreground |
 | `clif_close` | Close a window |
 | `clif_batch` | Execute multiple actions in a single call |
 | `clif_interact` | Advanced WPF control interactions (ComboBox, DataGrid, TreeView, etc.) |
 | `clif_search_elements` | Search for elements by name, ID, type, or class |
-| `clif_run_script` | Execute a CLIF JSON automation script |
+| `clif_validate_script` | Validate inline CLIF JSON automation script content (execution remains a CLI capability) |
 
 ### MCP Workflow Example
 

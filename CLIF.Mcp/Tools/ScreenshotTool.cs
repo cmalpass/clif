@@ -5,6 +5,7 @@ using System.Text.Json;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -15,18 +16,23 @@ public class ScreenshotTool : ToolBase
 {
     private readonly WindowSessionManager _sessionManager;
     private readonly ElementRegistry _elementRegistry;
+    private readonly McpSafetyPolicy _safetyPolicy;
 
-    public ScreenshotTool(WindowSessionManager sessionManager, ElementRegistry elementRegistry)
+    public ScreenshotTool(
+        WindowSessionManager sessionManager,
+        ElementRegistry elementRegistry,
+        McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
         _elementRegistry = elementRegistry;
+        _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
     public override string Name => "clif_screenshot";
 
     public override string Description =>
         "Capture a screenshot and return it as a base64-encoded PNG image. " +
-        "Can capture a specific element, a window, or the full screen.";
+        "Captures a specific element or registered window. Full-screen capture requires explicit host policy.";
 
     public override object InputSchema => new
     {
@@ -63,6 +69,12 @@ public class ScreenshotTool : ToolBase
 
             if (fullScreen)
             {
+                if (!_safetyPolicy.AllowFullScreenCapture)
+                {
+                    return Task.FromResult(ErrorResult(
+                        "Full-screen capture is disabled by policy. Set CLIF_MCP_ALLOW_FULL_SCREEN_CAPTURE=true to enable it."));
+                }
+
                 capture = FlaUI.Core.Capturing.Capture.Screen();
             }
             else if (!string.IsNullOrEmpty(refId))
@@ -88,31 +100,15 @@ public class ScreenshotTool : ToolBase
             }
             else
             {
-                // Capture focused window
-                var focusedElement = _sessionManager.Automation.FocusedElement();
-                if (focusedElement != null)
-                {
-                    var current = focusedElement;
-                    while (current != null)
-                    {
-                        if (current.Properties.ControlType.ValueOrDefault == ControlType.Window)
-                        {
-                            capture = FlaUI.Core.Capturing.Capture.Element(current);
-                            return ReturnImage(capture);
-                        }
-
-                        current = current.Parent;
-                    }
-                }
-
-                capture = FlaUI.Core.Capturing.Capture.Screen();
+                return Task.FromResult(ErrorResult(
+                    "Provide ref or handle. CLIF does not capture the focused window or desktop implicitly."));
             }
 
             return ReturnImage(capture);
         }
         catch (Exception ex)
         {
-            return Task.FromResult(ErrorResult($"Failed to capture screenshot: {ex.Message}"));
+            return Task.FromResult(ErrorResult("Failed to capture screenshot."));
         }
     }
 
@@ -122,6 +118,12 @@ public class ScreenshotTool : ToolBase
         {
             using var stream = new MemoryStream();
             capture.Bitmap.Save(stream, ImageFormat.Png);
+            if (stream.Length > McpSafetyPolicy.MaximumScreenshotBytes)
+            {
+                return Task.FromResult(ErrorResult(
+                    $"Screenshot exceeds the {McpSafetyPolicy.MaximumScreenshotBytes / (1024 * 1024)} MiB policy limit."));
+            }
+
             return Task.FromResult(ImageResult(stream.ToArray()));
         }
     }

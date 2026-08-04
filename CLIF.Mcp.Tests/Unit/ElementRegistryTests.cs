@@ -101,7 +101,7 @@ public class ElementRegistryTests
     }
 
     [Fact]
-    public void ClearWindow_ResetsCounter()
+    public void ClearWindow_DoesNotReuseStaleReference()
     {
         var registry = new ElementRegistry();
         registry.Register("w1", null!);
@@ -110,7 +110,7 @@ public class ElementRegistryTests
         registry.ClearWindow("w1");
 
         var newRef = registry.Register("w1", null!);
-        newRef.Should().Be("w1e1");
+        newRef.Should().Be("w1e3");
     }
 
     [Fact]

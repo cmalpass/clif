@@ -4,6 +4,7 @@
 using System.Text;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Core;
 
@@ -14,11 +15,16 @@ public class SnapshotBuilder
 {
     private readonly ElementRegistry _elementRegistry;
     private readonly int _maxDepth;
+    private readonly int _maxNodes;
 
-    public SnapshotBuilder(ElementRegistry elementRegistry, int maxDepth = 10)
+    public SnapshotBuilder(
+        ElementRegistry elementRegistry,
+        int maxDepth = 10,
+        int maxNodes = McpSafetyPolicy.MaximumSnapshotNodes)
     {
         _elementRegistry = elementRegistry;
         _maxDepth = maxDepth;
+        _maxNodes = maxNodes;
     }
 
     /// <summary>
@@ -29,13 +35,23 @@ public class SnapshotBuilder
         _elementRegistry.ClearWindow(windowHandle);
 
         var sb = new StringBuilder();
-        BuildElementSnapshot(sb, windowHandle, root, 0);
+        var nodesWritten = 0;
+        BuildElementSnapshot(sb, windowHandle, root, 0, ref nodesWritten);
+        if (nodesWritten >= _maxNodes)
+        {
+            sb.AppendLine($"- snapshot truncated after {_maxNodes} elements");
+        }
         return sb.ToString();
     }
 
-    private void BuildElementSnapshot(StringBuilder sb, string windowHandle, AutomationElement element, int depth)
+    private void BuildElementSnapshot(
+        StringBuilder sb,
+        string windowHandle,
+        AutomationElement element,
+        int depth,
+        ref int nodesWritten)
     {
-        if (depth > _maxDepth) return;
+        if (depth > _maxDepth || nodesWritten >= _maxNodes) return;
 
         var name = GetElementName(element);
         var role = GetElementRole(element);
@@ -47,13 +63,15 @@ public class SnapshotBuilder
         var indent = new string(' ', depth * 2);
         var line = BuildElementLine(element, refId, name, role);
         sb.AppendLine($"{indent}- {line}");
+        nodesWritten++;
 
         try
         {
             var children = element.FindAllChildren();
             foreach (var child in children)
             {
-                BuildElementSnapshot(sb, windowHandle, child, depth + 1);
+                if (nodesWritten >= _maxNodes) break;
+                BuildElementSnapshot(sb, windowHandle, child, depth + 1, ref nodesWritten);
             }
         }
         catch

@@ -99,7 +99,7 @@ public class ToolDefinitionTests
     [InlineData("clif_batch")]
     [InlineData("clif_interact")]
     [InlineData("clif_search_elements")]
-    [InlineData("clif_run_script")]
+    [InlineData("clif_validate_script")]
     public void ExpectedTool_IsRegistered(string expectedToolName)
     {
         var tools = CreateAllTools();
@@ -265,7 +265,7 @@ public class ToolDefinitionTests
     }
 
     [Fact]
-    public async Task ScriptTool_MissingPathAndContent_ReturnsError()
+    public async Task ScriptTool_MissingContent_ReturnsError()
     {
         var tool = new ScriptTool();
         var args = JsonSerializer.Deserialize<JsonElement>("""{}""");
@@ -273,11 +273,11 @@ public class ToolDefinitionTests
         var result = await tool.ExecuteAsync(args);
 
         result.IsError.Should().BeTrue();
-        result.Content[0].Text.Should().Contain("path");
+        result.Content[0].Text.Should().Contain("content");
     }
 
     [Fact]
-    public async Task ScriptTool_NonexistentFile_ReturnsError()
+    public async Task ScriptTool_PathOnly_IsRejected()
     {
         var tool = new ScriptTool();
         var args = JsonSerializer.Deserialize<JsonElement>(
@@ -286,7 +286,7 @@ public class ToolDefinitionTests
         var result = await tool.ExecuteAsync(args);
 
         result.IsError.Should().BeTrue();
-        result.Content[0].Text.Should().Contain("not found");
+        result.Content[0].Text.Should().Contain("content");
     }
 
     [Fact]
