@@ -48,3 +48,9 @@ dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --filter "Categ
 ```
 
 The direct provider tests verify that Avalonia exposes the expected accessibility surface. The CLIF-backed tests additionally attach through `AutomationService`, resolve selectors such as `id=TestButton`, exercise controls, and run a script against the fixture.
+
+## Framework compatibility
+
+CLIF uses standard UI Automation patterns first (`Invoke`, `Value`, `Selection`, and `Toggle`) so the same script can drive both WPF and Avalonia where each framework exposes an equivalent pattern. The Windows CI suite runs native WPF service tests and Avalonia service tests independently.
+
+Avalonia's `DatePicker` is discoverable through UI Automation but currently rejects the native `DateTimePicker` setter exposed by FlaUI. The fixture therefore provides `SetKnownDateButton` as an explicit `Invoke`-based date action and verifies the visible date readout. WPF's native `DatePicker` is tested through `SetDatePickerAsync` and `GetDatePickerValueAsync` directly.
