@@ -212,7 +212,7 @@ public class McpSessionTests
 
         var scriptContent = "{\"name\":\"Automated Test\",\"description\":\"test\",\"version\":\"1.0\",\"steps\":[{\"action\":\"click\",\"element\":\"id=btn\"}]}";
         var escapedContent = JsonSerializer.Serialize(scriptContent); // produces a JSON string with quotes
-        var callJson = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"clif_run_script\",\"arguments\":{\"content\":" + escapedContent + "}}}";
+        var callJson = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"clif_validate_script\",\"arguments\":{\"content\":" + escapedContent + "}}}";
 
         var lines = await RunMcpSessionAsync(registry,
             InitializeRequest(0),

@@ -22,8 +22,8 @@ public class TypeTool : ToolBase
     public override string Name => "clif_type";
 
     public override string Description =>
-        "Type text into an element (appends to existing content). " +
-        "If no ref is provided, types into the currently focused element. " +
+        "Type text into a snapshotted element (appends to existing content). " +
+        "A ref is required so CLIF never types into an implicit focused element. " +
         "Optionally press Enter after typing with submit=true.";
 
     public override object InputSchema => new
@@ -34,7 +34,7 @@ public class TypeTool : ToolBase
             @ref = new
             {
                 type = "string",
-                description = "Element ref to focus before typing. If omitted, types to currently focused element.",
+                description = "Element ref to focus before typing.",
             },
             text = new
             {
@@ -47,7 +47,7 @@ public class TypeTool : ToolBase
                 description = "Press Enter after typing (default: false)",
             },
         },
-        required = new[] { "text" },
+        required = new[] { "ref", "text" },
     };
 
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
@@ -60,6 +60,11 @@ public class TypeTool : ToolBase
 
         var refId = GetStringArgument(arguments, "ref");
         var submit = GetBoolArgument(arguments, "submit");
+
+        if (string.IsNullOrEmpty(refId))
+        {
+            return Task.FromResult(ErrorResult("Missing required argument: ref"));
+        }
 
         try
         {
@@ -81,10 +86,10 @@ public class TypeTool : ToolBase
             if (submit)
             {
                 Keyboard.Press(VirtualKeyShort.ENTER);
-                return Task.FromResult(TextResult($"Typed and submitted \"{text}\" into {refId ?? "focused element"}"));
+                return Task.FromResult(TextResult($"Typed and submitted text into {refId}"));
             }
 
-            return Task.FromResult(TextResult($"Typed \"{text}\" into {refId ?? "focused element"}"));
+            return Task.FromResult(TextResult($"Typed text into {refId}"));
         }
         catch (Exception ex)
         {

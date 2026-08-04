@@ -155,7 +155,6 @@ jobs:
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
           --results-directory ./TestResults
-      continue-on-error: true
 
     - name: Upload integration test results
       uses: actions/upload-artifact@v4
@@ -174,19 +173,12 @@ jobs:
         name: Integration Test Results
         path: ./TestResults/integration-tests.trx
         reporter: dotnet-trx
-        fail-on-error: false
+        fail-on-error: true
 
     - name: Integration test outcome summary
-      if: always()
+      if: success()
       shell: pwsh
-      run: |
-        if ("${{ steps.integration-tests.outcome }}" -eq "failure") {
-          Write-Host "::warning::Integration tests had failures. This is expected in headless CI environments where UI automation APIs are unavailable."
-          Write-Host "Integration tests require a full Windows desktop session with UI Automation support."
-          Write-Host "For full validation, run integration tests locally with TestWpfApp running."
-        } else {
-          Write-Host "Integration tests passed successfully."
-        }
+      run: Write-Host "Integration tests passed successfully."
 
   # ────────────────────────────────────────────────────────────────────────────
   # Cross-platform fixture build
@@ -317,8 +309,9 @@ jobs:
   # WPF UI Tests
   # Launches TestWpfApp.exe and exercises it end-to-end via FlaUI / UIA3.
   # windows-latest runners provide a full interactive desktop session so WPF
-  # windows and UI Automation are available.  continue-on-error is set to true
-  # because the job is informational for PRs; failures are surfaced as warnings.
+  # windows and UI Automation are available. This is a required validation gate:
+  # failures and skipped tests fail the workflow rather than producing a misleading
+  # green build for the primary WPF product surface.
   # ────────────────────────────────────────────────────────────────────────────
   wpf-ui-tests:
     name: WPF UI Tests
@@ -355,7 +348,6 @@ jobs:
           --logger "trx;LogFileName=wpf-ui-tests.trx" `
           --logger "console;verbosity=detailed" `
           --results-directory ./TestResults
-      continue-on-error: true
 
     - name: Upload WPF UI test results
       uses: actions/upload-artifact@v4
@@ -372,16 +364,29 @@ jobs:
         name: WPF UI Test Results
         path: ./TestResults/wpf-ui-tests.trx
         reporter: dotnet-trx
-        fail-on-error: false
+        fail-on-error: true
 
-    - name: WPF UI test outcome summary
+    - name: Assert WPF UI validation executed
       if: always()
       shell: pwsh
       run: |
-        if ("${{ steps.wpf-ui-tests.outcome }}" -eq "failure") {
-          Write-Host "::warning::WPF UI tests had failures."
-          Write-Host "Ensure TestWpfApp builds successfully and the runner has a desktop session with UI Automation support."
-          Write-Host "Set the TEST_WPF_APP_PATH environment variable to override the TestWpfApp binary location."
-        } else {
-          Write-Host "WPF UI tests passed successfully."
+        $trxPath = Join-Path $env:GITHUB_WORKSPACE 'TestResults\wpf-ui-tests.trx'
+        if (-not (Test-Path -LiteralPath $trxPath -PathType Leaf)) {
+          throw "WPF UI test results were not produced: $trxPath"
+        }
+
+        [xml]$trx = Get-Content -LiteralPath $trxPath
+        $results = @($trx.SelectNodes("//*[local-name()='UnitTestResult']"))
+        $failed = @($results | Where-Object { $_.outcome -in @('Failed', 'Error') }).Count
+        $notExecuted = @($results | Where-Object { $_.outcome -eq 'NotExecuted' }).Count
+
+        Write-Host "WPF UI tests recorded: $($results.Count)"
+        Write-Host "Failed: $failed"
+        Write-Host "Not executed: $notExecuted"
+
+        if ($results.Count -eq 0) {
+          throw "No WPF UI test results were recorded."
+        }
+        if ($failed -gt 0 -or $notExecuted -gt 0) {
+          throw "WPF UI validation failed or was skipped."
         }
