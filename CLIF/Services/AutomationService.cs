@@ -15,6 +15,7 @@ using System.Runtime.CompilerServices;
 
 namespace CLIF.Services;
 
+/// <summary>Provides Windows UI Automation operations backed by FlaUI.</summary>
 public class AutomationService : IAutomationService, IDisposable
 {
     private readonly ILogger<AutomationService> _logger;
@@ -23,7 +24,10 @@ public class AutomationService : IAutomationService, IDisposable
     private FlaUI.Core.Application? _application;
     private AutomationElement? _rootElement;
 
+    /// <summary>Gets a value indicating whether a target process is attached.</summary>
     public bool IsAttached { get; private set; }
+
+    /// <summary>Gets the attached process identifier, or <see langword="null"/>.</summary>
     public int? AttachedProcessId { get; private set; }
 
     // Windows API for dialog handling
@@ -43,12 +47,18 @@ public class AutomationService : IAutomationService, IDisposable
     private const int VK_RETURN = 0x0D;
     private const int VK_ESCAPE = 0x1B;
 
+    /// <summary>Initializes the automation service.</summary>
+    /// <param name="logger">Logger used to record automation operations.</param>
+    /// <param name="captureService">Service used to capture interaction evidence.</param>
     public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)
     {
         _logger = logger;
         _captureService = captureService;
     }
 
+    /// <summary>Attaches to a running Windows process.</summary>
+    /// <param name="processId">Identifier of the process to attach to.</param>
+    /// <returns><see langword="true"/> when the process and main window are attached.</returns>
     public async Task<bool> AttachToProcessAsync(int processId)
     {
         return await Task.Run(() =>
@@ -86,6 +96,7 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Detaches from the current process and releases UI Automation resources.</summary>
     public async Task DetachAsync()
     {
         await Task.Run(() =>
@@ -107,6 +118,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Finds the first element matching a selector.</summary>
+    /// <param name="selector">Selector describing the target element.</param>
+    /// <returns>The matching element, or <see langword="null"/>.</returns>
     public async Task<AutomationElement?> FindElementAsync(string selector)
     {
         return await Task.Run(() =>
@@ -129,6 +143,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Finds all elements matching a selector.</summary>
+    /// <param name="selector">Selector describing the target elements.</param>
+    /// <returns>The matching elements, or an empty array.</returns>
     public async Task<AutomationElement[]> FindElementsAsync(string selector)
     {
         return await Task.Run(() =>
@@ -151,6 +168,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a click on an automation element and captures the result.</summary>
+    /// <param name="element">Element to click.</param>
+    /// <returns><see langword="true"/> when the click operation completes.</returns>
     public async Task<bool> ClickAsync(AutomationElement element)
     {
         return await Task.Run(async () =>
@@ -212,6 +232,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a double-click on an automation element.</summary>
+    /// <param name="element">Element to double-click.</param>
+    /// <returns><see langword="true"/> when the operation completes.</returns>
     public async Task<bool> DoubleClickAsync(AutomationElement element)
     {
         return await Task.Run(() =>
