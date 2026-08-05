@@ -43,17 +43,19 @@ jobs:
       run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore --no-build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: clif-cli
         path: ./publish/
+        if-no-files-found: error
         retention-days: 30
 
     - name: Upload TestWpfApp artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: test-wpf-app
         path: TestWpfApp/bin/Release/net8.0-windows/
+        if-no-files-found: error
         retention-days: 30
 
   unit-tests:
@@ -101,17 +103,18 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload unit test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: unit-test-results
         path: |
           ./TestResults/*.trx
           ./TestResults/**/coverage.cobertura.xml
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate unit test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Unit Test Results
@@ -157,17 +160,18 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload integration test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: integration-test-results
         path: |
           ./TestResults/*.trx
           ./TestResults/**/coverage.cobertura.xml
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate integration test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Integration Test Results
@@ -289,15 +293,16 @@ jobs:
         }
 
     - name: Upload cross-platform UI test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: cross-platform-ui-test-results
         path: ./TestResults/*.trx
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate cross-platform UI test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Cross-platform UI Test Results
@@ -350,15 +355,16 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload WPF UI test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: wpf-ui-test-results
         path: ./TestResults/*.trx
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate WPF UI test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: WPF UI Test Results
@@ -466,15 +472,16 @@ jobs:
         }
 
     - name: Upload MCP UI test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: mcp-ui-test-results
         path: ./TestResults/*.trx
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate MCP UI test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: MCP UI Test Results

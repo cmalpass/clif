@@ -4,8 +4,11 @@ using CLIF.Core;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for listing WPF processes.</summary>
 public class ListProcessesCommand : Command
 {
+    /// <summary>Creates the process-listing command.</summary>
+    /// <param name="serviceProvider">Provider used to resolve the process service.</param>
     public ListProcessesCommand(IServiceProvider serviceProvider) : base("list-processes", "List all available WPF processes")
     {
         var detailedOption = new Option<bool>("--detailed") { Description = "Show detailed process information" };

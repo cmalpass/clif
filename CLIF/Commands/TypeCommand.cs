@@ -6,11 +6,15 @@ using CLIF.Services;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for typing text into an element.</summary>
 public class TypeCommand : Command
 {
     private readonly IAutomationService _automationService;
     private readonly ISessionCaptureService _captureService;
 
+    /// <summary>Creates a type command backed by the automation and capture services.</summary>
+    /// <param name="automationService">Service used to attach and type into the target.</param>
+    /// <param name="captureService">Service used to record the command session.</param>
     public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService) 
         : base("type", "Type text into a UI element")
     {

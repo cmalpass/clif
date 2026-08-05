@@ -88,8 +88,58 @@ public sealed class McpSafetyPolicy
             return false;
         }
 
-        var executableName = Path.GetFileName(application);
-        return AllowedApplications.Contains(application) || AllowedApplications.Contains(executableName);
+        var candidate = application.Trim();
+        var candidateIsPath = IsPath(candidate);
+
+        foreach (var allowedApplication in AllowedApplications)
+        {
+            var allowed = allowedApplication.Trim();
+            if (string.IsNullOrWhiteSpace(allowed) || IsPath(allowed) != candidateIsPath)
+            {
+                continue;
+            }
+
+            if (!candidateIsPath && string.Equals(candidate, allowed, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (candidateIsPath && PathsEqual(candidate, allowed))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsPath(string value) =>
+        value.IndexOfAny(['/', '\\']) >= 0 ||
+        Path.IsPathRooted(value) ||
+        (value.Length > 1 && value[1] == ':');
+
+    private static bool PathsEqual(string candidate, string allowed)
+    {
+        try
+        {
+            var normalizedCandidate = NormalizePath(candidate);
+            var normalizedAllowed = NormalizePath(allowed);
+            return string.Equals(normalizedCandidate, normalizedAllowed, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (ArgumentException)
+        {
+            // Invalid paths are never considered an exact match.
+            return false;
+        }
+    }
+
+    private static string NormalizePath(string path)
+    {
+        // Normalize both separator styles so the policy behaves consistently
+        // when a Windows path is supplied with forward slashes.
+        var separatorsNormalized = path.Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(separatorsNormalized));
     }
 
     private static bool GetBooleanEnvironmentVariable(string name) =>

@@ -3,10 +3,13 @@ using CLIF.Core;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for an interactive session.</summary>
 public class InteractiveCommand : Command
 {
     private readonly IInteractiveService _interactiveService;
 
+    /// <summary>Creates an interactive command backed by the interactive service.</summary>
+    /// <param name="interactiveService">Service that owns the interactive session.</param>
     public InteractiveCommand(IInteractiveService interactiveService) 
         : base("interactive", "Enter interactive mode for UI automation")
     {

@@ -106,7 +106,7 @@ public class ScreenshotTool : ToolBase
 
             return ReturnImage(capture);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Task.FromResult(ErrorResult("Failed to capture screenshot."));
         }

@@ -9,3 +9,7 @@ This repository does not represent that all CLIF code was copied from FlaUI-MCP,
 ## Third-party software
 
 CLIF depends on third-party packages. Their licenses and notices remain the responsibility of their respective authors and are provided with their distributions. Release artifacts should include an up-to-date dependency and license inventory.
+
+The current package baseline and the staged plan for central package
+management, lockfiles, license inventory generation, and signed releases are
+documented in [DEPENDENCY_MANAGEMENT.md](DEPENDENCY_MANAGEMENT.md).

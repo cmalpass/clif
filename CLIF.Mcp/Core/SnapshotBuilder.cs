@@ -17,6 +17,12 @@ public class SnapshotBuilder
     private readonly int _maxDepth;
     private readonly int _maxNodes;
 
+    /// <summary>
+    /// Initializes a snapshot builder with element registration and size limits.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to assign stable element references.</param>
+    /// <param name="maxDepth">Maximum tree depth to include.</param>
+    /// <param name="maxNodes">Maximum number of elements to include.</param>
     public SnapshotBuilder(
         ElementRegistry elementRegistry,
         int maxDepth = 10,
@@ -28,8 +34,11 @@ public class SnapshotBuilder
     }
 
     /// <summary>
-    /// Build a text snapshot of the accessibility tree rooted at the given element.
+    /// Builds a text snapshot of the accessibility tree rooted at the given element.
     /// </summary>
+    /// <param name="windowHandle">Logical handle of the window containing the root.</param>
+    /// <param name="root">Root element of the accessibility tree.</param>
+    /// <returns>A text representation of the visible, supported tree elements.</returns>
     public string BuildSnapshot(string windowHandle, AutomationElement root)
     {
         _elementRegistry.ClearWindow(windowHandle);

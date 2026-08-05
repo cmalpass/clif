@@ -68,7 +68,7 @@ public class LaunchTool : ToolBase
             return Task.FromResult(TextResult(
                 $"Launched {app}\nWindow handle: {handle}\nTitle: {window.Title}"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Task.FromResult(ErrorResult("Failed to launch the approved application."));
         }

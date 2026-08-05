@@ -169,7 +169,7 @@ public class CloseWindowTool : ToolBase
             _elementRegistry?.RemoveWindow(handle);
             return Task.FromResult(TextResult($"Closed window {handle}"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Task.FromResult(ErrorResult("Failed to close the window."));
         }

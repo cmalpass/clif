@@ -107,7 +107,7 @@ public class SanitizationHelperTests
     public void SanitizeTextInput_WithNullInput_ShouldReturnEmptyString()
     {
         // Act
-        var result = SanitizationHelper.SanitizeTextInput(null);
+        var result = SanitizationHelper.SanitizeTextInput(null!);
         
         // Assert
         result.Should().BeEmpty();

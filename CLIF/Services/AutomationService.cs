@@ -1560,14 +1560,14 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 // Common Windows dialog class names and titles
-                var dialogPatterns = new[]
+                var dialogPatterns = new (string? ClassName, string? Title)[]
                 {
-                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
-                    new { ClassName = (string?)null, Title = "Button Click" }, // Our specific MessageBox title
-                    new { ClassName = (string?)null, Title = "Information" },
-                    new { ClassName = (string?)null, Title = "Warning" },
-                    new { ClassName = (string?)null, Title = "Error" },
-                    new { ClassName = (string?)null, Title = "Confirm" }
+                    ("#32770", null), // Standard Windows dialog
+                    (null, "Button Click"), // Our specific MessageBox title
+                    (null, "Information"),
+                    (null, "Warning"),
+                    (null, "Error"),
+                    (null, "Confirm")
                 };
 
                 foreach (var pattern in dialogPatterns)

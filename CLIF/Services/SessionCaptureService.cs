@@ -263,7 +263,10 @@ public class SessionCaptureService : ISessionCaptureService
     
     private void CaptureScreenshotFallback(string filePath)
     {
-        var bounds = Screen.PrimaryScreen.Bounds;
+        var screen = Screen.PrimaryScreen
+            ?? Screen.AllScreens.FirstOrDefault()
+            ?? throw new InvalidOperationException("No display screen is available for fallback screenshot capture.");
+        var bounds = screen.Bounds;
         using var bitmap = new Bitmap(bounds.Width, bounds.Height);
         using var graphics = Graphics.FromImage(bitmap);
         graphics.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
