@@ -139,6 +139,32 @@ public class ToolRegistryTests
         result.Content[0].Text.Should().Be("No message provided");
     }
 
+    [Fact]
+    public async Task ExecuteToolAsync_PropagatesCancellationTokenToTool()
+    {
+        var registry = new ToolRegistry();
+        var tool = new CancellationAwareTool();
+        registry.RegisterTool(tool);
+        using var cts = new CancellationTokenSource();
+
+        await registry.ExecuteToolAsync("clif_cancellation_aware", null, cts.Token);
+
+        tool.ReceivedToken.Should().Be(cts.Token);
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_DoesNotConvertRequestedCancellationToToolError()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterTool(new CancellationAwareTool());
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var action = () => registry.ExecuteToolAsync("clif_cancellation_aware", null, cts.Token);
+
+        await action.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     // --- Fake tool implementations for testing ---
 
     private sealed class FakeToolA : ToolBase
@@ -199,6 +225,26 @@ public class ToolRegistryTests
             }
 
             return Task.FromResult(TextResult($"Echo: {message}"));
+        }
+    }
+
+    private sealed class CancellationAwareTool : ToolBase
+    {
+        public override string Name => "clif_cancellation_aware";
+        public override string Description => "Cancellation-aware tool for testing";
+        public override object InputSchema => new { type = "object" };
+        public CancellationToken ReceivedToken { get; private set; }
+
+        public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments) =>
+            Task.FromResult(TextResult("legacy execution"));
+
+        public override Task<McpToolResult> ExecuteAsync(
+            JsonElement? arguments,
+            CancellationToken cancellationToken)
+        {
+            ReceivedToken = cancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(TextResult("cancellation-aware execution"));
         }
     }
 }

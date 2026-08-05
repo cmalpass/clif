@@ -39,7 +39,7 @@ public class ValidationResultTests
     public void Failure_WithNullMessage_ShouldUseEmptyString()
     {
         // Act
-        var result = ValidationResult.Failure((string)null);
+        var result = ValidationResult.Failure((string)null!);
 
         // Assert
         result.IsValid.Should().BeFalse();

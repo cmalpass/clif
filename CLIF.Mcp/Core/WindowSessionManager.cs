@@ -24,6 +24,9 @@ public class WindowSessionManager : IDisposable
     private readonly Dictionary<nint, string> _nativeHandleToHandle = new();
     private int _windowCounter;
 
+    /// <summary>
+    /// Initializes a session manager backed by UI Automation 3.
+    /// </summary>
     public WindowSessionManager()
     {
         _automation = new UIA3Automation();

@@ -75,7 +75,7 @@ public class FilePathValidatorTests
     public void Validate_WithNullPath_ShouldReturnFailure()
     {
         // Act
-        var result = _validator.Validate(null);
+        var result = _validator.Validate(null!);
 
         // Assert
         result.IsValid.Should().BeFalse();

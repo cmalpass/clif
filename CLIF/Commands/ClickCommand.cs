@@ -6,11 +6,15 @@ using CLIF.Services;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for clicking an automation element.</summary>
 public class ClickCommand : Command
 {
     private readonly IAutomationService _automationService;
     private readonly ISessionCaptureService _captureService;
 
+    /// <summary>Creates a click command backed by the automation and capture services.</summary>
+    /// <param name="automationService">Service used to attach and click the target element.</param>
+    /// <param name="captureService">Service used to record the command session.</param>
     public ClickCommand(IAutomationService automationService, ISessionCaptureService captureService) 
         : base("click", "Click on a UI element")
     {

@@ -90,7 +90,7 @@ public class ElementSelectorValidatorTests
     public void Validate_WithNullSelector_ShouldReturnFailure()
     {
         // Act
-        var result = _validator.Validate(null);
+        var result = _validator.Validate(null!);
 
         // Assert
         result.IsValid.Should().BeFalse();

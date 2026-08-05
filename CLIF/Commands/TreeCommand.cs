@@ -4,8 +4,11 @@ using CLIF.Core;
 
 namespace CLIF.Commands;
 
+/// <summary>Displays or searches an attached application's automation tree.</summary>
 public class TreeCommand : Command
 {
+    /// <summary>Creates the tree command and registers its display options.</summary>
+    /// <param name="serviceProvider">Provider used to resolve process and tree services.</param>
     public TreeCommand(IServiceProvider serviceProvider) : base("tree", "Display or search the automation element tree")
     {
         var processArgument = new Argument<string>("process") { Description = "Process name, window title, or process ID" };

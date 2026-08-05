@@ -5,6 +5,8 @@ Thank you for considering a contribution. CLIF automates desktop applications, s
 ## Before you start
 
 - Read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md).
+- Review [DEPENDENCY_MANAGEMENT.md](DEPENDENCY_MANAGEMENT.md) before changing
+  package references or release metadata.
 - Use a public issue to discuss substantial changes before investing in an implementation.
 - Do not open public issues for vulnerabilities, secrets, or sensitive screenshots. Follow the private reporting process in `SECURITY.md`.
 - Keep pull requests focused. Please avoid unrelated reformatting or generated-file changes.

@@ -40,14 +40,14 @@ public class McpServer
             {
                 if (!TryDeserializeRequest(line, out var request, out var errorResponse))
                 {
-                    await WriteResponseAsync(writer, errorResponse!);
+                    await WriteResponseAsync(writer, errorResponse!, cancellationToken);
                     continue;
                 }
 
-                var response = await HandleRequestAsync(request!);
+                var response = await HandleRequestAsync(request!, cancellationToken);
                 if (response != null)
                 {
-                    await WriteResponseAsync(writer, response);
+                    await WriteResponseAsync(writer, response, cancellationToken);
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -56,16 +56,21 @@ public class McpServer
             }
             catch
             {
-                await WriteResponseAsync(writer, CreateError(null, JsonRpcErrors.InternalError, "Internal error."));
+                await WriteResponseAsync(
+                    writer,
+                    CreateError(null, JsonRpcErrors.InternalError, "Internal error."),
+                    cancellationToken);
             }
         }
     }
 
-    private async Task<JsonRpcResponse?> HandleRequestAsync(JsonRpcRequest request)
+    private async Task<JsonRpcResponse?> HandleRequestAsync(
+        JsonRpcRequest request,
+        CancellationToken cancellationToken)
     {
         if (!request.HasId)
         {
-            await HandleNotificationAsync(request);
+            await HandleNotificationAsync(request, cancellationToken);
             return null;
         }
 
@@ -81,9 +86,13 @@ public class McpServer
                 "initialize" => HandleInitializeRequest(request),
                 "notifications/initialized" => CreateError(request.Id, JsonRpcErrors.InvalidRequest, "notifications/initialized must not include an id."),
                 "tools/list" => HandleToolsListRequest(request),
-                "tools/call" => await HandleToolCallRequestAsync(request),
+                "tools/call" => await HandleToolCallRequestAsync(request, cancellationToken),
                 _ => CreateError(request.Id, JsonRpcErrors.MethodNotFound, "Method not found."),
             };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch
         {
@@ -91,7 +100,9 @@ public class McpServer
         }
     }
 
-    private async Task HandleNotificationAsync(JsonRpcRequest request)
+    private async Task HandleNotificationAsync(
+        JsonRpcRequest request,
+        CancellationToken cancellationToken)
     {
         if (!IsValidRequest(request)) return;
 
@@ -109,7 +120,7 @@ public class McpServer
 
         if (request.Method == "tools/call" && TryGetToolCallParams(request, out var callParams))
         {
-            await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments);
+            await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments, cancellationToken);
         }
     }
 
@@ -169,7 +180,9 @@ public class McpServer
         return Success(request.Id, HandleToolsList());
     }
 
-    private async Task<JsonRpcResponse> HandleToolCallRequestAsync(JsonRpcRequest request)
+    private async Task<JsonRpcResponse> HandleToolCallRequestAsync(
+        JsonRpcRequest request,
+        CancellationToken cancellationToken)
     {
         if (_sessionState != McpSessionState.Active)
         {
@@ -181,7 +194,9 @@ public class McpServer
             return CreateError(request.Id, JsonRpcErrors.InvalidParams, "Invalid tools/call parameters.");
         }
 
-        return Success(request.Id, await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments));
+        return Success(
+            request.Id,
+            await _toolRegistry.ExecuteToolAsync(callParams.Name, callParams.Arguments, cancellationToken));
     }
 
     private static bool TryDeserializeRequest(string line, out JsonRpcRequest? request, out JsonRpcResponse? errorResponse)
@@ -270,11 +285,14 @@ public class McpServer
         Error = new JsonRpcError { Code = code, Message = message },
     };
 
-    private static async Task WriteResponseAsync(TextWriter writer, JsonRpcResponse response)
+    private static async Task WriteResponseAsync(
+        TextWriter writer,
+        JsonRpcResponse response,
+        CancellationToken cancellationToken)
     {
         var responseJson = JsonSerializer.Serialize(response, McpProtocol.JsonOptions);
-        await writer.WriteLineAsync(responseJson);
-        await writer.FlushAsync();
+        await writer.WriteLineAsync(responseJson.AsMemory(), cancellationToken);
+        await writer.FlushAsync(cancellationToken);
     }
 
     private enum McpSessionState

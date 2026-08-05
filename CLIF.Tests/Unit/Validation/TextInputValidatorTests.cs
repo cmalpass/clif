@@ -33,7 +33,7 @@ public class TextInputValidatorTests
     public void Validate_WithNullText_ShouldReturnFailure()
     {
         // Act
-        var result = _validator.Validate(null);
+        var result = _validator.Validate(null!);
 
         // Assert
         result.IsValid.Should().BeFalse();
