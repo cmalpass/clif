@@ -34,7 +34,7 @@ jobs:
         dotnet --list-runtimes
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
@@ -78,7 +78,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -142,7 +142,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -210,13 +210,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore cross-platform fixture
-      run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj
+      run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj --locked-mode
 
     - name: Build cross-platform fixture
       run: dotnet build TestCrossPlatformApp/TestCrossPlatformApp.csproj --configuration Release --no-restore
 
     - name: Restore fixture contract tests
-      run: dotnet restore TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj
+      run: dotnet restore TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj --locked-mode
 
     - name: Run fixture contract tests
       run: dotnet test TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=minimal"
@@ -244,7 +244,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
@@ -338,7 +338,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -420,7 +420,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore

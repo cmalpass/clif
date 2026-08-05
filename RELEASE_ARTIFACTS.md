@@ -14,11 +14,24 @@ for that release and records:
 - the SBOM filename, format, byte size, and SHA-256 digest.
 
 The build job verifies `SHA256SUMS.txt` before the manifest is generated. The
-publication job verifies that the manifest refers to the triggering tag and
-commit, contains both expected runtime identifiers, and includes the expected
-archive/checksum/SBOM relationships. These checks provide integrity and
-provenance metadata without requiring signing secrets; release signing remains
-a separate follow-up.
+build job also refuses to publish unless the tag is a supported SemVer 2.0 tag,
+matches the canonical version in `CLIF.Mcp/CLIF.Mcp.csproj`, and has a dated
+release entry in `CHANGELOG.md` rather than an `Unreleased` entry. The
+publication job requires every expected archive, checksum, SBOM, and manifest
+file; verifies the checksum file; and compares each archive digest with the
+manifest. It also verifies that the manifest refers to the triggering tag,
+version, and commit and includes the expected archive/checksum/SBOM
+relationships. These checks provide integrity and provenance metadata without
+requiring signing secrets; release signing remains a separate follow-up.
+
+Before creating a tag, update the matching changelog heading, for example:
+
+```text
+## [0.1.0] - 2026-08-05
+```
+
+The release workflow intentionally fails if that entry is absent or still
+marked `Unreleased`.
 
 To inspect a downloaded release locally:
 

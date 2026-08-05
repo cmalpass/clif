@@ -28,11 +28,52 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # packages.lock.json is not tracked yet, so locked restore cannot be enabled
-      # without making every tagged release fail. Add lock files and --locked-mode
-      # in the dedicated dependency-management follow-up.
+      - name: Validate release tag and source metadata
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $tag = $env:GITHUB_REF_NAME
+          $semVerPattern = '^v(?<version>(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?)$'
+          $tagMatch = [regex]::Match($tag, $semVerPattern)
+          if (-not $tagMatch.Success) {
+            throw "Release tag '$tag' is not a supported SemVer 2.0 tag such as v1.2.3."
+          }
+
+          $version = $tagMatch.Groups['version'].Value
+          $projectPath = Join-Path $env:GITHUB_WORKSPACE 'CLIF.Mcp/CLIF.Mcp.csproj'
+          if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
+            throw "Canonical version project is missing: $projectPath"
+          }
+
+          [xml]$project = Get-Content -Raw -LiteralPath $projectPath
+          $projectVersion = [string]($project.Project.PropertyGroup.Version | Select-Object -First 1)
+          if ([string]::IsNullOrWhiteSpace($projectVersion)) {
+            throw "Canonical project version is missing from $projectPath"
+          }
+          if ($projectVersion.Trim() -ne $version) {
+            throw "Release tag '$tag' does not match the canonical project version '$projectVersion'."
+          }
+
+          $changelogPath = Join-Path $env:GITHUB_WORKSPACE 'CHANGELOG.md'
+          if (-not (Test-Path -LiteralPath $changelogPath -PathType Leaf)) {
+            throw "Required changelog is missing: $changelogPath"
+          }
+
+          $changelog = Get-Content -Raw -LiteralPath $changelogPath
+          $escapedVersion = [regex]::Escape($version)
+          $headingPattern = "(?m)^## \[$escapedVersion\](?:\s+-\s+(?<date>\d{4}-\d{2}-\d{2}))?\s*$"
+          if (-not [regex]::IsMatch($changelog, $headingPattern)) {
+            throw "CHANGELOG.md has no release entry for version '$version'."
+          }
+
+          $unreleasedPattern = "(?m)^## \[$escapedVersion\]\s+-\s+Unreleased\s*$"
+          if ([regex]::IsMatch($changelog, $unreleasedPattern)) {
+            throw "CHANGELOG.md still marks version '$version' as Unreleased."
+          }
+
       - name: Restore dependency graph
-        run: dotnet restore clif.sln
+        run: dotnet restore clif.sln --locked-mode
 
       - name: Publish self-contained Windows binaries
         shell: pwsh
@@ -265,12 +306,52 @@ jobs:
         run: |
           set -euo pipefail
           manifest="release-assets/CLIF-${RELEASE_TAG}.release-manifest.json"
+          version="${RELEASE_TAG#v}"
+          checksum="release-assets/SHA256SUMS.txt"
+          sbom="release-assets/CLIF-${RELEASE_TAG}.cdx.json"
+          expected_archives=(
+            "CLIF-${version}-win-x64.zip"
+            "CLIF-${version}-win-arm64.zip"
+            "CLIF.Mcp-${version}-win-x64.zip"
+            "CLIF.Mcp-${version}-win-arm64.zip"
+          )
+
           test -f "${manifest}"
+          test -s "${checksum}"
+          test -s "${sbom}"
+
+          for archive in "${expected_archives[@]}"; do
+            test -s "release-assets/${archive}"
+          done
+
+          (cd release-assets && sha256sum --check "$(basename "${checksum}")")
+
+          expected_archives_json="$(printf '%s\n' "${expected_archives[@]}" | jq -Rsc 'split("\n") | map(select(length > 0)) | sort')"
           jq -e \
             --arg tag "${RELEASE_TAG}" \
             --arg commit "${RELEASE_COMMIT}" \
-            '(.release.tag == $tag) and (.release.commit == $commit) and (.archives | all(.sha256 | length == 64)) and (.checksums.covers == "archives") and (.sbom.format == "CycloneDX JSON")' \
+            --arg version "${version}" \
+            --argjson expectedArchives "${expected_archives_json}" \
+            '(.release.tag == $tag) and
+             (.release.version == $version) and
+             (.release.commit == $commit) and
+             ([.archives[].name] | sort == $expectedArchives) and
+             (.archives | all(.sha256 | test("^[0-9a-f]{64}$"))) and
+             (.checksums.name == "SHA256SUMS.txt") and
+             (.checksums.sha256 | test("^[0-9a-f]{64}$")) and
+             (.checksums.covers == "archives") and
+             (.sbom.name == ("CLIF-" + $tag + ".cdx.json")) and
+             (.sbom.sha256 | test("^[0-9a-f]{64}$")) and
+             (.sbom.format == "CycloneDX JSON")' \
             "${manifest}" > /dev/null
+
+          while IFS=$'\t' read -r archive expected_hash; do
+            actual_hash="$(sha256sum "release-assets/${archive}" | awk '{print $1}')"
+            if [[ "${actual_hash}" != "${expected_hash}" ]]; then
+              echo "Manifest digest mismatch for ${archive}." >&2
+              exit 1
+            fi
+          done < <(jq -r '.archives[] | [.name, .sha256] | @tsv' "${manifest}")
 
       - name: Create GitHub release
         env:
