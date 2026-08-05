@@ -164,7 +164,7 @@ public class McpServerTests
         responses.Where(response => response.Error is not null)
             .Select(response => response.Error!.Code)
             .Should().Equal(-32700, -32600, -32600, -32602, -32601);
-        var initializeResponse = responses.Single(response => response.Id?.GetString() == "4");
+        var initializeResponse = responses.Single(response => response.Id?.GetRawText() == "4");
         initializeResponse.Error.Should().BeNull();
         responses[0].Id.Should().BeNull();
     }
