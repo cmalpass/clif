@@ -51,6 +51,20 @@ public class ToolRegistryTests
     }
 
     [Fact]
+    public void GetToolDefinitions_ReturnsToolsInDeterministicOrdinalNameOrder()
+    {
+        var registry = new ToolRegistry();
+
+        registry.RegisterTool(new FakeToolB());
+        registry.RegisterTool(new FakeToolA());
+
+        registry.GetToolDefinitions()
+            .Select(definition => definition.Name)
+            .Should()
+            .Equal("clif_test_a", "clif_test_b");
+    }
+
+    [Fact]
     public void GetToolDefinitions_ReturnsEmptyForNoTools()
     {
         var registry = new ToolRegistry();

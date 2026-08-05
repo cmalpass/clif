@@ -77,7 +77,7 @@ jobs:
           Get-ChildItem -Path $assetRoot -File -Filter '*.zip' |
             Get-FileHash -Algorithm SHA256 |
             ForEach-Object { "{0} *{1}" -f $_.Hash.ToLowerInvariant(), $_.Path.Substring($assetRoot.Length + 1) } |
-            Set-Content -NoNewline -Encoding ascii (Join-Path $assetRoot 'SHA256SUMS.txt')
+            Set-Content -Encoding ascii (Join-Path $assetRoot 'SHA256SUMS.txt')
 
       - name: Upload SBOM input
         uses: actions/upload-artifact@v6
@@ -107,6 +107,12 @@ jobs:
           name: release-publish-directories
           path: release-publish-directories
 
+      - name: Download release assets
+        uses: actions/download-artifact@v5
+        with:
+          name: unsigned-release-assets
+          path: release-assets
+
       # Anchore maintains this action and Syft, which produces a CycloneDX SBOM.
       # It is intentionally not a container image built from unreviewed shell commands.
       - name: Generate CycloneDX SBOM
@@ -114,14 +120,114 @@ jobs:
         with:
           path: release-publish-directories
           format: cyclonedx-json
-          output-file: CLIF-${{ github.ref_name }}.cdx.json
+          output-file: release-assets/CLIF-${{ github.ref_name }}.cdx.json
           upload-artifact: false
+
+      - name: Generate and verify release manifest
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ github.ref_name }}
+          RELEASE_COMMIT: ${{ github.sha }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          RELEASE_RUN_ID: ${{ github.run_id }}
+          RELEASE_RUN_STARTED_AT: ${{ github.run_started_at }}
+        run: |
+          set -euo pipefail
+
+          version="${RELEASE_VERSION#v}"
+          sbom_name="CLIF-${RELEASE_TAG}.cdx.json"
+          manifest_name="CLIF-${RELEASE_TAG}.release-manifest.json"
+          checksum_name="SHA256SUMS.txt"
+          expected_archives=(
+            "CLIF-${version}-win-x64.zip"
+            "CLIF-${version}-win-arm64.zip"
+            "CLIF.Mcp-${version}-win-x64.zip"
+            "CLIF.Mcp-${version}-win-arm64.zip"
+          )
+
+          test -f "release-assets/${checksum_name}"
+          test -f "release-assets/${sbom_name}"
+          (cd release-assets && sha256sum --check "${checksum_name}")
+
+          archive_json='[]'
+          for archive_name in "${expected_archives[@]}"; do
+            archive_path="release-assets/${archive_name}"
+            test -f "${archive_path}"
+
+            case "${archive_name}" in
+              CLIF-*-win-x64.zip) project="CLIF"; rid="win-x64" ;;
+              CLIF-*-win-arm64.zip) project="CLIF"; rid="win-arm64" ;;
+              CLIF.Mcp-*-win-x64.zip) project="CLIF.Mcp"; rid="win-x64" ;;
+              CLIF.Mcp-*-win-arm64.zip) project="CLIF.Mcp"; rid="win-arm64" ;;
+              *) echo "Unexpected archive: ${archive_name}" >&2; exit 1 ;;
+            esac
+
+            sha256="$(sha256sum "${archive_path}" | awk '{print $1}')"
+            size_bytes="$(stat -c '%s' "${archive_path}")"
+            archive_json="$(jq -c \
+              --arg name "${archive_name}" \
+              --arg project "${project}" \
+              --arg rid "${rid}" \
+              --arg sha256 "${sha256}" \
+              --argjson sizeBytes "${size_bytes}" \
+              '. + [{name: $name, project: $project, runtimeIdentifier: $rid, sha256: $sha256, sizeBytes: $sizeBytes}]' \
+              <<<"${archive_json}")"
+          done
+
+          checksum_sha256="$(sha256sum "release-assets/${checksum_name}" | awk '{print $1}')"
+          checksum_size_bytes="$(stat -c '%s' "release-assets/${checksum_name}")"
+          sbom_sha256="$(sha256sum "release-assets/${sbom_name}" | awk '{print $1}')"
+          sbom_size_bytes="$(stat -c '%s' "release-assets/${sbom_name}")"
+
+          jq -n \
+            --arg schemaVersion '1' \
+            --arg name 'CLIF' \
+            --arg tag "${RELEASE_TAG}" \
+            --arg version "${version}" \
+            --arg commit "${RELEASE_COMMIT}" \
+            --arg repository "${RELEASE_REPOSITORY}" \
+            --arg workflowRun "${RELEASE_RUN_ID}" \
+            --arg generatedAt "${RELEASE_RUN_STARTED_AT}" \
+            --arg checksumName "${checksum_name}" \
+            --arg checksumSha256 "${checksum_sha256}" \
+            --argjson checksumSizeBytes "${checksum_size_bytes}" \
+            --arg sbomName "${sbom_name}" \
+            --arg sbomSha256 "${sbom_sha256}" \
+            --argjson sbomSizeBytes "${sbom_size_bytes}" \
+            --argjson archives "${archive_json}" \
+            '{
+              schemaVersion: ($schemaVersion | tonumber),
+              name: $name,
+              release: {tag: $tag, version: $version, commit: $commit},
+              repository: $repository,
+              workflowRun: $workflowRun,
+              generatedAt: $generatedAt,
+              runtimeIdentifiers: ([ $archives[].runtimeIdentifier ] | unique | sort),
+              archives: $archives,
+              checksums: {name: $checksumName, sha256: $checksumSha256, sizeBytes: $checksumSizeBytes, covers: "archives"},
+              sbom: {name: $sbomName, format: "CycloneDX JSON", sha256: $sbomSha256, sizeBytes: $sbomSizeBytes}
+            }' > "release-assets/${manifest_name}"
+
+          jq -e \
+            --arg tag "${RELEASE_TAG}" \
+            --arg commit "${RELEASE_COMMIT}" \
+            '(.release.tag == $tag) and (.release.commit == $commit) and (.archives | length == 4) and (.runtimeIdentifiers == ["win-arm64", "win-x64"]) and (.sbom.name == ("CLIF-" + $tag + ".cdx.json"))' \
+            "release-assets/${manifest_name}" > /dev/null
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v6
         with:
           name: release-sbom
-          path: CLIF-${{ github.ref_name }}.cdx.json
+          path: release-assets/CLIF-${{ github.ref_name }}.cdx.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-manifest
+          path: release-assets/CLIF-${{ github.ref_name }}.release-manifest.json
           if-no-files-found: error
           retention-days: 7
 
@@ -144,6 +250,27 @@ jobs:
         with:
           name: release-sbom
           path: release-assets
+
+      - name: Download release manifest
+        uses: actions/download-artifact@v5
+        with:
+          name: release-manifest
+          path: release-assets
+
+      - name: Verify release metadata before publication
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          manifest="release-assets/CLIF-${RELEASE_TAG}.release-manifest.json"
+          test -f "${manifest}"
+          jq -e \
+            --arg tag "${RELEASE_TAG}" \
+            --arg commit "${RELEASE_COMMIT}" \
+            '(.release.tag == $tag) and (.release.commit == $commit) and (.archives | all(.sha256 | length == 64)) and (.checksums.covers == "archives") and (.sbom.format == "CycloneDX JSON")' \
+            "${manifest}" > /dev/null
 
       - name: Create GitHub release
         env:
