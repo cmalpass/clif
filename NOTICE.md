@@ -13,3 +13,8 @@ CLIF depends on third-party packages. Their licenses and notices remain the resp
 The current package baseline and the staged plan for central package
 management, lockfiles, license inventory generation, and signed releases are
 documented in [DEPENDENCY_MANAGEMENT.md](DEPENDENCY_MANAGEMENT.md).
+
+Tagged releases also include a machine-readable integrity and provenance
+manifest tying the archives, runtime identifiers, checksum file, SBOM, release
+tag, and source commit together. See [RELEASE_ARTIFACTS.md](RELEASE_ARTIFACTS.md)
+for the artifact contract and local verification commands.

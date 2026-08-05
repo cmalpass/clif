@@ -21,11 +21,14 @@ public class ToolRegistry
     }
 
     /// <summary>
-    /// Return definitions for all registered tools.
+    /// Return definitions for all registered tools in ordinal name order.
     /// </summary>
     public List<McpTool> GetToolDefinitions()
     {
-        return _tools.Values.Select(t => t.GetDefinition()).ToList();
+        return _tools.Values
+            .OrderBy(tool => tool.Name, StringComparer.Ordinal)
+            .Select(tool => tool.GetDefinition())
+            .ToList();
     }
 
     /// <summary>

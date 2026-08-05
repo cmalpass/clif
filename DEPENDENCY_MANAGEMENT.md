@@ -25,6 +25,34 @@ Generated `obj/project.assets.json` files are not source-controlled. The
 release workflow therefore performs a normal restore and deliberately does not
 use locked restore yet.
 
+## Reproducibility status and validated baseline
+
+The current build is reproducible only when the machine supplies the same SDK,
+Windows Desktop targeting pack, NuGet feeds, and resolved package graph. The
+repository currently leaves the SDK and package graph partially implicit:
+
+- All projects target `net8.0`; Windows projects target `net8.0-windows` and
+  require the Windows Desktop targeting pack. The Avalonia fixture and its
+  contract tests target `net8.0`.
+- CI, the release workflow, and the Copilot setup use `8.0.x`, which selects a
+  moving SDK patch rather than one repository-owned SDK version.
+- The local audit host has SDKs `9.0.308` and `10.0.101`, but no .NET 8 SDK or
+  Windows Desktop runtime. This is useful for project-graph inspection but is
+  not sufficient to select or approve the repository's Windows SDK pin.
+- On 2026-08-05, the complete solution restored successfully with:
+
+  ```sh
+  dotnet restore clif.sln -p:EnableWindowsTargeting=true --force-evaluate
+  ```
+
+  This validates the current unpinned restore path only. It does not validate
+  locked restore, a selected `global.json`, or Windows UI test execution.
+
+Do not add `global.json`, enable locked restore, or convert to central package
+management in the same change. Each changes restore resolution and must be
+validated on a Windows runner with the .NET 8 SDK and Windows Desktop targeting
+pack installed.
+
 ## Audit findings
 
 - There is no direct version drift among the duplicated shared references: the
@@ -55,22 +83,47 @@ use locked restore yet.
 
 Changes should be made in separate, reviewable steps:
 
-1. Choose and document the supported .NET SDK patch/feature band, then add a
-   `global.json` that the Windows CI setup installs. Do this only after checking
-   the selected SDK against the Windows Desktop targeting packs.
-2. Add `Directory.Packages.props` while preserving the versions listed above.
-   Convert project references to unversioned `PackageReference` entries and
-   validate the complete Windows build and test matrix.
-3. Generate and review a `packages.lock.json` for every restored project,
-   including the cross-platform fixture. Enable `--locked-mode` in CI and the
-   release workflow only after all lockfiles are tracked and reproducible.
-4. Evaluate package upgrades one family at a time. Start with tooling-only
+1. On `windows-latest`, record `dotnet --info`, `dotnet --list-sdks`, and the
+   installed Windows Desktop targeting packs. Select the latest supported
+   .NET 8 SDK patch that is available on that runner, then add a `global.json`
+   with that exact SDK version. Use `rollForward: disable` unless the support
+   policy intentionally permits patch roll-forward. Update every CI/setup
+   `dotnet-version` input to install the version selected by `global.json`.
+   Acceptance criteria: `dotnet --version` matches the policy in every job;
+   solution restore/build succeeds on Windows; WPF, MCP, integration, and
+   cross-platform fixture gates remain green.
+2. Generate a lockfile migration in a dedicated change, preserving the current
+   package versions:
+
+   ```sh
+   dotnet restore clif.sln \
+     -p:EnableWindowsTargeting=true \
+     -p:RestorePackagesWithLockFile=true \
+     --force-evaluate
+   ```
+
+   Review and track one `packages.lock.json` for each project that restores
+   packages, including both fixture projects. Acceptance criteria: a clean
+   checkout restores with `--locked-mode`; no lockfile changes occur on a
+   second locked restore; Windows CI and the macOS/Linux fixture jobs pass.
+3. After the lockfile baseline is green, add `Directory.Packages.props` while
+   preserving the exact versions listed above. Convert project references to
+   unversioned `PackageReference` entries and validate the complete Windows
+   build/test matrix plus the cross-platform fixture jobs. Acceptance criteria:
+   `dotnet list clif.sln package` reports the same direct versions before and
+   after conversion, and the lockfile diff contains only the expected
+   ownership/metadata changes.
+4. Enable `--locked-mode` in every CI and release restore only after the
+   lockfiles are tracked and the Windows runner has passed the locked restore.
+   Keep `--force-evaluate` out of CI; use it only when intentionally updating
+   the dependency graph.
+5. Evaluate package upgrades one family at a time. Start with tooling-only
    updates, then test System.CommandLine and Avalonia separately. Record
    compatibility results and any license changes in the changelog.
-5. Generate a release license/notice inventory from the locked dependency graph
+6. Generate a release license/notice inventory from the locked dependency graph
    and ship it with the SBOM. Keep `NOTICE.md` as the repository-level
    attribution policy, not as a substitute for the generated inventory.
-6. Before calling a release production-ready, add artifact signing and verify
+7. Before calling a release production-ready, add artifact signing and verify
    that the tag, application version, changelog entry, SBOM, notices, checksums,
    and published binaries all describe the same release.
 
@@ -78,6 +131,12 @@ Changes should be made in separate, reviewable steps:
 
 - Confirm the package's supported target frameworks and license.
 - Check whether the update is a patch, minor, major, or prerelease transition.
+- Confirm the selected SDK and Windows Desktop targeting pack with
+  `dotnet --info` on the Windows runner before interpreting a restore/build
+  failure as a package regression.
+- For lockfile work, run a normal restore with `--force-evaluate`, review every
+  generated lockfile, then run a second restore with `--locked-mode` and require
+  a clean `git diff`.
 - Run the full Windows build, unit tests, integration tests, WPF UI tests, and
   MCP end-to-end test when the affected package can influence those surfaces.
 - For Avalonia or other fixture packages, run the macOS and Linux fixture jobs
