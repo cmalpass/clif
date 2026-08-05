@@ -20,10 +20,11 @@ in individual project files rather than centrally.
 | WPF fixture | Caliburn.Micro 4.0.212; MaterialDesignThemes 5.1.0; MaterialDesignColors 3.1.0 |
 
 The repository does not currently track `Directory.Packages.props`,
-`packages.lock.json`, `global.json`, or a repository-level `NuGet.config`.
-Generated `obj/project.assets.json` files are not source-controlled. The
-release workflow therefore performs a normal restore and deliberately does not
-use locked restore yet.
+`global.json`, or a repository-level `NuGet.config`. It now tracks one
+`packages.lock.json` per restoring project; generated `obj/project.assets.json`
+files remain out of source control. CI, release, and Copilot setup restores use
+`--locked-mode` so an unexpected package-graph change fails before build or
+publication.
 
 ## Reproducibility status and validated baseline
 
@@ -45,13 +46,14 @@ repository currently leaves the SDK and package graph partially implicit:
   dotnet restore clif.sln -p:EnableWindowsTargeting=true --force-evaluate
   ```
 
-  This validates the current unpinned restore path only. It does not validate
-  locked restore, a selected `global.json`, or Windows UI test execution.
+  A subsequent locked restore of the complete solution also passed on this
+  branch with `--locked-mode`. This validates the lockfile graph on the audit
+  host, but does not validate a selected `global.json` or Windows UI test
+  execution.
 
-Do not add `global.json`, enable locked restore, or convert to central package
-management in the same change. Each changes restore resolution and must be
-validated on a Windows runner with the .NET 8 SDK and Windows Desktop targeting
-pack installed.
+Do not add `global.json` or convert to central package management in the same
+change. Each changes restore resolution and must be validated on a Windows
+runner with the .NET 8 SDK and Windows Desktop targeting pack installed.
 
 ## Audit findings
 
@@ -66,6 +68,15 @@ pack installed.
   Microsoft.NET.Test.Sdk. These are not automatic upgrades: Avalonia has a
   major-version change, System.CommandLine would leave its beta line, and the
   test/coverage packages can alter discovery or CI output.
+- The generated lockfiles expose three high-severity transitive NuGet audit
+  findings that remain open for remediation: `System.Net.Http` 4.3.0 and
+  `System.Text.RegularExpressions` 4.3.0 arrive through the legacy
+  `Fare`/`NETStandard.Library` path used by AutoFixture tests, while
+  `Tmds.DBus.Protocol` 0.20.0 arrives through Avalonia's `Avalonia.FreeDesktop`
+  dependency. Locked restore intentionally records these versions; it does
+  not make them safe. Do not turn dependency-audit warnings into a release
+  blocker until replacement or upgrade candidates have been tested on the full
+  Windows and cross-platform matrix.
 - `CLIF.Mcp.csproj` contains the only project-local `0.1.0` application version.
   Tagged release builds override both published applications from the tag, so
   release artifacts receive the intended version, but local project metadata is
@@ -106,6 +117,8 @@ Changes should be made in separate, reviewable steps:
    packages, including both fixture projects. Acceptance criteria: a clean
    checkout restores with `--locked-mode`; no lockfile changes occur on a
    second locked restore; Windows CI and the macOS/Linux fixture jobs pass.
+   This branch has generated and validated the seven project lockfiles, and
+   the workflow restore gates now enforce them.
 3. After the lockfile baseline is green, add `Directory.Packages.props` while
    preserving the exact versions listed above. Convert project references to
    unversioned `PackageReference` entries and validate the complete Windows
@@ -113,10 +126,9 @@ Changes should be made in separate, reviewable steps:
    `dotnet list clif.sln package` reports the same direct versions before and
    after conversion, and the lockfile diff contains only the expected
    ownership/metadata changes.
-4. Enable `--locked-mode` in every CI and release restore only after the
-   lockfiles are tracked and the Windows runner has passed the locked restore.
-   Keep `--force-evaluate` out of CI; use it only when intentionally updating
-   the dependency graph.
+4. Keep `--locked-mode` in every CI and release restore. Keep
+   `--force-evaluate` out of CI; use it only when intentionally updating the
+   dependency graph and reviewing the resulting lockfile diff.
 5. Evaluate package upgrades one family at a time. Start with tooling-only
    updates, then test System.CommandLine and Avalonia separately. Record
    compatibility results and any license changes in the changelog.

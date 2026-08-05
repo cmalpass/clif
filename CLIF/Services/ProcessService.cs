@@ -1,19 +1,26 @@
 using System.Diagnostics;
 using System.Management;
+using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using CLIF.Core;
 
 namespace CLIF.Services;
 
+/// <summary>Discovers and inspects processes that host WPF windows.</summary>
+[SupportedOSPlatform("windows7.0")]
 public class ProcessService : IProcessService
 {
     private readonly ILogger<ProcessService> _logger;
 
+    /// <summary>Initializes a new instance of the <see cref="ProcessService"/> class.</summary>
+    /// <param name="logger">Logger used to record process discovery failures.</param>
     public ProcessService(ILogger<ProcessService> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>Gets the currently running processes that appear to host WPF windows.</summary>
+    /// <returns>The discovered WPF process information, ordered by process name.</returns>
     public async Task<List<ProcessInfo>> GetWpfProcessesAsync()
     {
         return await Task.Run(() =>
@@ -60,6 +67,9 @@ public class ProcessService : IProcessService
         });
     }
 
+    /// <summary>Finds a WPF process by its executable or process name.</summary>
+    /// <param name="processName">The process name to match, ignoring case.</param>
+    /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByNameAsync(string processName)
     {
         var processes = await GetWpfProcessesAsync();
@@ -67,6 +77,9 @@ public class ProcessService : IProcessService
             string.Equals(p.Name, processName, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>Finds a WPF process by a substring of its main window title.</summary>
+    /// <param name="windowTitle">The window-title text to match, ignoring case.</param>
+    /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByWindowTitleAsync(string windowTitle)
     {
         var processes = await GetWpfProcessesAsync();
@@ -74,6 +87,9 @@ public class ProcessService : IProcessService
             p.WindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>Finds a WPF process by process identifier.</summary>
+    /// <param name="processId">The process identifier to inspect.</param>
+    /// <returns>The matching process, or <see langword="null"/> when it is not a WPF process or cannot be found.</returns>
     public async Task<ProcessInfo?> FindProcessByIdAsync(int processId)
     {
         return await Task.Run(() =>
@@ -102,6 +118,9 @@ public class ProcessService : IProcessService
         });
     }
 
+    /// <summary>Checks whether a process is still running.</summary>
+    /// <param name="processId">The process identifier to check.</param>
+    /// <returns><see langword="true"/> when the process exists and has not exited; otherwise, <see langword="false"/>.</returns>
     public async Task<bool> IsProcessAliveAsync(int processId)
     {
         return await Task.Run(() =>
