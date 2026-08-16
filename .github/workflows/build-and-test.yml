@@ -153,7 +153,7 @@ jobs:
       id: integration-tests
       run: |
         dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
-          --filter "FullyQualifiedName~Integration" `
+          --filter "Category=Integration" `
           --logger "trx;LogFileName=integration-tests.trx" `
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `

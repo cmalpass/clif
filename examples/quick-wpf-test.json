@@ -1,102 +1,93 @@
 {
   "name": "Quick WPF Validation Test",
   "description": "Quick validation of core WPF control functionality",
-  "targetProcess": "TestWpfApp",
   "version": "1.0",
-  "options": {
-    "continueOnError": false,
-    "takeScreenshots": true,
-    "timeout": 30000,
-    "delayBetweenActions": 500
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 30000
   },
-  "variables": {
-    "quickTest": "Quick Test",
-    "testValue": "42"
+  "options": {
+    "stopOnError": true,
+    "logSteps": true,
+    "takeScreenshots": true,
+    "defaultTimeoutMs": 30000,
+    "delayBetweenActionsMs": 500
   },
   "steps": [
     {
       "action": "log",
-      "message": "=== Quick WPF Validation Test ===",
-      "description": "Quick test start"
+      "description": "=== Quick WPF Validation Test ==="
     },
     {
       "action": "screenshot",
-      "description": "Initial state",
-      "filename": "quick_00_start.png"
+      "description": "Initial state"
     },
-    
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clear text box"
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{quickTest}}",
+      "element": "id=TestTextBox",
+      "value": "Quick Test",
       "description": "Enter test text"
     },
     {
       "action": "validate",
-      "selector": "TestTextBox",
-      "expectedValue": "{{quickTest}}",
+      "element": "id=TestTextBox",
+      "value": "Quick Test",
       "description": "Validate text entry"
     },
-    
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Click main button"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox", 
+      "element": "id=TestCheckBox",
       "description": "Toggle checkbox"
     },
-    
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 2",
       "description": "Select combo item"
     },
-    
     {
       "action": "setValue",
-      "selector": "TestSlider",
-      "value": "{{testValue}}",
+      "element": "id=TestSlider",
+      "value": "42",
       "description": "Set slider value"
     },
-    
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 2",
       "description": "Switch tabs"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 1",
       "description": "Return to Tab 1"
     },
-    
     {
       "action": "selectRow",
-      "selector": "TestDataGrid",
-      "index": 1,
+      "element": "id=TestDataGrid",
+      "parameters": {
+        "index": 1
+      },
       "description": "Select data grid row"
     },
-    
     {
       "action": "screenshot",
-      "description": "Final state",
-      "filename": "quick_01_complete.png"
+      "description": "Final state"
     },
     {
       "action": "log",
-      "message": "Quick validation test completed successfully!",
-      "description": "Test completion"
+      "description": "Quick validation test completed successfully!"
     }
   ]
 }

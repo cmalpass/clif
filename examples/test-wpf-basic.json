@@ -1,46 +1,54 @@
 {
   "name": "Test WPF App Basic Interaction",
   "description": "Demonstrates basic interactions with the test WPF application",
-  "targetProcess": "TestWpfApp",
   "version": "1.0",
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 30000
+  },
   "options": {
-    "continueOnError": false,
+    "stopOnError": true,
+    "logSteps": true,
     "takeScreenshots": true,
-    "timeout": 30000
+    "defaultTimeoutMs": 30000,
+    "delayBetweenActionsMs": 0
   },
   "steps": [
     {
       "action": "click",
-      "selector": "TestButton",
-      "description": "Click the test button",
-      "waitAfter": 1000
+      "element": "id=TestButton",
+      "description": "Click the test button"
+    },
+    {
+      "action": "wait",
+      "delayMs": 1000,
+      "description": "Wait after click"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clear the text box"
     },
     {
       "action": "type",
-      "selector": "TestTextBox", 
+      "element": "id=TestTextBox",
       "value": "Hello from CLIF automation!",
       "description": "Type test message into text box"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Check the checkbox"
     },
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 2",
       "description": "Select option from combobox"
     },
     {
       "action": "screenshot",
-      "description": "Take final screenshot",
-      "filename": "test_completion.png"
+      "description": "Take final screenshot"
     }
   ]
 }

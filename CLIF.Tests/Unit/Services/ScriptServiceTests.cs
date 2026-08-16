@@ -301,6 +301,43 @@ public class ScriptServiceTests : IDisposable
         result.Steps[4].Column.Should().Be(1);
     }
 
+    [Theory]
+    [InlineData("advanced-wpf-test.json")]
+    [InlineData("comprehensive-wpf-test.json")]
+    [InlineData("data-entry-example.json")]
+    [InlineData("quick-wpf-test.json")]
+    [InlineData("test-wpf-basic.json")]
+    [InlineData("visual-demo-test.json")]
+    public async Task LoadScriptAsync_WithMigratedWpfExample_ShouldUseCanonicalSchema(string fileName)
+    {
+        // Arrange
+        var scriptPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "examples",
+            fileName));
+        var content = await File.ReadAllTextAsync(scriptPath);
+
+        // Act
+        var script = await _scriptService.LoadScriptAsync(scriptPath);
+
+        // Assert
+        content.Should().NotContain("\"targetProcess\"");
+        content.Should().NotContain("\"selector\"");
+        content.Should().NotContain("\"expectedValue\"");
+        content.Should().NotContain("\"duration\"");
+        content.Should().NotContain("\"waitAfter\"");
+        content.Should().NotContain("\"message\"");
+        script.Should().NotBeNull();
+        script!.Target.ProcessName.Should().Be("TestWpfApp");
+        script.Target.TimeoutMs.Should().BePositive();
+        script.Steps.Should().NotBeEmpty();
+        script.Steps
+            .Where(step => step.Action is not "log" and not "screenshot" and not "wait")
+            .Should()
+            .OnlyContain(step => step.Element.StartsWith("id=", StringComparison.Ordinal));
+    }
+
     [Fact]
     public async Task SaveScriptAsync_WithValidScript_ShouldCreateFile()
     {

@@ -12,6 +12,7 @@ namespace CLIF.Tests.Integration;
 /// These tests validate the full script execution pipeline
 /// </summary>
 [Collection("WpfUI")]
+[Trait("Category", "Integration")]
 public class ScriptExecutionIntegrationTests : IntegrationTestBase
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(10);

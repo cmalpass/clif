@@ -1,124 +1,122 @@
 {
   "name": "Visual Demo Test - See Actual Interactions",
   "description": "Demonstrates visible interactions with clear feedback",
-  "targetProcess": "TestWpfApp",
   "version": "1.0",
-  "options": {
-    "continueOnError": true,
-    "takeScreenshots": false,
-    "timeout": 60000,
-    "delayBetweenActions": 2000
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 60000
   },
-  "variables": {
-    "demoText": "CLIF is working!",
-    "testMessage": "You can see this in the app!"
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 60000,
+    "delayBetweenActionsMs": 2000
   },
   "steps": [
     {
       "action": "log",
-      "message": "🎬 STARTING VISUAL DEMO - Watch the TestWpfApp window!",
-      "description": "Demo start"
+      "description": "🎬 STARTING VISUAL DEMO - Watch the TestWpfApp window!"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clearing the main text box - you should see it empty now"
     },
     {
       "action": "wait",
-      "duration": 1000,
-      "description": "Pause to let you see the cleared text box"
+      "description": "Pause to let you see the cleared text box",
+      "delayMs": 1000
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{demoText}}",
+      "element": "id=TestTextBox",
+      "value": "CLIF is working!",
       "description": "Typing demo text - watch the text appear!"
     },
     {
       "action": "wait",
-      "duration": 2000,
-      "description": "Pause to let you see the typed text"
+      "description": "Pause to let you see the typed text",
+      "delayMs": 2000
     },
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Clicking the main button - watch for button press animation"
     },
     {
       "action": "wait",
-      "duration": 1500,
-      "description": "Pause after button click"
+      "description": "Pause after button click",
+      "delayMs": 1500
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Toggling checkbox - watch the checkmark appear/disappear"
     },
     {
       "action": "wait",
-      "duration": 1500,
-      "description": "Pause after checkbox toggle"
+      "description": "Pause after checkbox toggle",
+      "delayMs": 1500
     },
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 2",
       "description": "Selecting Item 2 from combo box - watch the selection change"
     },
     {
       "action": "wait",
-      "duration": 1500,
-      "description": "Pause after combo box selection"
+      "description": "Pause after combo box selection",
+      "delayMs": 1500
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
+      "element": "id=TestSlider",
       "value": "75",
       "description": "Moving slider to 75% - watch the slider thumb move"
     },
     {
       "action": "wait",
-      "duration": 1500,
-      "description": "Pause after slider movement"
+      "description": "Pause after slider movement",
+      "delayMs": 1500
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 2",
       "description": "Switching to Tab 2 - watch the tab change"
     },
     {
       "action": "wait",
-      "duration": 2000,
-      "description": "Pause on Tab 2"
+      "description": "Pause on Tab 2",
+      "delayMs": 2000
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 1",
       "description": "Switching back to Tab 1 - watch the tab change back"
     },
     {
       "action": "wait",
-      "duration": 1500,
-      "description": "Final pause on Tab 1"
+      "description": "Final pause on Tab 1",
+      "delayMs": 1500
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Final clear of text box"
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{testMessage}}",
+      "element": "id=TestTextBox",
+      "value": "You can see this in the app!",
       "description": "Final message in text box"
     },
     {
       "action": "log",
-      "message": "🎉 VISUAL DEMO COMPLETE - Check the TestWpfApp to see the final message!",
-      "description": "Demo completion"
+      "description": "🎉 VISUAL DEMO COMPLETE - Check the TestWpfApp to see the final message!"
     }
   ]
 }
