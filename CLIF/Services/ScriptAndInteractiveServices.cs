@@ -97,14 +97,17 @@ public class ScriptService : IScriptService
                 {
                     Console.WriteLine($"⚡ Step {script.Steps.IndexOf(step) + 1}: {step.Action} - {step.Description}");
                     
-                    // Add realistic delay between actions
-                    if (step.DelayMs > 0)
+                    // Delay regular actions, but let an explicit wait step own its full delay.
+                    var delayMs = step.Action.Equals("wait", StringComparison.OrdinalIgnoreCase)
+                        ? 0
+                        : step.DelayMs > 0
+                            ? step.DelayMs
+                            : script.Options?.DelayBetweenActionsMs > 0
+                                ? script.Options.DelayBetweenActionsMs
+                                : 100;
+                    if (delayMs > 0)
                     {
-                        await Task.Delay(step.DelayMs);
-                    }
-                    else
-                    {
-                        await Task.Delay(100); // Default small delay
+                        await Task.Delay(delayMs);
                     }
 
                     // Execute the actual automation step with session capture
@@ -285,6 +288,11 @@ public class ScriptService : IScriptService
                     }
                     return false;
 
+                case "focus":
+                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    var focusElement = await _automationService.FindElementAsync(step.Element);
+                    return focusElement != null && await _automationService.FocusAsync(focusElement);
+
                 case "select":
                     if (string.IsNullOrEmpty(step.Element)) return false;
                     var selectElement = await _automationService.FindElementAsync(step.Element);
@@ -334,6 +342,18 @@ public class ScriptService : IScriptService
                     }
                     return false;
 
+                case "selectcell":
+                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    var cellGridElement = await _automationService.FindElementAsync(step.Element);
+                    if (cellGridElement != null)
+                    {
+                        var row = step.Parameters.ContainsKey("row") ? Convert.ToInt32(step.Parameters["row"]) : step.Row;
+                        var column = step.Parameters.ContainsKey("column") ? Convert.ToInt32(step.Parameters["column"]) : step.Column;
+                        Console.WriteLine($"📊 Selecting cell ({row}, {column}) in: {step.Element}");
+                        return await _automationService.SelectDataGridCellAsync(cellGridElement, row, column);
+                    }
+                    return false;
+
                 case "expand":
                     if (string.IsNullOrEmpty(step.Element)) return false;
                     var expandElement = await _automationService.FindElementAsync(step.Element);
@@ -341,6 +361,41 @@ public class ScriptService : IScriptService
                     {
                         Console.WriteLine($"📂 Expanding: {step.Element}");
                         return await _automationService.ToggleExpanderAsync(expandElement);
+                    }
+                    return false;
+
+                case "collapse":
+                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    var collapseElement = await _automationService.FindElementAsync(step.Element);
+                    if (collapseElement != null)
+                    {
+                        return !await _automationService.GetExpanderStateAsync(collapseElement)
+                            || await _automationService.ToggleExpanderAsync(collapseElement);
+                    }
+                    return false;
+
+                case "getvalue":
+                case "getselection":
+                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    var valueReadElement = await _automationService.FindElementAsync(step.Element);
+                    if (valueReadElement != null)
+                    {
+                        var currentValue = await _automationService.GetValueAsync(valueReadElement);
+                        Console.WriteLine($"ℹ️  Current value for {step.Element}: {currentValue}");
+                        await _captureService.LogInteractionAsync($"Current value for {step.Element}: {currentValue}");
+                        return true;
+                    }
+                    return false;
+
+                case "getstate":
+                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    var stateReadElement = await _automationService.FindElementAsync(step.Element);
+                    if (stateReadElement != null)
+                    {
+                        var currentState = await _automationService.GetValueAsync(stateReadElement);
+                        Console.WriteLine($"ℹ️  Current state for {step.Element}: {currentState}");
+                        await _captureService.LogInteractionAsync($"Current state for {step.Element}: {currentState}");
+                        return true;
                     }
                     return false;
 
