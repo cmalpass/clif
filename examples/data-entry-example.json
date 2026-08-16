@@ -1,43 +1,43 @@
 {
   "name": "Data Entry Automation",
   "description": "Automated data entry example",
-  "targetProcess": "TestWpfApp",
   "version": "1.0",
-  "options": {
-    "continueOnError": false,
-    "takeScreenshots": false,
-    "timeout": 60000
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 60000
   },
-  "variables": {
-    "userName": "John Doe",
-    "userAge": "30",
-    "department": "Engineering"
+  "options": {
+    "stopOnError": true,
+    "logSteps": true,
+    "takeScreenshots": false,
+    "defaultTimeoutMs": 60000,
+    "delayBetweenActionsMs": 0
   },
   "steps": [
     {
       "action": "focus",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Focus on name field"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox"
+      "element": "id=TestTextBox"
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{userName}}",
+      "element": "id=TestTextBox",
+      "value": "John Doe",
       "description": "Enter user name"
     },
     {
       "action": "validate",
-      "selector": "TestTextBox",
-      "expectedValue": "{{userName}}",
+      "element": "id=TestTextBox",
+      "value": "John Doe",
       "description": "Verify name was entered correctly"
     },
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Submit form"
     }
   ]

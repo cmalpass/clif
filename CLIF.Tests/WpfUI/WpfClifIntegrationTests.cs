@@ -1,5 +1,6 @@
 using CLIF.Tests.Integration;
 using FluentAssertions;
+using System.IO;
 
 namespace CLIF.Tests.WpfUI;
 
@@ -89,6 +90,29 @@ public sealed class WpfClifIntegrationTests : IntegrationTestBase
 
         result.Success.Should().BeTrue(result.Message);
         result.StepsExecuted.Should().Be(3);
+        result.StepsFailed.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Verifies that the canonical basic WPF example remains executable against the real fixture.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public async Task CanonicalBasicWpfExample_ShouldExecuteAgainstFixture()
+    {
+        _fixture.SkipIfUnavailable();
+
+        var scriptPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "examples",
+            "test-wpf-basic.json"));
+        var content = await File.ReadAllTextAsync(scriptPath);
+
+        var result = await ScriptService.ExecuteScriptContentAsync(content, _fixture.App!.ProcessId);
+
+        result.Success.Should().BeTrue(result.Message);
+        result.StepsExecuted.Should().Be(7);
         result.StepsFailed.Should().Be(0);
     }
 }
