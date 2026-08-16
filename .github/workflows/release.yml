@@ -143,13 +143,13 @@ jobs:
 
     steps:
       - name: Download published binaries
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: release-publish-directories
           path: release-publish-directories
 
       - name: Download release assets
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: unsigned-release-assets
           path: release-assets
@@ -281,19 +281,19 @@ jobs:
 
     steps:
       - name: Download release assets
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: unsigned-release-assets
           path: release-assets
 
       - name: Download SBOM
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: release-sbom
           path: release-assets
 
       - name: Download release manifest
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: release-manifest
           path: release-assets
