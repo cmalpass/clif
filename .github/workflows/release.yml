@@ -121,7 +121,7 @@ jobs:
             Set-Content -Encoding ascii (Join-Path $assetRoot 'SHA256SUMS.txt')
 
       - name: Upload SBOM input
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-publish-directories
           path: ${{ runner.temp }}/clif-release/staging
@@ -129,7 +129,7 @@ jobs:
           retention-days: 7
 
       - name: Upload unsigned release assets
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: unsigned-release-assets
           path: ${{ runner.temp }}/clif-release/assets
@@ -257,7 +257,7 @@ jobs:
             "release-assets/${manifest_name}" > /dev/null
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-sbom
           path: release-assets/CLIF-${{ github.ref_name }}.cdx.json
@@ -265,7 +265,7 @@ jobs:
           retention-days: 7
 
       - name: Upload release manifest
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: release-manifest
           path: release-assets/CLIF-${{ github.ref_name }}.release-manifest.json
