@@ -64,6 +64,28 @@ public sealed class WpfClifIntegrationTests : IntegrationTestBase
     }
 
     /// <summary>
+    /// Verifies that CLIF can select a native WPF ListBox item through its
+    /// standard UI Automation selection pattern.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public async Task AutomationService_ShouldSelectNativeWpfListBoxItem()
+    {
+        _fixture.SkipIfUnavailable();
+
+        (await AutomationService.AttachToProcessAsync(_fixture.App!.ProcessId)).Should().BeTrue();
+
+        var listBox = await AutomationService.FindElementAsync("id=TestListBox");
+        listBox.Should().NotBeNull();
+
+        (await AutomationService.SelectListBoxItemByIndexAsync(listBox!, 1)).Should().BeTrue();
+
+        var status = await AutomationService.FindElementAsync("id=StatusTextBlock");
+        status.Should().NotBeNull();
+        (await AutomationService.GetTextAsync(status!)).Should().Contain("List Item 2");
+    }
+
+    /// <summary>
     /// Verifies that a script validates an editable WPF control through its UIA value,
     /// rather than the control's accessible name.
     /// </summary>

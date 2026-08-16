@@ -762,11 +762,29 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 var listBox = element.AsListBox();
+                if (index < 0)
+                {
+                    return false;
+                }
+
+                // WPF exposes ListBox items through the ListBox pattern. Avalonia can
+                // defer that collection, even when the concrete ListItem controls are
+                // already available through the UIA tree. Prefer the native ListBox
+                // path, then fall back to the framework-neutral ListItem pattern.
                 if (listBox != null && index < listBox.Items.Length)
                 {
                     listBox.Items[index].Select();
                     return true;
                 }
+
+                var items = element.FindAllDescendants(
+                    conditionFactory => conditionFactory.ByControlType(ControlType.ListItem));
+                if (index < items.Length)
+                {
+                    items[index].AsListBoxItem().Select();
+                    return true;
+                }
+
                 return false;
             }
             catch (Exception ex)
