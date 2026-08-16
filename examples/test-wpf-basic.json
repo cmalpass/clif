@@ -34,7 +34,7 @@
     {
       "action": "select",
       "selector": "TestComboBox",
-      "value": "Option 2",
+      "value": "Item 2",
       "description": "Select option from combobox"
     },
     {
