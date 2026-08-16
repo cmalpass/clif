@@ -36,6 +36,15 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode
 
+    - name: Verify dependency vulnerability status
+      shell: pwsh
+      run: |
+        $scanOutput = dotnet list clif.sln package --vulnerable --include-transitive 2>&1
+        $scanOutput | ForEach-Object { Write-Host $_ }
+        if ($LASTEXITCODE -ne 0 -or ($scanOutput -match 'has the following vulnerable packages')) {
+          throw 'Dependency vulnerability scan failed.'
+        }
+
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
 

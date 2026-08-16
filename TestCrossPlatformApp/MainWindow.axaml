@@ -59,12 +59,12 @@
                           AutomationProperties.AutomationId="ToggleButton"
                           AutomationProperties.Name="Toggle me" />
             <TextBox x:Name="TestTextBox"
-                     Watermark="Enter text here"
+                     PlaceholderText="Enter text here"
                      AutomationProperties.AutomationId="TestTextBox"
                      AutomationProperties.Name="Test text box" />
             <TextBox x:Name="FilledTextBox"
                      Text="Initial value"
-                     Watermark="Replaceable value"
+                     PlaceholderText="Replaceable value"
                      AutomationProperties.AutomationId="FilledTextBox"
                      AutomationProperties.Name="Filled text box" />
             <CheckBox x:Name="TestCheckBox"
