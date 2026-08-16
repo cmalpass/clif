@@ -793,7 +793,17 @@ public class AutomationService : IAutomationService, IDisposable
                     }
                 }
 
-                return false;
+                // Some virtualized providers expose only visible ListItem controls.
+                // Use the standard keyboard selection behavior as a final fallback so
+                // an offscreen item can still be selected by its zero-based index.
+                element.Focus();
+                Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.HOME);
+                for (var itemIndex = 0; itemIndex < index; itemIndex++)
+                {
+                    Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.DOWN);
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
