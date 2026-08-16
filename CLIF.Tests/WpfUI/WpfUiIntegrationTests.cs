@@ -123,7 +123,20 @@ public class WpfUiIntegrationTests
         comboBox.Should().NotBeNull("TestComboBox should exist in the main window");
 
         comboBox!.Select("Item 2");
-        comboBox.SelectedItem?.Name.Should().Contain("Item 2",
+        // UIA selection is asynchronous for the fixture's WPF ComboBox. Observe
+        // the updated selection with a bounded retry so this test does not read
+        // the previous item immediately after the Select call.
+        var selectedItem = Retry.WhileNull(
+                () => comboBox.SelectedItem?.Name.Contains("Item 2", StringComparison.Ordinal) == true
+                    ? comboBox.SelectedItem
+                    : null,
+                timeout: TimeSpan.FromSeconds(5),
+                interval: TimeSpan.FromMilliseconds(100),
+                throwOnTimeout: false,
+                ignoreException: true)
+            .Result;
+
+        selectedItem?.Name.Should().Contain("Item 2",
             "selecting 'Item 2' should update the combobox selection");
     }
 
