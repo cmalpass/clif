@@ -143,21 +143,18 @@ public class ProcessServiceTests
         }
     }
 
-    [Fact]
-    public async Task FindProcessByWindowTitleAsync_WithEmptyTitle_ShouldHandleGracefully()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task FindProcessByWindowTitleAsync_WithEmptyOrWhitespaceTitle_ShouldReturnNull(string windowTitle)
     {
         // Act
         var result = await _processService
-            .FindProcessByWindowTitleAsync("")
-            .WithTimeout(DefaultTimeout, "FindProcessByWindowTitleAsync(empty)");
+            .FindProcessByWindowTitleAsync(windowTitle)
+            .WithTimeout(DefaultTimeout, "FindProcessByWindowTitleAsync(empty/whitespace)");
 
         // Assert
-        // May find processes with empty window titles (like Adobe Desktop Service)
-        // This is valid behavior - empty string can match empty window titles
-        if (result != null)
-        {
-            result.WindowTitle.Should().Be("");
-        }
+        result.Should().BeNull();
     }
 
     [Fact]

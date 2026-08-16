@@ -82,6 +82,12 @@ public class ProcessService : IProcessService
     /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByWindowTitleAsync(string windowTitle)
     {
+        ArgumentNullException.ThrowIfNull(windowTitle);
+        if (string.IsNullOrWhiteSpace(windowTitle))
+        {
+            return null;
+        }
+
         var processes = await GetWpfProcessesAsync();
         return processes.FirstOrDefault(p => 
             p.WindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase));
