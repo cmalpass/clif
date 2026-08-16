@@ -4,6 +4,7 @@ using System.Text.Json;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -13,10 +14,12 @@ namespace CLIF.Mcp.Tools;
 public class ListWindowsTool : ToolBase
 {
     private readonly WindowSessionManager _sessionManager;
+    private readonly McpSafetyPolicy _safetyPolicy;
 
-    public ListWindowsTool(WindowSessionManager sessionManager)
+    public ListWindowsTool(WindowSessionManager sessionManager, McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
+        _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
     public override string Name => "clif_list_windows";
@@ -34,6 +37,12 @@ public class ListWindowsTool : ToolBase
     {
         try
         {
+            if (!_safetyPolicy.AllowWindowEnumeration)
+            {
+                return Task.FromResult(ErrorResult(
+                    "Window enumeration is disabled by policy. Set CLIF_MCP_ALLOW_WINDOW_ENUMERATION=true to enable it."));
+            }
+
             var windows = _sessionManager.ListWindows();
             if (windows.Count == 0)
             {
@@ -78,35 +87,22 @@ public class FocusWindowTool : ToolBase
                 type = "string",
                 description = "Window handle (e.g., 'w1')",
             },
-            title = new
-            {
-                type = "string",
-                description = "Window title (finds first match). Use if handle is not known.",
-            },
         },
+        required = new[] { "handle" },
     };
 
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");
-        var title = GetStringArgument(arguments, "title");
-
         try
         {
-            if (!string.IsNullOrEmpty(handle))
+            if (string.IsNullOrEmpty(handle))
             {
-                _sessionManager.FocusWindow(handle);
-                return Task.FromResult(TextResult($"Focused window {handle}"));
+                return Task.FromResult(ErrorResult("Missing required argument: handle"));
             }
 
-            if (!string.IsNullOrEmpty(title))
-            {
-                var (newHandle, _) = _sessionManager.AttachToWindow(title);
-                _sessionManager.FocusWindow(newHandle);
-                return Task.FromResult(TextResult($"Focused window {newHandle} (\"{title}\")"));
-            }
-
-            return Task.FromResult(ErrorResult("Provide either handle or title"));
+            _sessionManager.FocusWindow(handle);
+            return Task.FromResult(TextResult($"Focused window {handle}"));
         }
         catch (Exception ex)
         {
@@ -121,10 +117,17 @@ public class FocusWindowTool : ToolBase
 public class CloseWindowTool : ToolBase
 {
     private readonly WindowSessionManager _sessionManager;
+    private readonly ElementRegistry? _elementRegistry;
+    private readonly McpSafetyPolicy _safetyPolicy;
 
-    public CloseWindowTool(WindowSessionManager sessionManager)
+    public CloseWindowTool(
+        WindowSessionManager sessionManager,
+        ElementRegistry? elementRegistry = null,
+        McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
+        _elementRegistry = elementRegistry;
+        _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
     public override string Name => "clif_close";
@@ -156,12 +159,19 @@ public class CloseWindowTool : ToolBase
 
         try
         {
+            if (!_safetyPolicy.AllowWindowClose)
+            {
+                return Task.FromResult(ErrorResult(
+                    "Window close is disabled by policy. Set CLIF_MCP_ALLOW_WINDOW_CLOSE=true to enable it."));
+            }
+
             _sessionManager.CloseWindow(handle);
+            _elementRegistry?.RemoveWindow(handle);
             return Task.FromResult(TextResult($"Closed window {handle}"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Task.FromResult(ErrorResult($"Failed to close window: {ex.Message}"));
+            return Task.FromResult(ErrorResult("Failed to close the window."));
         }
     }
 }

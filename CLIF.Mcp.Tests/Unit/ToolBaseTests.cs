@@ -238,8 +238,8 @@ public class ToolBaseTests
         public T? TestGetArgument<T>(JsonElement? args, string name) =>
             GetArgument<T>(args, name);
 
-        public static new McpToolResult TestTextResult(string text) => TextResult(text);
-        public static new McpToolResult TestErrorResult(string message) => ErrorResult(message);
-        public static new McpToolResult TestImageResult(byte[] data) => ImageResult(data);
+        public static McpToolResult TestTextResult(string text) => TextResult(text);
+        public static McpToolResult TestErrorResult(string message) => ErrorResult(message);
+        public static McpToolResult TestImageResult(byte[] data) => ImageResult(data);
     }
 }

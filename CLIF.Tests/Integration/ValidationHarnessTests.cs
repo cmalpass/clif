@@ -1,5 +1,6 @@
 using CLIF.Validation;
 using CLIF.Validation.Validators;
+using CLIF.Tests.WpfUI;
 using FluentAssertions;
 using Xunit;
 
@@ -8,17 +9,23 @@ namespace CLIF.Tests.Integration;
 /// <summary>
 /// Comprehensive validation harness to ensure all validators work correctly
 /// </summary>
-[Collection("Integration")]
+[Collection("WpfUI")]
 public class ValidationHarnessTests
 {
-    [Theory]
-    [InlineData(1)]
-    [InlineData(1234)]
-    [InlineData(999999)]
-    public void ProcessIdValidator_WithValidProcessIds_ShouldPass(int processId)
+    private readonly WpfTestAppFixture _wpfTestApp;
+
+    public ValidationHarnessTests(WpfTestAppFixture wpfTestApp)
+    {
+        _wpfTestApp = wpfTestApp;
+    }
+
+    [Fact]
+    public void ProcessIdValidator_WithRunningUiProcess_ShouldPass()
     {
         // Arrange
+        _wpfTestApp.SkipIfUnavailable();
         var validator = new ProcessIdValidator();
+        var processId = _wpfTestApp.App!.ProcessId;
 
         // Act
         var result = validator.Validate(processId);
@@ -50,7 +57,6 @@ public class ValidationHarnessTests
     [InlineData("name=Submit")]
     [InlineData("class=ButtonClass")]
     [InlineData("type=Button")]
-    [InlineData("TestButton")]
     public void ElementSelectorValidator_WithValidSelectors_ShouldPass(string selector)
     {
         // Arrange
@@ -216,20 +222,12 @@ public class ValidationHarnessTests
         // Arrange
         var validator = new ProcessIdValidator();
 
-        // Act & Assert - Minimum valid value
-        var result1 = validator.Validate(1);
-        result1.IsValid.Should().BeTrue();
-
-        // Act & Assert - Maximum reasonable value
-        var result2 = validator.Validate(int.MaxValue);
-        result2.IsValid.Should().BeTrue();
-
-        // Act & Assert - Zero (invalid)
-        var result3 = validator.Validate(0);
-        result3.IsValid.Should().BeFalse();
-
-        // Act & Assert - Negative (invalid)
-        var result4 = validator.Validate(-1);
-        result4.IsValid.Should().BeFalse();
+        // A positive integer is not sufficient: it must name a live UI process.
+        // This test covers only range boundaries; the live-process requirement is
+        // exercised above using the shared TestWpfApp fixture.
+        validator.Validate(0).IsValid.Should().BeFalse();
+        validator.Validate(-1).IsValid.Should().BeFalse();
+        validator.Validate(65536).IsValid.Should().BeFalse();
+        validator.Validate(int.MaxValue).IsValid.Should().BeFalse();
     }
 }

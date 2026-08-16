@@ -1,20 +1,30 @@
+using System.Runtime.Versioning;
+using System.Text;
+using System.Text.RegularExpressions;
 using FlaUI.Core.AutomationElements;
 using Microsoft.Extensions.Logging;
 using CLIF.Core;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace CLIF.Services;
 
+/// <summary>Builds, prints, and searches Windows UI Automation element trees.</summary>
+[SupportedOSPlatform("windows7.0")]
 public class ElementTreeService : IElementTreeService
 {
     private readonly ILogger<ElementTreeService> _logger;
 
+    /// <summary>Initializes a new instance of the <see cref="ElementTreeService"/> class.</summary>
+    /// <param name="logger">Logger used to record UI Automation traversal failures.</param>
     public ElementTreeService(ILogger<ElementTreeService> logger)
     {
         _logger = logger;
     }
 
+    /// <summary>Builds an element tree rooted at the specified automation element.</summary>
+    /// <param name="rootElement">The automation element at which traversal starts.</param>
+    /// <param name="includeChildren">Whether child elements should be included in the tree.</param>
+    /// <param name="maxDepth">The maximum depth to traverse from the root.</param>
+    /// <returns>The constructed element tree.</returns>
     public async Task<ElementTreeNode> BuildTreeAsync(AutomationElement rootElement, bool includeChildren = true, int maxDepth = 10)
     {
         return await Task.Run(() =>
@@ -31,6 +41,10 @@ public class ElementTreeService : IElementTreeService
         });
     }
 
+    /// <summary>Formats an element tree as human-readable text.</summary>
+    /// <param name="root">The root node to print.</param>
+    /// <param name="options">Optional filtering and display settings.</param>
+    /// <returns>The formatted tree text.</returns>
     public async Task<string> PrintTreeAsync(ElementTreeNode root, TreePrintOptions? options = null)
     {
         return await Task.Run(() =>
@@ -42,6 +56,10 @@ public class ElementTreeService : IElementTreeService
         });
     }
 
+    /// <summary>Searches an element tree for nodes matching the supplied criteria.</summary>
+    /// <param name="root">The root node at which the search starts.</param>
+    /// <param name="criteria">The criteria applied to each node.</param>
+    /// <returns>Matching nodes in traversal order.</returns>
     public async Task<List<ElementTreeNode>> SearchTreeAsync(ElementTreeNode root, ElementSearchCriteria criteria)
     {
         return await Task.Run(() =>
@@ -52,6 +70,10 @@ public class ElementTreeService : IElementTreeService
         });
     }
 
+    /// <summary>Finds the first node in an element tree that matches a selector.</summary>
+    /// <param name="root">The root node at which the search starts.</param>
+    /// <param name="selector">The selector identifying the desired node.</param>
+    /// <returns>The first matching node, or <see langword="null"/> when no node matches.</returns>
     public async Task<ElementTreeNode?> FindElementInTreeAsync(ElementTreeNode root, string selector)
     {
         return await Task.Run(() =>
@@ -183,7 +205,7 @@ public class ElementTreeService : IElementTreeService
 
     private ElementTreeNode? FindElementInTreeNode(ElementTreeNode node, string selector)
     {
-        if (node.Selector == selector || node.Name == selector || node.AutomationId == selector)
+        if (SelectorParser.TryParse(selector, out var criteria) && MatchesSelector(node, criteria))
         {
             return node;
         }
@@ -195,6 +217,14 @@ public class ElementTreeService : IElementTreeService
         }
 
         return null;
+    }
+
+    private static bool MatchesSelector(ElementTreeNode node, SelectorCriteria criteria)
+    {
+        return (criteria.AutomationId is null || string.Equals(node.AutomationId, criteria.AutomationId, StringComparison.Ordinal)) &&
+               (criteria.Name is null || string.Equals(node.Name, criteria.Name, StringComparison.Ordinal)) &&
+               (criteria.ClassName is null || string.Equals(node.ClassName, criteria.ClassName, StringComparison.Ordinal)) &&
+               (criteria.ControlType is null || string.Equals(node.ControlType, criteria.ControlType, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool MatchesCriteria(ElementTreeNode node, ElementSearchCriteria criteria)
@@ -243,13 +273,13 @@ public class ElementTreeService : IElementTreeService
         var parts = new List<string>();
 
         if (!string.IsNullOrEmpty(element.AutomationId))
-            return $"id={element.AutomationId}";
+            return $"id={SelectorParser.FormatValue(element.AutomationId)}";
 
         if (!string.IsNullOrEmpty(element.Name))
-            parts.Add($"name={element.Name}");
+            parts.Add($"name={SelectorParser.FormatValue(element.Name)}");
 
         if (!string.IsNullOrEmpty(element.ClassName))
-            parts.Add($"class={element.ClassName}");
+            parts.Add($"class={SelectorParser.FormatValue(element.ClassName)}");
 
         parts.Add($"type={element.ControlType}");
 

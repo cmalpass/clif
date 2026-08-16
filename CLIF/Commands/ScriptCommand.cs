@@ -3,10 +3,13 @@ using CLIF.Core;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for executing or validating scripts.</summary>
 public class ScriptCommand : Command
 {
     private readonly IScriptService _scriptService;
 
+    /// <summary>Creates a script command backed by the script service.</summary>
+    /// <param name="scriptService">Service used to load, validate, and execute scripts.</param>
     public ScriptCommand(IScriptService scriptService) 
         : base("script", "Execute an automation script")
     {

@@ -20,10 +20,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
@@ -34,7 +34,7 @@ jobs:
         dotnet --list-runtimes
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
@@ -43,17 +43,19 @@ jobs:
       run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore --no-build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: clif-cli
         path: ./publish/
+        if-no-files-found: error
         retention-days: 30
 
     - name: Upload TestWpfApp artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: test-wpf-app
         path: TestWpfApp/bin/Release/net8.0-windows/
+        if-no-files-found: error
         retention-days: 30
 
   unit-tests:
@@ -68,15 +70,15 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -101,17 +103,18 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload unit test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: unit-test-results
         path: |
           ./TestResults/*.trx
           ./TestResults/**/coverage.cobertura.xml
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate unit test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Unit Test Results
@@ -131,15 +134,15 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -155,38 +158,31 @@ jobs:
           --logger "console;verbosity=detailed" `
           --collect:"XPlat Code Coverage" `
           --results-directory ./TestResults
-      continue-on-error: true
 
     - name: Upload integration test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: integration-test-results
         path: |
           ./TestResults/*.trx
           ./TestResults/**/coverage.cobertura.xml
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate integration test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Integration Test Results
         path: ./TestResults/integration-tests.trx
         reporter: dotnet-trx
-        fail-on-error: false
+        fail-on-error: true
 
     - name: Integration test outcome summary
-      if: always()
+      if: success()
       shell: pwsh
-      run: |
-        if ("${{ steps.integration-tests.outcome }}" -eq "failure") {
-          Write-Host "::warning::Integration tests had failures. This is expected in headless CI environments where UI automation APIs are unavailable."
-          Write-Host "Integration tests require a full Windows desktop session with UI Automation support."
-          Write-Host "For full validation, run integration tests locally with TestWpfApp running."
-        } else {
-          Write-Host "Integration tests passed successfully."
-        }
+      run: Write-Host "Integration tests passed successfully."
 
   # ────────────────────────────────────────────────────────────────────────────
   # Cross-platform fixture build
@@ -206,21 +202,21 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Restore cross-platform fixture
-      run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj
+      run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj --locked-mode
 
     - name: Build cross-platform fixture
       run: dotnet build TestCrossPlatformApp/TestCrossPlatformApp.csproj --configuration Release --no-restore
 
     - name: Restore fixture contract tests
-      run: dotnet restore TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj
+      run: dotnet restore TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj --locked-mode
 
     - name: Run fixture contract tests
       run: dotnet test TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj --configuration Release --no-restore --logger "console;verbosity=minimal"
@@ -240,15 +236,15 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Release --no-restore
@@ -297,15 +293,16 @@ jobs:
         }
 
     - name: Upload cross-platform UI test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: cross-platform-ui-test-results
         path: ./TestResults/*.trx
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate cross-platform UI test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: Cross-platform UI Test Results
@@ -317,8 +314,9 @@ jobs:
   # WPF UI Tests
   # Launches TestWpfApp.exe and exercises it end-to-end via FlaUI / UIA3.
   # windows-latest runners provide a full interactive desktop session so WPF
-  # windows and UI Automation are available.  continue-on-error is set to true
-  # because the job is informational for PRs; failures are surfaced as warnings.
+  # windows and UI Automation are available. This is a required validation gate:
+  # failures and skipped tests fail the workflow rather than producing a misleading
+  # green build for the primary WPF product surface.
   # ────────────────────────────────────────────────────────────────────────────
   wpf-ui-tests:
     name: WPF UI Tests
@@ -332,15 +330,15 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     # Rebuild is required because .NET build outputs contain absolute paths and
     # cannot be reliably shared between jobs via artifacts on Windows runners.
@@ -355,33 +353,138 @@ jobs:
           --logger "trx;LogFileName=wpf-ui-tests.trx" `
           --logger "console;verbosity=detailed" `
           --results-directory ./TestResults
-      continue-on-error: true
 
     - name: Upload WPF UI test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: wpf-ui-test-results
         path: ./TestResults/*.trx
+        if-no-files-found: error
         retention-days: 30
 
     - name: Generate WPF UI test report
-      uses: dorny/test-reporter@v2
+      uses: dorny/test-reporter@v3
       if: always()
       with:
         name: WPF UI Test Results
         path: ./TestResults/wpf-ui-tests.trx
         reporter: dotnet-trx
-        fail-on-error: false
+        fail-on-error: true
 
-    - name: WPF UI test outcome summary
+    - name: Assert WPF UI validation executed
       if: always()
       shell: pwsh
       run: |
-        if ("${{ steps.wpf-ui-tests.outcome }}" -eq "failure") {
-          Write-Host "::warning::WPF UI tests had failures."
-          Write-Host "Ensure TestWpfApp builds successfully and the runner has a desktop session with UI Automation support."
-          Write-Host "Set the TEST_WPF_APP_PATH environment variable to override the TestWpfApp binary location."
-        } else {
-          Write-Host "WPF UI tests passed successfully."
+        $trxPath = Join-Path $env:GITHUB_WORKSPACE 'TestResults\wpf-ui-tests.trx'
+        if (-not (Test-Path -LiteralPath $trxPath -PathType Leaf)) {
+          throw "WPF UI test results were not produced: $trxPath"
         }
+
+        [xml]$trx = Get-Content -LiteralPath $trxPath
+        $results = @($trx.SelectNodes("//*[local-name()='UnitTestResult']"))
+        $failed = @($results | Where-Object { $_.outcome -in @('Failed', 'Error') }).Count
+        $notExecuted = @($results | Where-Object { $_.outcome -eq 'NotExecuted' }).Count
+
+        Write-Host "WPF UI tests recorded: $($results.Count)"
+        Write-Host "Failed: $failed"
+        Write-Host "Not executed: $notExecuted"
+
+        if ($results.Count -eq 0) {
+          throw "No WPF UI test results were recorded."
+        }
+        if ($failed -gt 0 -or $notExecuted -gt 0) {
+          throw "WPF UI validation failed or was skipped."
+        }
+
+  # Exercises the released MCP executable as a separate process over stdio against
+  # TestWpfApp. This prevents unit-only protocol coverage from masking a broken
+  # production server, allowlist, or UI Automation integration.
+  mcp-ui-tests:
+    name: MCP WPF End-to-End Tests
+    runs-on: windows-latest
+    needs: build
+
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore clif.sln --locked-mode
+
+    - name: Build solution
+      run: dotnet build clif.sln --configuration Release --no-restore
+
+    - name: Configure MCP UI test executables
+      shell: pwsh
+      run: |
+        $mcpPath = Join-Path $env:GITHUB_WORKSPACE 'CLIF.Mcp\bin\Release\net8.0-windows\CLIF.Mcp.exe'
+        $wpfPath = Join-Path $env:GITHUB_WORKSPACE 'TestWpfApp\bin\Release\net8.0-windows\TestWpfApp.exe'
+        foreach ($path in @($mcpPath, $wpfPath)) {
+          if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "Expected executable was not produced: $path"
+          }
+        }
+        "CLIF_MCP_EXE_PATH=$mcpPath" >> $env:GITHUB_ENV
+        "TEST_WPF_APP_PATH=$wpfPath" >> $env:GITHUB_ENV
+
+    - name: Run MCP WPF end-to-end tests
+      run: |
+        dotnet test CLIF.Tests/CLIF.Tests.csproj --configuration Release --no-build `
+          --filter "Category=McpUI" `
+          --logger "trx;LogFileName=mcp-ui-tests.trx" `
+          --logger "console;verbosity=detailed" `
+          --results-directory ./TestResults
+
+    - name: Assert MCP UI validation executed
+      if: always()
+      shell: pwsh
+      run: |
+        $trxPath = Join-Path $env:GITHUB_WORKSPACE 'TestResults\mcp-ui-tests.trx'
+        if (-not (Test-Path -LiteralPath $trxPath -PathType Leaf)) {
+          throw "MCP UI test results were not produced: $trxPath"
+        }
+
+        [xml]$trx = Get-Content -LiteralPath $trxPath
+        $results = @($trx.SelectNodes("//*[local-name()='UnitTestResult']"))
+        $failed = @($results | Where-Object { $_.outcome -in @('Failed', 'Error') }).Count
+        $notExecuted = @($results | Where-Object { $_.outcome -eq 'NotExecuted' }).Count
+
+        Write-Host "MCP UI tests recorded: $($results.Count)"
+        Write-Host "Failed: $failed"
+        Write-Host "Not executed: $notExecuted"
+
+        if ($results.Count -eq 0) {
+          throw "No MCP UI test results were recorded."
+        }
+        if ($failed -gt 0 -or $notExecuted -gt 0) {
+          throw "MCP UI validation failed or was skipped."
+        }
+
+    - name: Upload MCP UI test results
+      uses: actions/upload-artifact@v6
+      if: always()
+      with:
+        name: mcp-ui-test-results
+        path: ./TestResults/*.trx
+        if-no-files-found: error
+        retention-days: 30
+
+    - name: Generate MCP UI test report
+      uses: dorny/test-reporter@v3
+      if: always()
+      with:
+        name: MCP UI Test Results
+        path: ./TestResults/mcp-ui-tests.trx
+        reporter: dotnet-trx
+        fail-on-error: true

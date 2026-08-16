@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -11,10 +12,12 @@ namespace CLIF.Mcp.Tools;
 public class LaunchTool : ToolBase
 {
     private readonly WindowSessionManager _sessionManager;
+    private readonly McpSafetyPolicy _safetyPolicy;
 
-    public LaunchTool(WindowSessionManager sessionManager)
+    public LaunchTool(WindowSessionManager sessionManager, McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
+        _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
     public override string Name => "clif_launch";
@@ -51,6 +54,12 @@ public class LaunchTool : ToolBase
             return Task.FromResult(ErrorResult("Missing required argument: app"));
         }
 
+        if (!_safetyPolicy.IsApplicationAllowed(app))
+        {
+            return Task.FromResult(ErrorResult(
+                "Launch denied by policy. Add the executable name or path to CLIF_MCP_ALLOWED_APPS."));
+        }
+
         var args = GetArgument<string[]>(arguments, "args");
 
         try
@@ -59,9 +68,9 @@ public class LaunchTool : ToolBase
             return Task.FromResult(TextResult(
                 $"Launched {app}\nWindow handle: {handle}\nTitle: {window.Title}"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Task.FromResult(ErrorResult($"Failed to launch {app}: {ex.Message}"));
+            return Task.FromResult(ErrorResult("Failed to launch the approved application."));
         }
     }
 }

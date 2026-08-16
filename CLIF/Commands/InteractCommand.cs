@@ -5,10 +5,15 @@ using Microsoft.Extensions.Logging;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides advanced interactions with common WPF controls.</summary>
 public class InteractCommand : Command
 {
     private readonly ISessionCaptureService _captureService;
     
+    /// <summary>Creates an interaction command backed by automation and session services.</summary>
+    /// <param name="automationService">Service used to locate and manipulate controls.</param>
+    /// <param name="captureService">Service used to record the interaction session.</param>
+    /// <param name="logger">Logger used to report interaction failures.</param>
     public InteractCommand(IAutomationService automationService, ISessionCaptureService captureService, ILogger<InteractCommand> logger) 
         : base("interact", "Advanced interactions with various WPF controls")
     {

@@ -4,24 +4,26 @@
 
 using CLIF.Mcp;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 using CLIF.Mcp.Tools;
 
 // Create shared services
 var sessionManager = new WindowSessionManager();
 var elementRegistry = new ElementRegistry();
+var safetyPolicy = McpSafetyPolicy.FromEnvironment();
 
 // Register all MCP tools
 var toolRegistry = new ToolRegistry();
-toolRegistry.RegisterTool(new LaunchTool(sessionManager));
+toolRegistry.RegisterTool(new LaunchTool(sessionManager, safetyPolicy));
 toolRegistry.RegisterTool(new SnapshotTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ClickTool(elementRegistry));
 toolRegistry.RegisterTool(new TypeTool(elementRegistry));
 toolRegistry.RegisterTool(new FillTool(elementRegistry));
 toolRegistry.RegisterTool(new GetTextTool(elementRegistry));
-toolRegistry.RegisterTool(new ScreenshotTool(sessionManager, elementRegistry));
-toolRegistry.RegisterTool(new ListWindowsTool(sessionManager));
+toolRegistry.RegisterTool(new ScreenshotTool(sessionManager, elementRegistry, safetyPolicy));
+toolRegistry.RegisterTool(new ListWindowsTool(sessionManager, safetyPolicy));
 toolRegistry.RegisterTool(new FocusWindowTool(sessionManager));
-toolRegistry.RegisterTool(new CloseWindowTool(sessionManager));
+toolRegistry.RegisterTool(new CloseWindowTool(sessionManager, elementRegistry, safetyPolicy));
 toolRegistry.RegisterTool(new BatchTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new InteractTool(elementRegistry));
 toolRegistry.RegisterTool(new SearchTool(sessionManager, elementRegistry));

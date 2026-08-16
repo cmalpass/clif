@@ -6,6 +6,7 @@ using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -107,6 +108,18 @@ public class BatchTool : ToolBase
 
         var results = new List<string>();
         var actions = actionsElement.EnumerateArray().ToList();
+        if (actions.Count == 0)
+        {
+            return Task.FromResult(ErrorResult("At least one batch action is required."));
+        }
+
+        if (actions.Count > McpSafetyPolicy.MaximumBatchActions)
+        {
+            return Task.FromResult(ErrorResult(
+                $"Batch exceeds the maximum of {McpSafetyPolicy.MaximumBatchActions} actions."));
+        }
+
+        var failed = false;
 
         foreach (var (actionObj, index) in actions.Select((a, i) => (a, i)))
         {
@@ -123,9 +136,19 @@ public class BatchTool : ToolBase
                     _ => $"Unknown action: {actionType}",
                 };
                 results.Add($"{index + 1}. {actionType}: {result}");
+                if (IsActionFailure(result))
+                {
+                    failed = true;
+                    if (stopOnError)
+                    {
+                        results.Add($"Stopped at action {index + 1} due to error");
+                        break;
+                    }
+                }
             }
             catch (Exception ex)
             {
+                failed = true;
                 results.Add($"{index + 1}. ERROR: {ex.Message}");
                 if (stopOnError)
                 {
@@ -135,7 +158,9 @@ public class BatchTool : ToolBase
             }
         }
 
-        return Task.FromResult(TextResult(string.Join("\n", results)));
+        var batchResult = TextResult(string.Join("\n", results));
+        batchResult.IsError = failed ? true : null;
+        return Task.FromResult(batchResult);
     }
 
     private string ExecuteClick(JsonElement action)
@@ -236,9 +261,22 @@ public class BatchTool : ToolBase
     private static string ExecuteWait(JsonElement action)
     {
         var ms = action.TryGetProperty("ms", out var msProp) ? msProp.GetInt32() : 100;
+        if (ms < 0 || ms > McpSafetyPolicy.MaximumWaitMilliseconds)
+        {
+            return $"Wait must be between 0 and {McpSafetyPolicy.MaximumWaitMilliseconds}ms";
+        }
+
         Thread.Sleep(ms);
         return $"Waited {ms}ms";
     }
+
+    private static bool IsActionFailure(string result) =>
+        result.StartsWith("Missing", StringComparison.Ordinal) ||
+        result.StartsWith("Unknown", StringComparison.Ordinal) ||
+        result.StartsWith("Element not found", StringComparison.Ordinal) ||
+        result.StartsWith("Window not found", StringComparison.Ordinal) ||
+        result.StartsWith("No window", StringComparison.Ordinal) ||
+        result.StartsWith("Wait must", StringComparison.Ordinal);
 
     private string ExecuteSnapshot(JsonElement action)
     {

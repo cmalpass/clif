@@ -8,7 +8,7 @@ setup:
 
   steps:
     - name: Setup .NET 8.0 SDK
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: "8.0.x"
 
@@ -19,7 +19,7 @@ setup:
         dotnet --list-runtimes
 
     - name: Restore dependencies
-      run: dotnet restore clif.sln
+      run: dotnet restore clif.sln --locked-mode
 
     - name: Build solution
       run: dotnet build clif.sln --configuration Debug --no-restore

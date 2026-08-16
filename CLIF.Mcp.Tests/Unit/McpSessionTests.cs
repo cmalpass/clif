@@ -11,6 +11,11 @@ namespace CLIF.Mcp.Tests.Unit;
 /// </summary>
 public class McpSessionTests
 {
+    private static string InitializeRequest(int id) =>
+        "{\"jsonrpc\":\"2.0\",\"id\":" + id +
+        ",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"" + McpProtocol.SupportedProtocolVersion +
+        "\",\"capabilities\":{},\"clientInfo\":{\"name\":\"clif-tests\",\"version\":\"1.0\"}}}";
+
     /// <summary>
     /// Helper that sends JSON-RPC requests to the McpServer via in-memory streams.
     /// </summary>
@@ -65,7 +70,7 @@ public class McpSessionTests
         registry.RegisterTool(new EchoTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":0,"method":"initialize"}""",
+            InitializeRequest(0),
             """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":1,"method":"tools/list"}""");
 
@@ -94,7 +99,7 @@ public class McpSessionTests
         registry.RegisterTool(new EchoTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":0,"method":"initialize"}""",
+            InitializeRequest(0),
             """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"clif_echo","arguments":{"message":"Hello from AI agent!"}}}""");
 
@@ -114,7 +119,8 @@ public class McpSessionTests
         registry.RegisterTool(new FailingTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":0,"method":"initialize"}""",
+            InitializeRequest(0),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"clif_fail","arguments":{}}}""");
 
         lines.Should().HaveCount(2);
@@ -134,7 +140,8 @@ public class McpSessionTests
         registry.RegisterTool(new CounterTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":0,"method":"initialize"}""",
+            InitializeRequest(0),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"clif_counter"}}""",
             """{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"clif_counter"}}""",
             """{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"clif_counter"}}""");
@@ -157,7 +164,8 @@ public class McpSessionTests
         registry.RegisterTool(new EchoTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":1,"method":"initialize"}""",
+            InitializeRequest(1),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":2,"method":"tools/list"}""",
             """{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"clif_echo","arguments":{"message":"test"}}}""");
 
@@ -180,7 +188,8 @@ public class McpSessionTests
         registry.RegisterTool(new EchoTool());
 
         var lines = await RunMcpSessionAsync(registry,
-            """{"jsonrpc":"2.0","id":10,"method":"initialize"}""",
+            InitializeRequest(10),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
             """{"jsonrpc":"2.0","id":20,"method":"tools/list"}""",
             """{"jsonrpc":"2.0","id":30,"method":"tools/call","params":{"name":"clif_echo","arguments":{"message":"test"}}}""");
 
@@ -203,12 +212,15 @@ public class McpSessionTests
 
         var scriptContent = "{\"name\":\"Automated Test\",\"description\":\"test\",\"version\":\"1.0\",\"steps\":[{\"action\":\"click\",\"element\":\"id=btn\"}]}";
         var escapedContent = JsonSerializer.Serialize(scriptContent); // produces a JSON string with quotes
-        var callJson = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"clif_run_script\",\"arguments\":{\"content\":" + escapedContent + "}}}";
+        var callJson = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/call\",\"params\":{\"name\":\"clif_validate_script\",\"arguments\":{\"content\":" + escapedContent + "}}}";
 
-        var lines = await RunMcpSessionAsync(registry, callJson);
+        var lines = await RunMcpSessionAsync(registry,
+            InitializeRequest(0),
+            """{"jsonrpc":"2.0","method":"notifications/initialized"}""",
+            callJson);
 
-        lines.Should().HaveCount(1);
-        var response = JsonSerializer.Deserialize<JsonRpcResponse>(lines[0], McpProtocol.JsonOptions);
+        lines.Should().HaveCount(2);
+        var response = JsonSerializer.Deserialize<JsonRpcResponse>(lines[1], McpProtocol.JsonOptions);
         response!.Error.Should().BeNull();
         var resultJson = JsonSerializer.Serialize(response.Result, McpProtocol.JsonOptions);
         resultJson.Should().Contain("Automated Test");
