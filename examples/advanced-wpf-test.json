@@ -1,452 +1,420 @@
 {
   "name": "Advanced WPF Controls Test - Edge Cases",
   "description": "Testing edge cases, error handling, and advanced interactions",
-  "targetProcess": "TestWpfApp",
   "version": "1.0",
-  "options": {
-    "continueOnError": true,
-    "takeScreenshots": true,
-    "timeout": 90000,
-    "delayBetweenActions": 1200
+  "target": {
+    "processName": "TestWpfApp",
+    "timeoutMs": 90000
   },
-  "variables": {
-    "longText": "This is a very long text string that will test the text input capabilities and scrolling behavior of the text controls. It contains multiple sentences and should wrap across multiple lines to test the text handling.",
-    "specialChars": "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
-    "unicodeText": "Unicode test: 中文 العربية русский 日本語 🎉🚀💻",
-    "invalidDate": "invalid-date",
-    "boundaryValues": {
-      "minSlider": "0",
-      "maxSlider": "100",
-      "negativeNumber": "-50"
-    }
+  "options": {
+    "stopOnError": false,
+    "logSteps": true,
+    "takeScreenshots": true,
+    "defaultTimeoutMs": 90000,
+    "delayBetweenActionsMs": 1200
   },
   "steps": [
     {
       "action": "log",
-      "message": "=== Advanced WPF Controls Test - Edge Cases ===",
-      "description": "Advanced test initialization"
+      "description": "=== Advanced WPF Controls Test - Edge Cases ==="
     },
     {
       "action": "screenshot",
-      "description": "Initial state for advanced testing",
-      "filename": "adv_00_initial.png"
+      "description": "Initial state for advanced testing"
     },
-
     {
       "action": "log",
-      "message": "Phase 1: Long Text and Special Characters",
-      "description": "Text handling edge cases"
+      "description": "Phase 1: Long Text and Special Characters"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clear text box for long text test"
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{longText}}",
+      "element": "id=TestTextBox",
+      "value": "This is a very long text string that will test the text input capabilities and scrolling behavior of the text controls. It contains multiple sentences and should wrap across multiple lines to test the text handling.",
       "description": "Enter very long text"
     },
     {
       "action": "screenshot",
-      "description": "After long text entry",
-      "filename": "adv_01_long_text.png"
+      "description": "After long text entry"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clear for special characters test"
     },
     {
       "action": "type",
-      "selector": "TestTextBox",
-      "value": "{{specialChars}}",
+      "element": "id=TestTextBox",
+      "value": "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
       "description": "Enter special characters"
     },
     {
       "action": "clear",
-      "selector": "TestRichTextBox",
+      "element": "id=TestRichTextBox",
       "description": "Clear rich text box"
     },
     {
       "action": "type",
-      "selector": "TestRichTextBox",
-      "value": "{{unicodeText}}",
+      "element": "id=TestRichTextBox",
+      "value": "Unicode test: 中文 العربية русский 日本語 🎉🚀💻",
       "description": "Enter unicode text in rich text box"
     },
     {
       "action": "screenshot",
-      "description": "After special characters",
-      "filename": "adv_02_special_chars.png"
+      "description": "After special characters"
     },
-
     {
       "action": "log",
-      "message": "Phase 2: Boundary Value Testing",
-      "description": "Testing control limits"
+      "description": "Phase 2: Boundary Value Testing"
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
-      "value": "{{boundaryValues.minSlider}}",
+      "element": "id=TestSlider",
+      "value": "0",
       "description": "Set slider to minimum value"
     },
     {
       "action": "wait",
-      "duration": 1000
+      "delayMs": 1000
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
-      "value": "{{boundaryValues.maxSlider}}",
+      "element": "id=TestSlider",
+      "value": "100",
       "description": "Set slider to maximum value"
     },
     {
       "action": "screenshot",
-      "description": "Slider boundary values",
-      "filename": "adv_03_slider_bounds.png"
+      "description": "Slider boundary values"
     },
-
     {
       "action": "log",
-      "message": "Phase 3: Rapid Sequential Actions",
-      "description": "Testing rapid interaction handling"
+      "description": "Phase 3: Rapid Sequential Actions"
     },
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Rapid click 1"
     },
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Rapid click 2"
     },
     {
       "action": "click",
-      "selector": "TestButton",
+      "element": "id=TestButton",
       "description": "Rapid click 3"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Rapid checkbox 1"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Rapid checkbox 2"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Rapid checkbox 3"
     },
     {
       "action": "screenshot",
-      "description": "After rapid actions",
-      "filename": "adv_04_rapid_actions.png"
+      "description": "After rapid actions"
     },
-
     {
       "action": "log",
-      "message": "Phase 4: Complex Navigation Patterns",
-      "description": "Testing complex UI navigation"
+      "description": "Phase 4: Complex Navigation Patterns"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 2",
       "description": "Navigate to Tab 2"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 3",
       "description": "Navigate to Tab 3"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 1",
       "description": "Return to Tab 1"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 2",
       "description": "Navigate to Tab 2 again"
     },
     {
       "action": "expand",
-      "selector": "TestTreeView",
+      "element": "id=TestTreeView",
       "value": "Root Item",
       "description": "Expand tree while on Tab 2"
     },
     {
       "action": "screenshot",
-      "description": "Complex navigation state",
-      "filename": "adv_05_navigation.png"
+      "description": "Complex navigation state"
     },
-
     {
       "action": "log",
-      "message": "Phase 5: Data Grid Stress Test",
-      "description": "Intensive data grid operations"
+      "description": "Phase 5: Data Grid Stress Test"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 1",
       "description": "Return to main tab for data grid"
     },
     {
       "action": "selectRow",
-      "selector": "TestDataGrid",
-      "index": 0,
+      "element": "id=TestDataGrid",
+      "parameters": {
+        "index": 0
+      },
       "description": "Select row 0"
     },
     {
       "action": "selectRow",
-      "selector": "TestDataGrid",
-      "index": 1,
+      "element": "id=TestDataGrid",
+      "parameters": {
+        "index": 1
+      },
       "description": "Select row 1"
     },
     {
       "action": "selectRow",
-      "selector": "TestDataGrid",
-      "index": 2,
+      "element": "id=TestDataGrid",
+      "parameters": {
+        "index": 2
+      },
       "description": "Select row 2"
     },
     {
       "action": "selectCell",
-      "selector": "TestDataGrid",
+      "element": "id=TestDataGrid",
       "row": 0,
       "column": 0,
       "description": "Select cell (0,0)"
     },
     {
       "action": "selectCell",
-      "selector": "TestDataGrid",
+      "element": "id=TestDataGrid",
       "row": 1,
       "column": 1,
       "description": "Select cell (1,1)"
     },
     {
       "action": "selectCell",
-      "selector": "TestDataGrid",
+      "element": "id=TestDataGrid",
       "row": 2,
       "column": 2,
       "description": "Select cell (2,2)"
     },
     {
       "action": "screenshot",
-      "description": "Data grid stress test",
-      "filename": "adv_06_datagrid_stress.png"
+      "description": "Data grid stress test"
     },
-
     {
       "action": "log",
-      "message": "Phase 6: Multi-Control State Changes",
-      "description": "Testing coordinated control changes"
+      "description": "Phase 6: Multi-Control State Changes"
     },
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 1",
       "description": "Set combo to Item 1"
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
+      "element": "id=TestSlider",
       "value": "25",
       "description": "Set slider to 25"
     },
     {
       "action": "click",
-      "selector": "RadioButton1",
+      "element": "id=RadioButton1",
       "description": "Select radio button 1"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Check the checkbox"
     },
     {
       "action": "wait",
-      "duration": 1000
+      "delayMs": 1000
     },
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 3",
       "description": "Change combo to Item 3"
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
+      "element": "id=TestSlider",
       "value": "75",
       "description": "Change slider to 75"
     },
     {
       "action": "click",
-      "selector": "RadioButton2",
+      "element": "id=RadioButton2",
       "description": "Select radio button 2"
     },
     {
       "action": "click",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Uncheck the checkbox"
     },
     {
       "action": "screenshot",
-      "description": "Multi-control state changes",
-      "filename": "adv_07_multi_control.png"
+      "description": "Multi-control state changes"
     },
-
     {
       "action": "log",
-      "message": "Phase 7: Menu and Toolbar Combinations",
-      "description": "Testing menu/toolbar interactions"
+      "description": "Phase 7: Menu and Toolbar Combinations"
     },
     {
       "action": "click",
-      "selector": "FileMenu",
+      "element": "id=FileMenu",
       "description": "Open File menu"
     },
     {
       "action": "wait",
-      "duration": 800
+      "delayMs": 800
     },
     {
       "action": "click",
-      "selector": "NewMenuItem",
+      "element": "id=NewMenuItem",
       "description": "Select New from File menu"
     },
     {
       "action": "wait",
-      "duration": 500
+      "delayMs": 500
     },
     {
       "action": "click",
-      "selector": "SaveToolbarButton",
+      "element": "id=SaveToolbarButton",
       "description": "Click Save toolbar button"
     },
     {
       "action": "wait",
-      "duration": 500
+      "delayMs": 500
     },
     {
       "action": "click",
-      "selector": "EditMenu",
+      "element": "id=EditMenu",
       "description": "Open Edit menu"
     },
     {
       "action": "wait",
-      "duration": 800
+      "delayMs": 800
     },
     {
       "action": "click",
-      "selector": "CopyMenuItem",
+      "element": "id=CopyMenuItem",
       "description": "Select Copy from Edit menu"
     },
     {
       "action": "screenshot",
-      "description": "Menu and toolbar combinations",
-      "filename": "adv_08_menu_toolbar.png"
+      "description": "Menu and toolbar combinations"
     },
-
     {
       "action": "log",
-      "message": "Phase 8: State Validation and Recovery",
-      "description": "Validating control states"
+      "description": "Phase 8: State Validation and Recovery"
     },
     {
       "action": "validate",
-      "selector": "TestTextBox",
-      "expectedValue": "{{specialChars}}",
+      "element": "id=TestTextBox",
+      "value": "Special chars: !@#$%^&*()_+-=[]{}|;':\",./<>?",
       "description": "Validate text box contains special characters"
     },
     {
       "action": "getState",
-      "selector": "TestCheckBox",
+      "element": "id=TestCheckBox",
       "description": "Get current checkbox state"
     },
     {
       "action": "getValue",
-      "selector": "TestSlider",
+      "element": "id=TestSlider",
       "description": "Get current slider value"
     },
     {
       "action": "getSelection",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "description": "Get current combo selection"
     },
     {
       "action": "getSelection",
-      "selector": "TestListBox",
+      "element": "id=TestListBox",
       "description": "Get current list selection"
     },
-
     {
       "action": "log",
-      "message": "Phase 9: Cleanup and Reset",
-      "description": "Resetting application to initial state"
+      "description": "Phase 9: Cleanup and Reset"
     },
     {
       "action": "clear",
-      "selector": "TestTextBox",
+      "element": "id=TestTextBox",
       "description": "Clear main text box"
     },
     {
       "action": "clear",
-      "selector": "TestRichTextBox",
+      "element": "id=TestRichTextBox",
       "description": "Clear rich text box"
     },
     {
       "action": "clear",
-      "selector": "TestPasswordBox",
+      "element": "id=TestPasswordBox",
       "description": "Clear password box"
     },
     {
       "action": "setValue",
-      "selector": "TestSlider",
+      "element": "id=TestSlider",
       "value": "50",
       "description": "Reset slider to center"
     },
     {
       "action": "select",
-      "selector": "TestComboBox",
+      "element": "id=TestComboBox",
       "value": "Item 1",
       "description": "Reset combo to first item"
     },
     {
       "action": "selectTab",
-      "selector": "TestTabControl",
+      "element": "id=TestTabControl",
       "value": "Tab 1",
       "description": "Reset to first tab"
     },
     {
       "action": "collapse",
-      "selector": "TestExpander",
+      "element": "id=TestExpander",
       "description": "Collapse expander"
     },
-
     {
       "action": "screenshot",
-      "description": "Final clean state",
-      "filename": "adv_09_final_clean.png"
+      "description": "Final clean state"
     },
     {
       "action": "log",
-      "message": "=== Advanced WPF Controls Test Completed ===",
-      "description": "Advanced test completion"
+      "description": "=== Advanced WPF Controls Test Completed ==="
     },
     {
       "action": "wait",
-      "duration": 2000,
-      "description": "Final pause"
+      "description": "Final pause",
+      "delayMs": 2000
     }
   ]
 }
