@@ -263,6 +263,45 @@ public class ScriptServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task LoadScriptAsync_WithLegacyFields_ShouldMapToCurrentSchema()
+    {
+        // Arrange
+        const string legacyScript = """
+            {
+              "name": "Legacy script",
+              "targetProcess": "TestWpfApp",
+              "options": { "continueOnError": true, "timeout": 12000, "delayBetweenActions": 250 },
+              "steps": [
+                { "action": "log", "message": "Start" },
+                { "action": "type", "selector": "TestTextBox", "text": "Legacy text", "waitAfter": 100 },
+                { "action": "validate", "selector": "TestTextBox", "expectedValue": "Legacy text" },
+                { "action": "wait", "duration": 500 },
+                { "action": "selectCell", "selector": "TestDataGrid", "row": 2, "column": 1 }
+              ]
+            }
+            """;
+        await File.WriteAllTextAsync(_tempScriptPath, legacyScript);
+
+        // Act
+        var result = await _scriptService.LoadScriptAsync(_tempScriptPath);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Target.ProcessName.Should().Be("TestWpfApp");
+        result.Options.StopOnError.Should().BeFalse();
+        result.Options.DefaultTimeoutMs.Should().Be(12000);
+        result.Options.DelayBetweenActionsMs.Should().Be(250);
+        result.Steps[0].Description.Should().Be("Start");
+        result.Steps[1].Element.Should().Be("id=TestTextBox");
+        result.Steps[1].Value.Should().Be("Legacy text");
+        result.Steps[1].DelayMs.Should().Be(100);
+        result.Steps[2].Value.Should().Be("Legacy text");
+        result.Steps[3].DelayMs.Should().Be(500);
+        result.Steps[4].Row.Should().Be(2);
+        result.Steps[4].Column.Should().Be(1);
+    }
+
+    [Fact]
     public async Task SaveScriptAsync_WithValidScript_ShouldCreateFile()
     {
         // Arrange
