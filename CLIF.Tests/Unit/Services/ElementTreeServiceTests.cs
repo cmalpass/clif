@@ -201,4 +201,48 @@ public class ElementTreeServiceTests
         // Assert - Should not throw, result may be null
         (result == null || result is ElementTreeNode).Should().BeTrue();
     }
+
+    [Fact]
+    public async Task FindElementInTreeAsync_WithTreeStyleCompoundSelector_ShouldMatchEveryCriterion()
+    {
+        var expected = new ElementTreeNode
+        {
+            Name = "Save",
+            ClassName = "Button",
+            ControlType = "Button"
+        };
+        var root = new ElementTreeNode
+        {
+            Name = "Root",
+            Children =
+            [
+                new ElementTreeNode { Name = "Save", ClassName = "OtherButton", ControlType = "Button" },
+                expected
+            ]
+        };
+
+        var result = await _elementTreeService
+            .FindElementInTreeAsync(root, "name=Save and class=Button and type=Button")
+            .WithTimeout(DefaultTimeout, "FindElementInTreeAsync(compound)");
+
+        result.Should().BeSameAs(expected);
+    }
+
+    [Fact]
+    public async Task FindElementInTreeAsync_WithQuotedTreeSelector_ShouldMatchValuesContainingAnd()
+    {
+        var expected = new ElementTreeNode
+        {
+            Name = "Research and Development",
+            ClassName = "TextBlock",
+            ControlType = "Text"
+        };
+        var root = new ElementTreeNode { Name = "Root", Children = [expected] };
+
+        var result = await _elementTreeService
+            .FindElementInTreeAsync(root, "name=\"Research and Development\" and class=TextBlock and type=Text")
+            .WithTimeout(DefaultTimeout, "FindElementInTreeAsync(quoted compound)");
+
+        result.Should().BeSameAs(expected);
+    }
 }

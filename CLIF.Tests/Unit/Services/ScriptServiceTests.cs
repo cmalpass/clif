@@ -111,6 +111,56 @@ public class ScriptServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteScriptContentAsync_WhenAutomationAttachmentFails_ShouldReturnFailure()
+    {
+        // Arrange
+        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        {
+            new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window" }
+        });
+        _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(false);
+
+        const string script = """
+            { "name": "Attachment failure", "target": { "processName": "TestApp" }, "steps": [] }
+            """;
+
+        // Act
+        var result = await _scriptService.ExecuteScriptContentAsync(script);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("attach");
+    }
+
+    [Fact]
+    public async Task ExecuteScriptContentAsync_WithUnknownAction_ShouldRecordStepFailure()
+    {
+        // Arrange
+        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        {
+            new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window" }
+        });
+        _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
+
+        const string script = """
+            {
+              "name": "Unknown action",
+              "target": { "processName": "TestApp" },
+              "steps": [{ "action": "does-not-exist" }],
+              "options": { "stopOnError": false }
+            }
+            """;
+
+        // Act
+        var result = await _scriptService.ExecuteScriptContentAsync(script);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.StepsExecuted.Should().Be(1);
+        result.StepsFailed.Should().Be(1);
+    }
+
+    [Fact]
     public async Task ValidateScriptAsync_WithNonExistentFile_ShouldReturnFalse()
     {
         // Arrange

@@ -21,18 +21,26 @@ public class ToolRegistry
     }
 
     /// <summary>
-    /// Return definitions for all registered tools.
+    /// Return definitions for all registered tools in ordinal name order.
     /// </summary>
     public List<McpTool> GetToolDefinitions()
     {
-        return _tools.Values.Select(t => t.GetDefinition()).ToList();
+        return _tools.Values
+            .OrderBy(tool => tool.Name, StringComparer.Ordinal)
+            .Select(tool => tool.GetDefinition())
+            .ToList();
     }
 
     /// <summary>
     /// Execute a tool by name with the given arguments.
     /// </summary>
-    public async Task<McpToolResult> ExecuteToolAsync(string name, JsonElement? arguments)
+    public async Task<McpToolResult> ExecuteToolAsync(
+        string name,
+        JsonElement? arguments,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!_tools.TryGetValue(name, out var tool))
         {
             return new McpToolResult
@@ -47,7 +55,11 @@ public class ToolRegistry
 
         try
         {
-            return await tool.ExecuteAsync(arguments);
+            return await tool.ExecuteAsync(arguments, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -82,6 +94,17 @@ public interface ITool
     /// Execute the tool with the provided JSON arguments.
     /// </summary>
     Task<McpToolResult> ExecuteAsync(JsonElement? arguments);
+
+    /// <summary>
+    /// Execute the tool with the provided JSON arguments and cancellation token.
+    /// Implementations that do not need cooperative cancellation retain the
+    /// original argument-only execution behavior by default.
+    /// </summary>
+    Task<McpToolResult> ExecuteAsync(JsonElement? arguments, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ExecuteAsync(arguments);
+    }
 }
 
 /// <summary>
@@ -112,6 +135,15 @@ public abstract class ToolBase : ITool
 
     /// <inheritdoc />
     public abstract Task<McpToolResult> ExecuteAsync(JsonElement? arguments);
+
+    /// <inheritdoc />
+    public virtual Task<McpToolResult> ExecuteAsync(
+        JsonElement? arguments,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ExecuteAsync(arguments);
+    }
 
     /// <summary>
     /// Helper to create a text result.

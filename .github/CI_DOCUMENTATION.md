@@ -106,7 +106,7 @@ To run the same tests locally on Windows:
 
 ```powershell
 # Restore dependencies
-dotnet restore clif.sln
+dotnet restore clif.sln --locked-mode
 
 # Build the solution
 dotnet build clif.sln --configuration Release

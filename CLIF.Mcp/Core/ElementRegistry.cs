@@ -7,7 +7,8 @@ namespace CLIF.Mcp.Core;
 
 /// <summary>
 /// Maps semantic element references (e.g. "w1e5") to FlaUI AutomationElements.
-/// Refs are scoped to windows and regenerated on each snapshot.
+/// Refs are scoped to windows and invalidated on each snapshot. A ref is never reused
+/// during a session, preventing a stale ref from resolving to a different element.
 /// </summary>
 public class ElementRegistry
 {
@@ -26,7 +27,8 @@ public class ElementRegistry
             _elements.Remove(key);
         }
 
-        _windowCounters[windowHandle] = 0;
+        // Do not reset the counter. Reusing w1e1 for a new snapshot could make a
+        // stale model-issued reference target a different, potentially destructive control.
     }
 
     /// <summary>
@@ -58,5 +60,20 @@ public class ElementRegistry
     public bool HasElement(string refId)
     {
         return _elements.ContainsKey(refId);
+    }
+
+    /// <summary>
+    /// Remove all refs and the sequence state for a closed window.
+    /// </summary>
+    public void RemoveWindow(string windowHandle)
+    {
+        var prefix = windowHandle + "e";
+        var keysToRemove = _elements.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList();
+        foreach (var key in keysToRemove)
+        {
+            _elements.Remove(key);
+        }
+
+        _windowCounters.Remove(windowHandle);
     }
 }

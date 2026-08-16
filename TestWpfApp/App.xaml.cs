@@ -26,7 +26,7 @@ public partial class App : Application
         }
     }
 
-    private void App_DispatcherUnhandledException(object? sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+    private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
     {
         try
         {
@@ -37,7 +37,7 @@ public partial class App : Application
         // let the process terminate after logging
     }
 
-    private void CurrentDomain_UnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         try
         {

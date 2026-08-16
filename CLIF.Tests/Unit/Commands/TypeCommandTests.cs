@@ -4,6 +4,7 @@ using CLIF.Services;
 using FluentAssertions;
 using Moq;
 using System.CommandLine;
+using System.Runtime.CompilerServices;
 
 namespace CLIF.Tests.Unit.Commands;
 
@@ -67,4 +68,27 @@ public class TypeCommandTests
         _typeCommand.Should().BeAssignableTo<Command>();
         _typeCommand.Name.Should().Be("type");
     }
+
+    [Fact]
+    public async Task InvokeAsync_WhenTypingFails_ShouldReturnNonZero()
+    {
+        // Arrange
+        _mockAutomationService.Setup(service => service.AttachToProcessAsync(1234)).ReturnsAsync(true);
+        _mockAutomationService.Setup(service => service.FindElementAsync("id=TestTextBox"))
+            .ReturnsAsync(CreateAutomationElement());
+        _mockAutomationService.Setup(service => service.TypeTextAsync(It.IsAny<FlaUI.Core.AutomationElements.AutomationElement>(), "hello"))
+            .ReturnsAsync(false);
+        var rootCommand = new RootCommand();
+        rootCommand.Add(_typeCommand);
+
+        // Act
+        var result = await rootCommand.InvokeAsync(new[] { "type", "--process-id", "1234", "--element", "id=TestTextBox", "--text", "hello" });
+
+        // Assert
+        result.Should().NotBe(0);
+    }
+
+    private static FlaUI.Core.AutomationElements.AutomationElement CreateAutomationElement() =>
+        (FlaUI.Core.AutomationElements.AutomationElement)RuntimeHelpers.GetUninitializedObject(
+            typeof(FlaUI.Core.AutomationElements.AutomationElement));
 }

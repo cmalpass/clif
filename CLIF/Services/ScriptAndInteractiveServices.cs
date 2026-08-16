@@ -91,6 +91,8 @@ public class ScriptService : IScriptService
             
             foreach (var step in script.Steps)
             {
+                result.StepsExecuted++;
+
                 try
                 {
                     Console.WriteLine($"⚡ Step {script.Steps.IndexOf(step) + 1}: {step.Action} - {step.Description}");
@@ -114,17 +116,19 @@ public class ScriptService : IScriptService
                     }
                     else
                     {
+                        result.StepsFailed++;
                         result.ExecutionLog.Add($"Failed: {step.Action} on {step.Element ?? "N/A"}");
                         if (script.Options?.StopOnError == true)
                         {
-                            throw new InvalidOperationException($"Step failed: {step.Action} on {step.Element}");
+                            result.Success = false;
+                            result.Message = $"Step failed: {step.Action} on {step.Element}";
+                            break;
                         }
                     }
-                    
-                    result.StepsExecuted++;
                 }
                 catch (Exception stepEx)
                 {
+                    result.StepsFailed++;
                     Console.WriteLine($"❌ Step failed: {stepEx.Message}");
                     result.ExecutionLog.Add($"Step failed: {stepEx.Message}");
                     
@@ -135,10 +139,22 @@ public class ScriptService : IScriptService
                 }
             }
 
-            result.Success = true;
-            result.Message = "Script execution completed successfully";
-            await _captureService.LogInteractionAsync($"Script completed successfully! Executed {result.StepsExecuted} steps.");
-            Console.WriteLine($"✅ Script completed successfully! Executed {result.StepsExecuted} steps.");
+            if (result.StepsFailed == 0)
+            {
+                result.Success = true;
+                result.Message = "Script execution completed successfully";
+                await _captureService.LogInteractionAsync($"Script completed successfully! Executed {result.StepsExecuted} steps.");
+                Console.WriteLine($"✅ Script completed successfully! Executed {result.StepsExecuted} steps.");
+            }
+            else
+            {
+                result.Success = false;
+                result.Message = string.IsNullOrEmpty(result.Message)
+                    ? $"Script execution completed with {result.StepsFailed} failed step(s)"
+                    : result.Message;
+                await _captureService.LogInteractionAsync($"Script completed with {result.StepsFailed} failed step(s).", LogLevel.Error);
+                Console.WriteLine($"❌ Script completed with {result.StepsFailed} failed step(s).");
+            }
             
         }
         catch (Exception ex)
@@ -176,8 +192,14 @@ public class ScriptService : IScriptService
 
             if (targetProcess != null)
             {
+                var attached = await _automationService.AttachToProcessAsync(targetProcess.Id);
+                if (!attached)
+                {
+                    Console.WriteLine($"❌ Could not attach to process: {targetProcess.Name} (PID: {targetProcess.Id})");
+                    return false;
+                }
+
                 _attachedProcessId = targetProcess.Id;
-                await _automationService.AttachToProcessAsync(targetProcess.Id);
                 Console.WriteLine($"🔗 Attached to process: {targetProcess.Name} (PID: {targetProcess.Id})");
                 return true;
             }
@@ -326,8 +348,8 @@ public class ScriptService : IScriptService
 
                 default:
                     Console.WriteLine($"⚠️  Unknown action: {step.Action}");
-                    await _captureService.LogInteractionAsync($"Unknown action: {step.Action}");
-                    return true; // Don't fail on unknown actions
+                    await _captureService.LogInteractionAsync($"ERROR: Unknown action: {step.Action}", LogLevel.Error);
+                    return false;
             }
         }
         catch (Exception ex)

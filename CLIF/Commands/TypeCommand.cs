@@ -1,15 +1,20 @@
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
 using CLIF.Core;
 using CLIF.Services;
 
 namespace CLIF.Commands;
 
+/// <summary>Provides the command-line entry point for typing text into an element.</summary>
 public class TypeCommand : Command
 {
     private readonly IAutomationService _automationService;
     private readonly ISessionCaptureService _captureService;
 
+    /// <summary>Creates a type command backed by the automation and capture services.</summary>
+    /// <param name="automationService">Service used to attach and type into the target.</param>
+    /// <param name="captureService">Service used to record the command session.</param>
     public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService) 
         : base("type", "Type text into a UI element")
     {
@@ -38,8 +43,12 @@ public class TypeCommand : Command
         AddOption(elementPathOption);
         AddOption(textOption);
 
-        this.SetHandler(async (int processId, string elementPath, string text) =>
+        this.SetHandler(async (InvocationContext context) =>
         {
+            var processId = context.ParseResult.GetValueForOption(processIdOption);
+            var elementPath = context.ParseResult.GetValueForOption(elementPathOption)!;
+            var text = context.ParseResult.GetValueForOption(textOption)!;
+
             // Start a mini-session for individual command
             var sessionId = await _captureService.StartSessionAsync($"TYPE_Command_{DateTime.Now:HHmmss}");
             
@@ -54,6 +63,7 @@ public class TypeCommand : Command
                 {
                     Console.WriteLine("Failed to attach to process.");
                     await _captureService.LogInteractionAsync("ERROR: Failed to attach to process", LogLevel.Error);
+                    context.ExitCode = 1;
                     return;
                 }
 
@@ -63,23 +73,33 @@ public class TypeCommand : Command
                 {
                     Console.WriteLine($"Element '{elementPath}' not found.");
                     await _captureService.LogInteractionAsync($"ERROR: Element '{elementPath}' not found", LogLevel.Error);
+                    context.ExitCode = 1;
                     return;
                 }
                 
                 Console.WriteLine($"Typing text '{text}' into element: {elementPath}");
-                await _automationService.TypeTextAsync(element, text);
+                if (!await _automationService.TypeTextAsync(element, text))
+                {
+                    Console.WriteLine("Text input failed.");
+                    await _captureService.LogInteractionAsync("ERROR: Text input failed", LogLevel.Error);
+                    context.ExitCode = 1;
+                    return;
+                }
+
                 Console.WriteLine("Text input completed successfully.");
                 await _captureService.LogInteractionAsync("TYPE command completed successfully");
+                context.ExitCode = 0;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error typing text: {ex.Message}");
                 await _captureService.LogInteractionAsync($"ERROR: {ex.Message}", LogLevel.Error);
+                context.ExitCode = 1;
             }
             finally
             {
                 await _captureService.EndSessionAsync();
             }
-        }, processIdOption, elementPathOption, textOption);
+        });
     }
 }

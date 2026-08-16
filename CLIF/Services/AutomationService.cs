@@ -6,11 +6,18 @@ using CLIF.Core;
 using System.Drawing;
 using FlaUI.Core.Input;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Conditions;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
+
+[assembly: InternalsVisibleTo("CLIF.Tests")]
 
 namespace CLIF.Services;
 
+/// <summary>Provides Windows UI Automation operations backed by FlaUI.</summary>
+[SupportedOSPlatform("windows7.0")]
 public class AutomationService : IAutomationService, IDisposable
 {
     private readonly ILogger<AutomationService> _logger;
@@ -19,7 +26,10 @@ public class AutomationService : IAutomationService, IDisposable
     private FlaUI.Core.Application? _application;
     private AutomationElement? _rootElement;
 
+    /// <summary>Gets a value indicating whether a target process is attached.</summary>
     public bool IsAttached { get; private set; }
+
+    /// <summary>Gets the attached process identifier, or <see langword="null"/>.</summary>
     public int? AttachedProcessId { get; private set; }
 
     // Windows API for dialog handling
@@ -39,12 +49,18 @@ public class AutomationService : IAutomationService, IDisposable
     private const int VK_RETURN = 0x0D;
     private const int VK_ESCAPE = 0x1B;
 
+    /// <summary>Initializes the automation service.</summary>
+    /// <param name="logger">Logger used to record automation operations.</param>
+    /// <param name="captureService">Service used to capture interaction evidence.</param>
     public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)
     {
         _logger = logger;
         _captureService = captureService;
     }
 
+    /// <summary>Attaches to a running Windows process.</summary>
+    /// <param name="processId">Identifier of the process to attach to.</param>
+    /// <returns><see langword="true"/> when the process and main window are attached.</returns>
     public async Task<bool> AttachToProcessAsync(int processId)
     {
         return await Task.Run(() =>
@@ -82,6 +98,7 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Detaches from the current process and releases UI Automation resources.</summary>
     public async Task DetachAsync()
     {
         await Task.Run(() =>
@@ -103,6 +120,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Finds the first element matching a selector.</summary>
+    /// <param name="selector">Selector describing the target element.</param>
+    /// <returns>The matching element, or <see langword="null"/>.</returns>
     public async Task<AutomationElement?> FindElementAsync(string selector)
     {
         return await Task.Run(() =>
@@ -125,6 +145,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Finds all elements matching a selector.</summary>
+    /// <param name="selector">Selector describing the target elements.</param>
+    /// <returns>The matching elements, or an empty array.</returns>
     public async Task<AutomationElement[]> FindElementsAsync(string selector)
     {
         return await Task.Run(() =>
@@ -147,6 +170,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a click on an automation element and captures the result.</summary>
+    /// <param name="element">Element to click.</param>
+    /// <returns><see langword="true"/> when the click operation completes.</returns>
     public async Task<bool> ClickAsync(AutomationElement element)
     {
         return await Task.Run(async () =>
@@ -208,6 +234,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a double-click on an automation element.</summary>
+    /// <param name="element">Element to double-click.</param>
+    /// <returns><see langword="true"/> when the operation completes.</returns>
     public async Task<bool> DoubleClickAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -225,6 +254,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a right-click on an automation element and captures the result.</summary>
+    /// <param name="element">Element to right-click.</param>
+    /// <returns><see langword="true"/> when the right-click operation completes.</returns>
     public async Task<bool> RightClickAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -242,6 +274,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Types text into an automation element.</summary>
+    /// <param name="element">Editable element that receives the text.</param>
+    /// <param name="text">Text to type.</param>
+    /// <returns><see langword="true"/> when the text is entered successfully.</returns>
     public async Task<bool> TypeTextAsync(AutomationElement element, string text)
     {
         return await Task.Run(async () =>
@@ -288,6 +324,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets the value of an automation element through its supported value pattern.</summary>
+    /// <param name="element">Element whose value should be changed.</param>
+    /// <param name="value">Value to assign.</param>
+    /// <returns><see langword="true"/> when the value is set successfully.</returns>
     public async Task<bool> SetValueAsync(AutomationElement element, string value)
     {
         return await Task.Run(async () =>
@@ -362,6 +402,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the user-visible text from an automation element.</summary>
+    /// <param name="element">Element from which to read text.</param>
+    /// <returns>The element text, or an empty string when no text is available.</returns>
     public async Task<string> GetTextAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -378,6 +421,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the value exposed by an automation element.</summary>
+    /// <param name="element">Element from which to read the value.</param>
+    /// <returns>The element value, or an empty string when no value is available.</returns>
     public async Task<string> GetValueAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -398,6 +444,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Gets the key automation properties exposed by an element.</summary>
+    /// <param name="element">Element whose properties should be read.</param>
+    /// <returns>A dictionary containing the element's automation properties.</returns>
     public async Task<Dictionary<string, object>> GetPropertiesAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -430,6 +479,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Moves keyboard focus to an automation element.</summary>
+    /// <param name="element">Element to focus.</param>
+    /// <returns><see langword="true"/> when focus is assigned successfully.</returns>
     public async Task<bool> FocusAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -447,6 +499,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Scrolls an automation element into view.</summary>
+    /// <param name="element">Element to bring into view.</param>
+    /// <returns><see langword="true"/> when the scroll operation completes.</returns>
     public async Task<bool> ScrollToAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -468,6 +523,8 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Captures a screenshot of the attached application window.</summary>
+    /// <returns>Screenshot bytes in PNG format, or an empty array on failure.</returns>
     public async Task<byte[]> TakeScreenshotAsync()
     {
         return await Task.Run(() =>
@@ -490,6 +547,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Captures a screenshot of an automation element.</summary>
+    /// <param name="element">Element to capture.</param>
+    /// <returns>Screenshot bytes in PNG format, or an empty array on failure.</returns>
     public async Task<byte[]> TakeElementScreenshotAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -509,11 +569,15 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Gets the root automation element for the attached application.</summary>
+    /// <returns>The root element, or <see langword="null"/> when no application is attached.</returns>
     public async Task<AutomationElement?> GetRootElementAsync()
     {
         return await Task.Run(() => _rootElement);
     }
 
+    /// <summary>Gets the main window of the attached application.</summary>
+    /// <returns>The main window, or <see langword="null"/> when no application is attached.</returns>
     public async Task<AutomationElement?> GetMainWindowAsync()
     {
         // Return the cached root element which represents the main window when attached
@@ -522,66 +586,49 @@ public class AutomationService : IAutomationService, IDisposable
 
     private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
     {
-        // Simple selector parsing - can be enhanced
-        if (selector.StartsWith("name="))
-        {
-            var name = selector.Substring(5);
-            return root.FindFirstDescendant(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindFirstDescendant(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindFirstDescendant(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindFirstDescendant(cf => cf.ByControlType(ct));
-            }
-        }
-
-        // Default to name search
-        return root.FindFirstDescendant(cf => cf.ByName(selector));
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
+            : null;
     }
 
     private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
     {
-        // Similar logic to FindElementBySelector but returning all matches
-        if (selector.StartsWith("name="))
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
+            : Array.Empty<AutomationElement>();
+    }
+
+    private static ConditionBase CreateSelectorCondition(ConditionFactory conditionFactory, SelectorCriteria criteria)
+    {
+        var conditions = new List<ConditionBase>();
+
+        if (!string.IsNullOrEmpty(criteria.AutomationId))
+            conditions.Add(conditionFactory.ByAutomationId(criteria.AutomationId));
+
+        if (!string.IsNullOrEmpty(criteria.Name))
+            conditions.Add(conditionFactory.ByName(criteria.Name));
+
+        if (!string.IsNullOrEmpty(criteria.ClassName))
+            conditions.Add(conditionFactory.ByClassName(criteria.ClassName));
+
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
+            Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out var controlType))
         {
-            var name = selector.Substring(5);
-            return root.FindAllDescendants(cf => cf.ByName(name));
-        }
-        else if (selector.StartsWith("id="))
-        {
-            var id = selector.Substring(3);
-            return root.FindAllDescendants(cf => cf.ByAutomationId(id));
-        }
-        else if (selector.StartsWith("class="))
-        {
-            var className = selector.Substring(6);
-            return root.FindAllDescendants(cf => cf.ByClassName(className));
-        }
-        else if (selector.StartsWith("type="))
-        {
-            var controlType = selector.Substring(5);
-            if (Enum.TryParse<ControlType>(controlType, true, out var ct))
-            {
-                return root.FindAllDescendants(cf => cf.ByControlType(ct));
-            }
+            conditions.Add(conditionFactory.ByControlType(controlType));
         }
 
-        return root.FindAllDescendants(cf => cf.ByName(selector));
+        return conditions.Count switch
+        {
+            1 => conditions[0],
+            _ => new AndCondition(conditions)
+        };
     }
 
     // Advanced control interaction methods
+    /// <summary>Selects a combo box item by its displayed text.</summary>
+    /// <param name="element">Combo box to update.</param>
+    /// <param name="itemText">Displayed text of the item to select.</param>
+    /// <returns><see langword="true"/> when an item is selected.</returns>
     public async Task<bool> SelectComboBoxItemAsync(AutomationElement element, string itemText)
     {
         return await Task.Run(async () =>
@@ -637,6 +684,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a combo box item by zero-based index.</summary>
+    /// <param name="element">Combo box to update.</param>
+    /// <param name="index">Zero-based item index.</param>
+    /// <returns><see langword="true"/> when an item is selected.</returns>
     public async Task<bool> SelectComboBoxItemByIndexAsync(AutomationElement element, int index)
     {
         return await Task.Run(() =>
@@ -659,6 +710,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a list box item by its displayed text.</summary>
+    /// <param name="element">List box to update.</param>
+    /// <param name="itemText">Displayed text of the item to select.</param>
+    /// <returns><see langword="true"/> when an item is selected.</returns>
     public async Task<bool> SelectListBoxItemAsync(AutomationElement element, string itemText)
     {
         return await Task.Run(() =>
@@ -685,6 +740,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a list box item by zero-based index.</summary>
+    /// <param name="element">List box to update.</param>
+    /// <param name="index">Zero-based item index.</param>
+    /// <returns><see langword="true"/> when an item is selected.</returns>
     public async Task<bool> SelectListBoxItemByIndexAsync(AutomationElement element, int index)
     {
         return await Task.Run(() =>
@@ -707,6 +766,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets the checked state of a check box.</summary>
+    /// <param name="element">Check box to update.</param>
+    /// <param name="isChecked">Desired checked state.</param>
+    /// <returns><see langword="true"/> when the state is set successfully.</returns>
     public async Task<bool> SetCheckBoxAsync(AutomationElement element, bool isChecked)
     {
         return await Task.Run(async () =>
@@ -761,6 +824,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets the selected state of a radio button.</summary>
+    /// <param name="element">Radio button to update.</param>
+    /// <param name="isSelected">Desired selected state.</param>
+    /// <returns><see langword="true"/> when the state is set successfully.</returns>
     public async Task<bool> SetRadioButtonAsync(AutomationElement element, bool isSelected)
     {
         return await Task.Run(async () =>
@@ -818,6 +885,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets a slider to a numeric value.</summary>
+    /// <param name="element">Slider to update.</param>
+    /// <param name="value">Desired slider value.</param>
+    /// <returns><see langword="true"/> when the value is set successfully.</returns>
     public async Task<bool> SetSliderValueAsync(AutomationElement element, double value)
     {
         return await Task.Run(() =>
@@ -840,6 +911,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a tab by its displayed name.</summary>
+    /// <param name="element">Tab control to update.</param>
+    /// <param name="tabName">Displayed name of the tab to select.</param>
+    /// <returns><see langword="true"/> when a tab is selected.</returns>
     public async Task<bool> SelectTabAsync(AutomationElement element, string tabName)
     {
         return await Task.Run(() =>
@@ -866,6 +941,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a tab by zero-based index.</summary>
+    /// <param name="element">Tab control to update.</param>
+    /// <param name="tabIndex">Zero-based tab index.</param>
+    /// <returns><see langword="true"/> when a tab is selected.</returns>
     public async Task<bool> SelectTabByIndexAsync(AutomationElement element, int tabIndex)
     {
         return await Task.Run(() =>
@@ -888,6 +967,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Expands a tree node.</summary>
+    /// <param name="element">Tree node to expand.</param>
+    /// <returns><see langword="true"/> when the node is expanded.</returns>
     public async Task<bool> ExpandTreeNodeAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -910,6 +992,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Collapses a tree node.</summary>
+    /// <param name="element">Tree node to collapse.</param>
+    /// <returns><see langword="true"/> when the node is collapsed.</returns>
     public async Task<bool> CollapseTreeNodeAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -932,6 +1017,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a tree node using a path relative to the supplied element.</summary>
+    /// <param name="element">Tree root or node from which to resolve the path.</param>
+    /// <param name="nodePath">Path identifying the node to select.</param>
+    /// <returns><see langword="true"/> when the node is selected.</returns>
     public async Task<bool> SelectTreeNodeAsync(AutomationElement element, string nodePath)
     {
         return await Task.Run(() =>
@@ -956,6 +1045,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets a date picker to a date.</summary>
+    /// <param name="element">Date picker to update.</param>
+    /// <param name="date">Desired date.</param>
+    /// <returns><see langword="true"/> when the date is set successfully.</returns>
     public async Task<bool> SetDatePickerAsync(AutomationElement element, DateTime date)
     {
         var valueSet = await Task.Run(() =>
@@ -1018,6 +1111,10 @@ public class AutomationService : IAutomationService, IDisposable
         return valueSet;
     }
 
+    /// <summary>Sets a calendar control to a date.</summary>
+    /// <param name="element">Calendar to update.</param>
+    /// <param name="date">Desired date.</param>
+    /// <returns><see langword="true"/> when the date is set successfully.</returns>
     public async Task<bool> SetCalendarDateAsync(AutomationElement element, DateTime date)
     {
         return await Task.Run(() =>
@@ -1049,6 +1146,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Toggles the expanded state of an expander.</summary>
+    /// <param name="element">Expander to toggle.</param>
+    /// <returns><see langword="true"/> when the state changes successfully.</returns>
     public async Task<bool> ToggleExpanderAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1078,6 +1178,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a row in a data grid by zero-based index.</summary>
+    /// <param name="element">Data grid to update.</param>
+    /// <param name="rowIndex">Zero-based row index.</param>
+    /// <returns><see langword="true"/> when the row is selected.</returns>
     public async Task<bool> SelectDataGridRowAsync(AutomationElement element, int rowIndex)
     {
         return await Task.Run(() =>
@@ -1100,6 +1204,11 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Selects a cell in a data grid by zero-based row and column indexes.</summary>
+    /// <param name="element">Data grid to update.</param>
+    /// <param name="rowIndex">Zero-based row index.</param>
+    /// <param name="columnIndex">Zero-based column index.</param>
+    /// <returns><see langword="true"/> when the cell is selected.</returns>
     public async Task<bool> SelectDataGridCellAsync(AutomationElement element, int rowIndex, int columnIndex)
     {
         return await Task.Run(() =>
@@ -1126,6 +1235,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Invokes a menu item automation element.</summary>
+    /// <param name="element">Menu item to invoke.</param>
+    /// <returns><see langword="true"/> when the invocation completes.</returns>
     public async Task<bool> InvokeMenuItemAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1148,6 +1260,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets the toggled state of a toggle button.</summary>
+    /// <param name="element">Toggle button to update.</param>
+    /// <param name="isToggled">Desired toggled state.</param>
+    /// <returns><see langword="true"/> when the state is set successfully.</returns>
     public async Task<bool> SetToggleButtonAsync(AutomationElement element, bool isToggled)
     {
         return await Task.Run(() =>
@@ -1171,6 +1287,9 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     // Data extraction methods for advanced controls
+    /// <summary>Gets the displayed items in a combo box.</summary>
+    /// <param name="element">Combo box to inspect.</param>
+    /// <returns>The displayed item texts, or an empty array when none are available.</returns>
     public async Task<string[]> GetComboBoxItemsAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1192,6 +1311,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Gets the displayed items in a list box.</summary>
+    /// <param name="element">List box to inspect.</param>
+    /// <returns>The displayed item texts, or an empty array when none are available.</returns>
     public async Task<string[]> GetListBoxItemsAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1213,6 +1335,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the checked state of a check box.</summary>
+    /// <param name="element">Check box to inspect.</param>
+    /// <returns><see langword="true"/> when the check box is checked.</returns>
     public async Task<bool> GetCheckBoxStateAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1230,6 +1355,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the selected state of a radio button.</summary>
+    /// <param name="element">Radio button to inspect.</param>
+    /// <returns><see langword="true"/> when the radio button is selected.</returns>
     public async Task<bool> GetRadioButtonStateAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1247,6 +1375,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the current value of a slider.</summary>
+    /// <param name="element">Slider to inspect.</param>
+    /// <returns>The slider value, or zero when it cannot be read.</returns>
     public async Task<double> GetSliderValueAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1264,6 +1395,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Gets the displayed name of the selected tab.</summary>
+    /// <param name="element">Tab control to inspect.</param>
+    /// <returns>The selected tab name, or an empty string when none is selected.</returns>
     public async Task<string> GetSelectedTabAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1282,6 +1416,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Gets the path of a tree node from its automation hierarchy.</summary>
+    /// <param name="element">Tree node to inspect.</param>
+    /// <returns>The node path, or an empty array when no path is available.</returns>
     public async Task<string[]> GetTreeNodePathAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1301,6 +1438,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the selected date from a date picker.</summary>
+    /// <param name="element">Date picker to inspect.</param>
+    /// <returns>The selected date, or <see langword="null"/> when no date is available.</returns>
     public async Task<DateTime?> GetDatePickerValueAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1318,6 +1458,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the selected date from a calendar.</summary>
+    /// <param name="element">Calendar to inspect.</param>
+    /// <returns>The selected date, or <see langword="null"/> when no date is available.</returns>
     public async Task<DateTime?> GetCalendarDateAsync(AutomationElement element)
     {
         return await Task.Run<DateTime?>(() =>
@@ -1354,6 +1497,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads whether an expander is currently expanded.</summary>
+    /// <param name="element">Expander to inspect.</param>
+    /// <returns><see langword="true"/> when the expander is expanded.</returns>
     public async Task<bool> GetExpanderStateAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1371,6 +1517,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads the rows and cells exposed by a data grid.</summary>
+    /// <param name="element">Data grid to inspect.</param>
+    /// <returns>An array of row property dictionaries.</returns>
     public async Task<Dictionary<string, object>[]> GetDataGridDataAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1404,6 +1553,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads whether a toggle button is currently toggled.</summary>
+    /// <param name="element">Toggle button to inspect.</param>
+    /// <returns><see langword="true"/> when the toggle button is toggled.</returns>
     public async Task<bool> GetToggleButtonStateAsync(AutomationElement element)
     {
         return await Task.Run(() =>
@@ -1577,14 +1729,14 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 // Common Windows dialog class names and titles
-                var dialogPatterns = new[]
+                var dialogPatterns = new (string? ClassName, string? Title)[]
                 {
-                    new { ClassName = "#32770", Title = (string?)null }, // Standard Windows dialog
-                    new { ClassName = (string?)null, Title = "Button Click" }, // Our specific MessageBox title
-                    new { ClassName = (string?)null, Title = "Information" },
-                    new { ClassName = (string?)null, Title = "Warning" },
-                    new { ClassName = (string?)null, Title = "Error" },
-                    new { ClassName = (string?)null, Title = "Confirm" }
+                    ("#32770", null), // Standard Windows dialog
+                    (null, "Button Click"), // Our specific MessageBox title
+                    (null, "Information"),
+                    (null, "Warning"),
+                    (null, "Error"),
+                    (null, "Confirm")
                 };
 
                 foreach (var pattern in dialogPatterns)
@@ -1674,6 +1826,11 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     // DataGrid-specific checkbox operations
+    /// <summary>Sets the check box state in a data-grid row.</summary>
+    /// <param name="dataGridSelector">Selector identifying the data grid.</param>
+    /// <param name="rowIndex">Zero-based row index.</param>
+    /// <param name="isChecked">Desired check box state.</param>
+    /// <returns><see langword="true"/> when the state is set successfully.</returns>
     public async Task<bool> SetDataGridCheckboxAsync(string dataGridSelector, int rowIndex, bool isChecked)
     {
         return await Task.Run(() =>
@@ -1761,6 +1918,11 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Sets the check box state in a named data-grid row.</summary>
+    /// <param name="dataGridSelector">Selector identifying the data grid.</param>
+    /// <param name="rowName">Displayed name of the row.</param>
+    /// <param name="isChecked">Desired check box state.</param>
+    /// <returns><see langword="true"/> when the state is set successfully.</returns>
     public async Task<bool> SetDataGridCheckboxByNameAsync(string dataGridSelector, string rowName, bool isChecked)
     {
         return await Task.Run(() =>
@@ -1825,6 +1987,10 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Toggles the check box state in a data-grid row.</summary>
+    /// <param name="dataGridSelector">Selector identifying the data grid.</param>
+    /// <param name="rowIndex">Zero-based row index.</param>
+    /// <returns><see langword="true"/> when the state is toggled successfully.</returns>
     public async Task<bool> ToggleDataGridCheckboxAsync(string dataGridSelector, int rowIndex)
     {
         return await Task.Run(() =>
@@ -1879,6 +2045,9 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Reads check box states from the rows of a data grid.</summary>
+    /// <param name="dataGridSelector">Selector identifying the data grid.</param>
+    /// <returns>Check box states in row order.</returns>
     public async Task<bool[]> GetDataGridCheckboxStatesAsync(string dataGridSelector)
     {
         return await Task.Run(() =>
@@ -1976,8 +2145,183 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
+    /// <summary>Releases the attached application's UI Automation resources.</summary>
     public void Dispose()
     {
         DetachAsync().Wait();
+    }
+}
+
+/// <summary>
+/// Parses the selector format emitted by <see cref="ElementTreeService"/>.
+/// </summary>
+[SupportedOSPlatform("windows7.0")]
+internal static class SelectorParser
+{
+    private static readonly string[] SupportedKeys = ["id", "name", "class", "type"];
+
+    internal static bool TryParse(string? selector, out SelectorCriteria criteria)
+    {
+        criteria = new SelectorCriteria();
+        if (string.IsNullOrWhiteSpace(selector))
+            return false;
+
+        var trimmedSelector = selector.Trim();
+        if (!trimmedSelector.Contains('='))
+        {
+            return criteria.TrySet("name", trimmedSelector);
+        }
+
+        var clauses = SplitClauses(trimmedSelector);
+        if (clauses.Count == 0)
+            return false;
+
+        foreach (var clause in clauses)
+        {
+            var separatorIndex = clause.IndexOf('=');
+            if (separatorIndex <= 0)
+                return false;
+
+            var key = clause[..separatorIndex].Trim().ToLowerInvariant();
+            if (!SupportedKeys.Contains(key, StringComparer.Ordinal))
+                return false;
+
+            var value = ParseValue(clause[(separatorIndex + 1)..].Trim());
+            if (value is null || !criteria.TrySet(key, value))
+                return false;
+        }
+
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
+            !Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out _))
+        {
+            return false;
+        }
+
+        return criteria.HasCriteria;
+    }
+
+    internal static string FormatValue(string value)
+    {
+        if (value.IndexOf('"') < 0 && value.IndexOf('\\') < 0 &&
+            !value.Contains(" and ", StringComparison.OrdinalIgnoreCase) &&
+            value == value.Trim())
+        {
+            return value;
+        }
+
+        return $"\"{value.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";
+    }
+
+    private static List<string> SplitClauses(string selector)
+    {
+        var clauses = new List<string>();
+        var start = 0;
+        var quoted = false;
+        var escaped = false;
+
+        for (var index = 0; index < selector.Length; index++)
+        {
+            var character = selector[index];
+            if (escaped)
+            {
+                escaped = false;
+                continue;
+            }
+
+            if (quoted && character == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (character == '"')
+            {
+                quoted = !quoted;
+                continue;
+            }
+
+            if (!quoted && index + 5 <= selector.Length &&
+                selector.AsSpan(index, 5).Equals(" and ", StringComparison.OrdinalIgnoreCase))
+            {
+                clauses.Add(selector[start..index].Trim());
+                start = index + 5;
+                index += 4;
+            }
+        }
+
+        if (quoted || escaped)
+            return [];
+
+        clauses.Add(selector[start..].Trim());
+        return clauses.Any(string.IsNullOrEmpty) ? [] : clauses;
+    }
+
+    private static string? ParseValue(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        if (value[0] != '"')
+            return value.Contains('"') ? null : value;
+
+        if (value.Length < 2 || value[^1] != '"')
+            return null;
+
+        var result = new System.Text.StringBuilder(value.Length - 2);
+        var escaped = false;
+        for (var index = 1; index < value.Length - 1; index++)
+        {
+            var character = value[index];
+            if (escaped)
+            {
+                if (character is not ('"' or '\\'))
+                    return null;
+
+                result.Append(character);
+                escaped = false;
+                continue;
+            }
+
+            if (character == '\\')
+            {
+                escaped = true;
+                continue;
+            }
+
+            result.Append(character);
+        }
+
+        return escaped ? null : result.ToString();
+    }
+}
+
+internal sealed class SelectorCriteria
+{
+    internal string? AutomationId { get; private set; }
+    internal string? Name { get; private set; }
+    internal string? ClassName { get; private set; }
+    internal string? ControlType { get; private set; }
+
+    internal bool HasCriteria => AutomationId is not null || Name is not null || ClassName is not null || ControlType is not null;
+
+    internal bool TrySet(string key, string value)
+    {
+        switch (key)
+        {
+            case "id" when AutomationId is null:
+                AutomationId = value;
+                return true;
+            case "name" when Name is null:
+                Name = value;
+                return true;
+            case "class" when ClassName is null:
+                ClassName = value;
+                return true;
+            case "type" when ControlType is null:
+                ControlType = value;
+                return true;
+            default:
+                return false;
+        }
     }
 }

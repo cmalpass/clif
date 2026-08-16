@@ -183,18 +183,20 @@ public partial class MainWindow : Window
         Close();
     }
 
-    private void SetStatus(string message)
+    private void SetStatus(string? message)
     {
+        var value = message ?? string.Empty;
         _actionCount++;
-        SetText(StatusControl, message);
+        SetText(StatusControl, value);
         ActionCountControl.Text = $"Actions: {_actionCount}";
-        _actionLog.AppendLine($"{_actionCount:000}: {message}");
+        _actionLog.AppendLine($"{_actionCount:000}: {value}");
         ActionLogControl.Text = _actionLog.ToString();
     }
 
-    private static void SetText(TextBlock control, string text)
+    private static void SetText(TextBlock control, string? text)
     {
-        control.Text = text;
-        AutomationProperties.SetName(control, text);
+        var value = text ?? string.Empty;
+        control.Text = value;
+        AutomationProperties.SetName(control, value);
     }
 }

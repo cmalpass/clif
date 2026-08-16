@@ -136,7 +136,8 @@ public sealed class WpfTestAppFixture : IDisposable
     /// Returns the main window of the running TestWpfApp.
     /// Callers should only invoke this when <see cref="IsAvailable"/> is <c>true</c>.
     /// </summary>
-    public Window GetMainWindow() => App!.GetMainWindow(Automation!);
+    public Window GetMainWindow() => App!.GetMainWindow(Automation!)
+        ?? throw new InvalidOperationException("The TestWpfApp main window is not available.");
 
     private void Cleanup()
     {
