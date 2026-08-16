@@ -339,7 +339,7 @@ public class ScriptService : IScriptService
                         var expectedValue = step.Parameters.ContainsKey("expectedValue") ? 
                             step.Parameters["expectedValue"].ToString() : step.Value;
                         Console.WriteLine($"✅ Validating '{expectedValue}' in: {step.Element}");
-                        var actualValue = await _automationService.GetTextAsync(validateElement);
+                        var actualValue = await _automationService.GetValueAsync(validateElement);
                         var isValid = actualValue == expectedValue;
                         await _captureService.LogInteractionAsync($"Validation {(isValid ? "PASSED" : "FAILED")}: Expected '{expectedValue}', got '{actualValue}'");
                         return isValid;
