@@ -284,25 +284,36 @@ public class AutomationService : IAutomationService, IDisposable
         {
             try
             {
-                element.Focus();
-                await Task.Delay(100); // Small delay to ensure focus
-                Keyboard.Type(text);
-                _logger.LogInformation($"Typed text '{text}' into element");
+                if (element.Patterns.Value.TryGetPattern(out var valuePattern) && !valuePattern.IsReadOnly)
+                {
+                    var currentValue = valuePattern.Value ?? string.Empty;
+                    valuePattern.SetValue(currentValue + text);
+                    _logger.LogInformation($"Typed text '{text}' using ValuePattern");
+                }
+                else
+                {
+                    element.Focus();
+                    await Task.Delay(100); // Small delay to ensure focus
+                    Keyboard.Type(text);
+                    _logger.LogInformation($"Typed text '{text}' using keyboard input");
+                }
 
                 // Validate text was actually entered
                 await Task.Delay(200); // Allow time for text to register
-                var actualText = await GetElementTextAsync(element);
+                var actualText = await GetValueAsync(element);
                 string validationResult;
-                bool success = true;
+                bool success;
 
                 if (actualText != null && actualText.Contains(text))
                 {
                     validationResult = $"✅ Text validated: Found '{text}' in element";
+                    success = true;
                     _logger.LogInformation($"✅ Text input validated: Found '{text}' in element (current: '{actualText}')");
                 }
                 else
                 {
                     validationResult = $"⚠️ Validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'";
+                    success = false;
                     _logger.LogWarning($"⚠️ Text input validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'");
                 }
 
@@ -314,7 +325,7 @@ public class AutomationService : IAutomationService, IDisposable
                     validationResult
                 );
 
-                return true;
+                return success;
             }
             catch (Exception ex)
             {

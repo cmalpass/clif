@@ -80,7 +80,8 @@ This file configures the Copilot coding agent's development environment to run o
 - Code coverage collected in Cobertura XML format
 
 ### Integration Tests
-- Run with filter: `FullyQualifiedName~Integration`
+- Run with filter: `Category=Integration`. WPF and cross-platform UI integration
+  suites run in their dedicated UI jobs rather than being selected by this job.
 - Marked as `continue-on-error: true` because UI automation tests may not work reliably in headless CI environments
 - Logs saved to `integration-tests.trx`
 - Code coverage collected in Cobertura XML format

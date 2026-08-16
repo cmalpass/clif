@@ -10,6 +10,7 @@ namespace CLIF.Tests.Integration;
 /// Comprehensive validation harness to ensure all validators work correctly
 /// </summary>
 [Collection("WpfUI")]
+[Trait("Category", "Integration")]
 public class ValidationHarnessTests
 {
     private readonly WpfTestAppFixture _wpfTestApp;
