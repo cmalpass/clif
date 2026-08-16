@@ -182,13 +182,26 @@ public class ScriptService : IScriptService
     {
         try
         {
+            var target = script.Target;
+            if (!processIdOverride.HasValue &&
+                (target is null ||
+                 (target.ProcessId <= 0 &&
+                  string.IsNullOrWhiteSpace(target.ProcessName) &&
+                  string.IsNullOrWhiteSpace(target.WindowTitle))))
+            {
+                Console.WriteLine("❌ Script target must specify a process ID, process name, or window title.");
+                return false;
+            }
+
             var processes = await _processService.GetWpfProcessesAsync();
             var targetProcess = processes.FirstOrDefault(p => 
                 (processIdOverride.HasValue && p.Id == processIdOverride.Value) ||
                 (!processIdOverride.HasValue && (
-                    p.Name.Equals(script.Target.ProcessName, StringComparison.OrdinalIgnoreCase) ||
-                    p.WindowTitle.Contains(script.Target.WindowTitle, StringComparison.OrdinalIgnoreCase) ||
-                    p.Id == script.Target.ProcessId)));
+                    (!string.IsNullOrWhiteSpace(target!.ProcessName) &&
+                     p.Name.Equals(target.ProcessName, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(target.WindowTitle) &&
+                     p.WindowTitle.Contains(target.WindowTitle, StringComparison.OrdinalIgnoreCase)) ||
+                    (target.ProcessId > 0 && p.Id == target.ProcessId))));
 
             if (targetProcess != null)
             {
@@ -205,7 +218,7 @@ public class ScriptService : IScriptService
             }
             else
             {
-                Console.WriteLine($"❌ Could not find target process: {script.Target.ProcessName}");
+                Console.WriteLine($"❌ Could not find target process: {target?.ProcessName ?? "(unspecified)"}");
                 return false;
             }
         }
