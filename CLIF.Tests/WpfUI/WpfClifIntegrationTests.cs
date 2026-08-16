@@ -61,4 +61,34 @@ public sealed class WpfClifIntegrationTests : IntegrationTestBase
         (await AutomationService.SetCheckBoxAsync(checkBox!, true)).Should().BeTrue();
         (await AutomationService.GetCheckBoxStateAsync(checkBox!)).Should().BeTrue();
     }
+
+    /// <summary>
+    /// Verifies that a script validates an editable WPF control through its UIA value,
+    /// rather than the control's accessible name.
+    /// </summary>
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public async Task ScriptService_ShouldValidateWpfTextBoxValue()
+    {
+        _fixture.SkipIfUnavailable();
+
+        const string expectedValue = "CLIF script validation";
+        var script = $$"""
+            {
+              "name": "Validate WPF value",
+              "target": { "processName": "TestWpfApp" },
+              "steps": [
+                { "action": "clear", "element": "id=TestTextBox" },
+                { "action": "type", "element": "id=TestTextBox", "value": "{{expectedValue}}" },
+                { "action": "validate", "element": "id=TestTextBox", "value": "{{expectedValue}}" }
+              ]
+            }
+            """;
+
+        var result = await ScriptService.ExecuteScriptContentAsync(script, _fixture.App!.ProcessId);
+
+        result.Success.Should().BeTrue(result.Message);
+        result.StepsExecuted.Should().Be(3);
+        result.StepsFailed.Should().Be(0);
+    }
 }
