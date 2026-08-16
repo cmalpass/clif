@@ -1,5 +1,6 @@
 using CLIF.Core;
 using CLIF.Tests.Utilities;
+using CLIF.Tests.WpfUI;
 using FluentAssertions;
 using Xunit;
 using System.IO;
@@ -10,15 +11,22 @@ namespace CLIF.Tests.Integration;
 /// Integration tests for script execution functionality
 /// These tests validate the full script execution pipeline
 /// </summary>
-[Collection("Integration")]
+[Collection("WpfUI")]
 public class ScriptExecutionIntegrationTests : IntegrationTestBase
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(10);
+    private readonly WpfTestAppFixture _fixture;
+
+    public ScriptExecutionIntegrationTests(WpfTestAppFixture fixture)
+    {
+        _fixture = fixture;
+    }
 
     [Fact]
     public async Task ExecuteScriptContentAsync_WithBasicLogScript_ShouldExecuteSuccessfully()
     {
         // Arrange
+        _fixture.SkipIfUnavailable();
         var script = @"{
             ""name"": ""Integration Test Script"",
             ""description"": ""Basic logging test"",
@@ -40,7 +48,7 @@ public class ScriptExecutionIntegrationTests : IntegrationTestBase
 
         // Act
         var result = await ScriptService
-            .ExecuteScriptContentAsync(script)
+            .ExecuteScriptContentAsync(script, _fixture.App!.ProcessId)
             .WithTimeout(DefaultTimeout, "ExecuteScriptContentAsync(basic log)");
 
         // Assert
@@ -53,6 +61,7 @@ public class ScriptExecutionIntegrationTests : IntegrationTestBase
     public async Task ExecuteScriptContentAsync_WithWaitAction_ShouldDelayExecution()
     {
         // Arrange
+        _fixture.SkipIfUnavailable();
         var script = @"{
             ""name"": ""Wait Test"",
             ""description"": ""Test wait action"",
@@ -77,7 +86,7 @@ public class ScriptExecutionIntegrationTests : IntegrationTestBase
         // Act
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var result = await ScriptService
-            .ExecuteScriptContentAsync(script)
+            .ExecuteScriptContentAsync(script, _fixture.App!.ProcessId)
             .WithTimeout(DefaultTimeout, "ExecuteScriptContentAsync(wait)");
         stopwatch.Stop();
 
@@ -206,6 +215,7 @@ public class ScriptExecutionIntegrationTests : IntegrationTestBase
     public async Task ExecuteScriptContentAsync_WithMultipleSteps_ShouldExecuteInOrder()
     {
         // Arrange
+        _fixture.SkipIfUnavailable();
         var script = @"{
             ""name"": ""Multi-Step Test"",
             ""description"": ""Test step ordering"",
@@ -231,7 +241,7 @@ public class ScriptExecutionIntegrationTests : IntegrationTestBase
 
         // Act
         var result = await ScriptService
-            .ExecuteScriptContentAsync(script)
+            .ExecuteScriptContentAsync(script, _fixture.App!.ProcessId)
             .WithTimeout(DefaultTimeout, "ExecuteScriptContentAsync(multi-step)");
 
         // Assert

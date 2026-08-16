@@ -72,6 +72,29 @@ public class ScriptServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteScriptContentAsync_WithMissingTarget_ShouldNotAttachToAnArbitraryProcess()
+    {
+        // Arrange
+        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        {
+            new() { Id = 1234, Name = "UnrelatedApp", WindowTitle = "Unrelated Window" }
+        });
+
+        const string script = """
+            { "name": "Missing target", "steps": [{ "action": "log", "description": "must not run" }] }
+            """;
+
+        // Act
+        var result = await _scriptService.ExecuteScriptContentAsync(script);
+
+        // Assert
+        result.Success.Should().BeFalse();
+        result.Message.Should().Contain("attach");
+        _mockProcessService.Verify(service => service.GetWpfProcessesAsync(), Times.Never);
+        _mockAutomationService.Verify(service => service.AttachToProcessAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ExecuteScriptContentAsync_WithValidBasicScript_ShouldExecute()
     {
         // Arrange
