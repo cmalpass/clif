@@ -352,8 +352,23 @@ public class ScriptService : IScriptService
                         var expectedValue = step.Parameters.ContainsKey("expectedValue") ? 
                             step.Parameters["expectedValue"].ToString() : step.Value;
                         Console.WriteLine($"✅ Validating '{expectedValue}' in: {step.Element}");
-                        var actualValue = await _automationService.GetTextAsync(validateElement);
-                        var isValid = actualValue == expectedValue;
+                        // UIA value updates can lag briefly behind a preceding keyboard input.
+                        // Poll for a bounded interval so a script validates the settled value
+                        // instead of racing the WPF dispatcher.
+                        var actualValue = string.Empty;
+                        var isValid = false;
+                        for (var attempt = 0; attempt < 10; attempt++)
+                        {
+                            actualValue = await _automationService.GetValueAsync(validateElement);
+                            isValid = actualValue == expectedValue;
+                            if (isValid)
+                            {
+                                break;
+                            }
+
+                            await Task.Delay(100);
+                        }
+
                         await _captureService.LogInteractionAsync($"Validation {(isValid ? "PASSED" : "FAILED")}: Expected '{expectedValue}', got '{actualValue}'");
                         return isValid;
                     }
