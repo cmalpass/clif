@@ -1,3 +1,8 @@
+// <copyright file="ValidationResult.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -147,3 +152,5 @@ public class ValidationError
         return this.Field != null ? $"{this.Field}: {this.Message}" : this.Message;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

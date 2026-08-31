@@ -1,3 +1,8 @@
+// <copyright file="IAutomationService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 
@@ -335,3 +340,5 @@ public class ElementSelector
     /// <summary>Gets or sets the zero-based match index; -1 means unspecified.</summary>
     public int Index { get; set; } = -1;
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

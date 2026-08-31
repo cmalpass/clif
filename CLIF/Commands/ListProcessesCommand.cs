@@ -1,3 +1,8 @@
+// <copyright file="ListProcessesCommand.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using CLIF.Core;
@@ -130,3 +135,5 @@ public class ListProcessesCommand : Command
         return input.Replace("\"", "\"\"");
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

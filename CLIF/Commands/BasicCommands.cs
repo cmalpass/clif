@@ -1,3 +1,8 @@
+// <copyright file="BasicCommands.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,3 +31,5 @@ public class ElementCommand : Command
         }, processArgument, selectorArgument, actionOption);
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

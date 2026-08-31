@@ -1,3 +1,8 @@
+// <copyright file="SecurityContext.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System;
 using System.IO;
 using System.Security.Principal;
@@ -253,3 +258,5 @@ public class PermissionValidator
         return result;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.
