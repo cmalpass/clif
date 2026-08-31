@@ -49,19 +49,6 @@ public class AutomationService : IAutomationService, IDisposable
     /// <summary>Gets the attached process identifier, or <see langword="null"/>.</summary>
     public int? AttachedProcessId { get; private set; }
 
-    // Windows API for dialog handling
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
-
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string? className, string? windowTitle);
-
     /// <summary>Attaches to a running Windows process.</summary>
     /// <param name="processId">Identifier of the process to attach to.</param>
     /// <returns><see langword="true"/> when the process and main window are attached.</returns>
@@ -604,52 +591,6 @@ public class AutomationService : IAutomationService, IDisposable
     {
         // Return the cached root element which represents the main window when attached
         return await this.GetRootElementAsync();
-    }
-
-    private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
-    {
-        return SelectorParser.TryParse(selector, out var criteria)
-            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
-            : null;
-    }
-
-    private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
-    {
-        return SelectorParser.TryParse(selector, out var criteria)
-            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
-            : Array.Empty<AutomationElement>();
-    }
-
-    private static ConditionBase CreateSelectorCondition(ConditionFactory conditionFactory, SelectorCriteria criteria)
-    {
-        var conditions = new List<ConditionBase>();
-
-        if (!string.IsNullOrEmpty(criteria.AutomationId))
-        {
-            conditions.Add(conditionFactory.ByAutomationId(criteria.AutomationId));
-        }
-
-        if (!string.IsNullOrEmpty(criteria.Name))
-        {
-            conditions.Add(conditionFactory.ByName(criteria.Name));
-        }
-
-        if (!string.IsNullOrEmpty(criteria.ClassName))
-        {
-            conditions.Add(conditionFactory.ByClassName(criteria.ClassName));
-        }
-
-        if (!string.IsNullOrEmpty(criteria.ControlType) &&
-            Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out var controlType))
-        {
-            conditions.Add(conditionFactory.ByControlType(controlType));
-        }
-
-        return conditions.Count switch
-        {
-            1 => conditions[0],
-            _ => new AndCondition(conditions),
-        };
     }
 
     // Advanced control interaction methods
@@ -1625,273 +1566,6 @@ public class AutomationService : IAutomationService, IDisposable
         });
     }
 
-    private async Task<string?> GetElementTextAsync(AutomationElement element)
-    {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                // Try different ways to get text based on control type
-                if (element.ControlType == ControlType.Edit)
-                {
-                    return element.AsTextBox()?.Text;
-                }
-                else if (element.ControlType == ControlType.Text)
-                {
-                    return element.AsLabel()?.Text ?? element.Name;
-                }
-                else if (element.ControlType == ControlType.Document)
-                {
-                    return element.AsLabel()?.Text ?? element.Name;
-                }
-
-                return element.Name;
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogDebug($"Could not get text from element: {ex.Message}");
-                return element.Name;
-            }
-        });
-    }
-
-    private async Task<Dictionary<string, object?>> CaptureElementStateAsync(AutomationElement element)
-    {
-        return await Task.Run(() =>
-        {
-            var state = new Dictionary<string, object?>();
-            try
-            {
-                state["IsEnabled"] = element.IsEnabled;
-                state["Name"] = element.Name;
-                state["ControlType"] = element.ControlType.ToString();
-
-                if (element.ControlType == ControlType.CheckBox)
-                {
-                    state["IsChecked"] = element.AsCheckBox()?.IsChecked;
-                }
-                else if (element.ControlType == ControlType.RadioButton)
-                {
-                    state["IsSelected"] = element.AsRadioButton()?.IsChecked;
-                }
-                else if (element.ControlType == ControlType.Button)
-                {
-                    try
-                    {
-                        var toggleButton = element.AsToggleButton();
-                        if (toggleButton != null)
-                        {
-                            state["ToggleState"] = toggleButton.ToggleState;
-                        }
-                    }
-                    catch
-                    {
-                        // Not a toggle button, skip
-                    }
-                }
-                else if (element.ControlType == ControlType.Edit)
-                {
-                    state["Text"] = element.AsTextBox()?.Text;
-                }
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogDebug($"Could not capture all state for element: {ex.Message}");
-            }
-
-            return state;
-        });
-    }
-
-    private bool ValidateStateChange(Dictionary<string, object?> before, Dictionary<string, object?> after, AutomationElement element)
-    {
-        try
-        {
-            // Check for meaningful state changes based on control type
-            if (element.ControlType == ControlType.CheckBox)
-            {
-                var beforeChecked = before.GetValueOrDefault("IsChecked");
-                var afterChecked = after.GetValueOrDefault("IsChecked");
-                bool changed = !Equals(beforeChecked, afterChecked);
-                if (changed)
-                {
-                    this.logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
-                }
-
-                return changed;
-            }
-            else if (element.ControlType == ControlType.RadioButton)
-            {
-                var beforeSelected = before.GetValueOrDefault("IsSelected");
-                var afterSelected = after.GetValueOrDefault("IsSelected");
-                bool changed = !Equals(beforeSelected, afterSelected);
-                if (changed)
-                {
-                    this.logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
-                }
-
-                return changed;
-            }
-            else if (element.ControlType == ControlType.Button)
-            {
-                try
-                {
-                    var toggleButton = element.AsToggleButton();
-                    if (toggleButton != null)
-                    {
-                        var beforeToggle = before.GetValueOrDefault("ToggleState");
-                        var afterToggle = after.GetValueOrDefault("ToggleState");
-                        bool changed = !Equals(beforeToggle, afterToggle);
-                        if (changed)
-                        {
-                            this.logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
-                        }
-
-                        return changed;
-                    }
-                }
-                catch
-                {
-                    // Not a toggle button, treat as regular button
-                }
-
-                return false; // Regular button - no detectable change expected
-            }
-            else if (element.ControlType == ControlType.Button)
-            {
-                // For regular buttons, we can't easily detect state change
-                // In a real scenario, you might check if a dialog appeared, etc.
-                return false; // No detectable change expected
-            }
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogDebug($"Error validating state change: {ex.Message}");
-        }
-
-        return false; // Default to no change detected
-    }
-
-    private async Task<string?> GetComboBoxSelectionAsync(AutomationElement comboBox)
-    {
-        return await Task.Run(() =>
-        {
-            try
-            {
-                var cb = comboBox.AsComboBox();
-                return cb?.SelectedItem?.Name;
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogDebug($"Could not get ComboBox selection: {ex.Message}");
-                return null;
-            }
-        });
-    }
-
-    private async Task HandleModalDialogsAsync()
-    {
-        await Task.Run(async () =>
-        {
-            try
-            {
-                // Common Windows dialog class names and titles
-                var dialogPatterns = new (string? ClassName, string? Title)[]
-                {
-                    ("#32770", null), // Standard Windows dialog
-                    (null, "Button Click"), // Our specific MessageBox title
-                    (null, "Information"),
-                    (null, "Warning"),
-                    (null, "Error"),
-                    (null, "Confirm"),
-                };
-
-                foreach (var pattern in dialogPatterns)
-                {
-                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
-                    if (dialogHandle != IntPtr.Zero)
-                    {
-                        this.logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
-
-                        // Bring dialog to foreground
-                        SetForegroundWindow(dialogHandle);
-                        Thread.Sleep(100);
-
-                        // Try to find and click OK button first
-                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
-                        if (okButton != IntPtr.Zero)
-                        {
-                            PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
-                            this.logger.LogInformation("Clicked OK button on dialog");
-                        }
-                        else
-                        {
-                            // Fallback: Send Enter key to dismiss dialog
-                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
-                            this.logger.LogInformation("Sent Enter key to dismiss dialog");
-                        }
-
-                        Thread.Sleep(200); // Allow time for dialog to close
-                        break; // Handle one dialog at a time
-                    }
-                }
-
-                // Also try FlaUI approach for more complex dialogs
-                if (this.automation != null)
-                {
-                    var desktop = this.automation.GetDesktop();
-                    var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
-                        .Where(w => w.IsOffscreen == false)
-                        .ToArray();
-
-                    foreach (var dialog in dialogs)
-                    {
-                        try
-                        {
-                            // Check if this window might be a dialog (has certain characteristics)
-                            if (dialog.Name.Contains("Information") || dialog.Name.Contains("Button Click") ||
-                                dialog.Name.Contains("Warning") || dialog.Name.Contains("Error"))
-                            {
-                                this.logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
-
-                                // Look for OK, Yes, or Close buttons
-                                var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
-                                var dismissButton = buttons.FirstOrDefault(b =>
-                                    b.Name?.ToLower().Contains("ok") == true ||
-                                    b.Name?.ToLower().Contains("yes") == true ||
-                                    b.Name?.ToLower().Contains("close") == true);
-
-                                if (dismissButton != null)
-                                {
-                                    dismissButton.Click();
-                                    this.logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
-                                    await Task.Delay(200);
-                                    break;
-                                }
-                                else
-                                {
-                                    // Send Escape to close dialog
-                                    Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
-                                    this.logger.LogInformation("Sent Escape key to dismiss dialog");
-                                    await Task.Delay(200);
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            this.logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogDebug($"Error in dialog handling: {ex.Message}");
-            }
-        });
-    }
-
     // DataGrid-specific checkbox operations
 
     /// <summary>Sets the check box state in a data-grid row.</summary>
@@ -2237,4 +1911,331 @@ public class AutomationService : IAutomationService, IDisposable
     {
         this.DetachAsync().Wait();
     }
+
+    // Windows API for dialog handling
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
+
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string? className, string? windowTitle);
+
+    private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
+    {
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
+            : null;
+    }
+
+    private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
+    {
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
+            : Array.Empty<AutomationElement>();
+    }
+
+    private static ConditionBase CreateSelectorCondition(ConditionFactory conditionFactory, SelectorCriteria criteria)
+    {
+        var conditions = new List<ConditionBase>();
+
+        if (!string.IsNullOrEmpty(criteria.AutomationId))
+        {
+            conditions.Add(conditionFactory.ByAutomationId(criteria.AutomationId));
+        }
+
+        if (!string.IsNullOrEmpty(criteria.Name))
+        {
+            conditions.Add(conditionFactory.ByName(criteria.Name));
+        }
+
+        if (!string.IsNullOrEmpty(criteria.ClassName))
+        {
+            conditions.Add(conditionFactory.ByClassName(criteria.ClassName));
+        }
+
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
+            Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out var controlType))
+        {
+            conditions.Add(conditionFactory.ByControlType(controlType));
+        }
+
+        return conditions.Count switch
+        {
+            1 => conditions[0],
+            _ => new AndCondition(conditions),
+        };
+    }
+
+    private async Task<string?> GetElementTextAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                // Try different ways to get text based on control type
+                if (element.ControlType == ControlType.Edit)
+                {
+                    return element.AsTextBox()?.Text;
+                }
+                else if (element.ControlType == ControlType.Text)
+                {
+                    return element.AsLabel()?.Text ?? element.Name;
+                }
+                else if (element.ControlType == ControlType.Document)
+                {
+                    return element.AsLabel()?.Text ?? element.Name;
+                }
+
+                return element.Name;
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogDebug($"Could not get text from element: {ex.Message}");
+                return element.Name;
+            }
+        });
+    }
+
+    private async Task<Dictionary<string, object?>> CaptureElementStateAsync(AutomationElement element)
+    {
+        return await Task.Run(() =>
+        {
+            var state = new Dictionary<string, object?>();
+            try
+            {
+                state["IsEnabled"] = element.IsEnabled;
+                state["Name"] = element.Name;
+                state["ControlType"] = element.ControlType.ToString();
+
+                if (element.ControlType == ControlType.CheckBox)
+                {
+                    state["IsChecked"] = element.AsCheckBox()?.IsChecked;
+                }
+                else if (element.ControlType == ControlType.RadioButton)
+                {
+                    state["IsSelected"] = element.AsRadioButton()?.IsChecked;
+                }
+                else if (element.ControlType == ControlType.Button)
+                {
+                    try
+                    {
+                        var toggleButton = element.AsToggleButton();
+                        if (toggleButton != null)
+                        {
+                            state["ToggleState"] = toggleButton.ToggleState;
+                        }
+                    }
+                    catch
+                    {
+                        // Not a toggle button, skip
+                    }
+                }
+                else if (element.ControlType == ControlType.Edit)
+                {
+                    state["Text"] = element.AsTextBox()?.Text;
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogDebug($"Could not capture all state for element: {ex.Message}");
+            }
+
+            return state;
+        });
+    }
+
+    private bool ValidateStateChange(Dictionary<string, object?> before, Dictionary<string, object?> after, AutomationElement element)
+    {
+        try
+        {
+            // Check for meaningful state changes based on control type
+            if (element.ControlType == ControlType.CheckBox)
+            {
+                var beforeChecked = before.GetValueOrDefault("IsChecked");
+                var afterChecked = after.GetValueOrDefault("IsChecked");
+                bool changed = !Equals(beforeChecked, afterChecked);
+                if (changed)
+                {
+                    this.logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
+                }
+
+                return changed;
+            }
+            else if (element.ControlType == ControlType.RadioButton)
+            {
+                var beforeSelected = before.GetValueOrDefault("IsSelected");
+                var afterSelected = after.GetValueOrDefault("IsSelected");
+                bool changed = !Equals(beforeSelected, afterSelected);
+                if (changed)
+                {
+                    this.logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
+                }
+
+                return changed;
+            }
+            else if (element.ControlType == ControlType.Button)
+            {
+                try
+                {
+                    var toggleButton = element.AsToggleButton();
+                    if (toggleButton != null)
+                    {
+                        var beforeToggle = before.GetValueOrDefault("ToggleState");
+                        var afterToggle = after.GetValueOrDefault("ToggleState");
+                        bool changed = !Equals(beforeToggle, afterToggle);
+                        if (changed)
+                        {
+                            this.logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
+                        }
+
+                        return changed;
+                    }
+                }
+                catch
+                {
+                    // Not a toggle button, treat as regular button
+                }
+
+                return false; // Regular button - no detectable change expected
+            }
+            else if (element.ControlType == ControlType.Button)
+            {
+                // For regular buttons, we can't easily detect state change
+                // In a real scenario, you might check if a dialog appeared, etc.
+                return false; // No detectable change expected
+            }
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogDebug($"Error validating state change: {ex.Message}");
+        }
+
+        return false; // Default to no change detected
+    }
+
+    private async Task<string?> GetComboBoxSelectionAsync(AutomationElement comboBox)
+    {
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var cb = comboBox.AsComboBox();
+                return cb?.SelectedItem?.Name;
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogDebug($"Could not get ComboBox selection: {ex.Message}");
+                return null;
+            }
+        });
+    }
+
+    private async Task HandleModalDialogsAsync()
+    {
+        await Task.Run(async () =>
+        {
+            try
+            {
+                // Common Windows dialog class names and titles
+                var dialogPatterns = new (string? ClassName, string? Title)[]
+                {
+                    ("#32770", null), // Standard Windows dialog
+                    (null, "Button Click"), // Our specific MessageBox title
+                    (null, "Information"),
+                    (null, "Warning"),
+                    (null, "Error"),
+                    (null, "Confirm"),
+                };
+
+                foreach (var pattern in dialogPatterns)
+                {
+                    IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
+                    if (dialogHandle != IntPtr.Zero)
+                    {
+                        this.logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
+
+                        // Bring dialog to foreground
+                        SetForegroundWindow(dialogHandle);
+                        Thread.Sleep(100);
+
+                        // Try to find and click OK button first
+                        IntPtr okButton = FindWindowEx(dialogHandle, IntPtr.Zero, "Button", "OK");
+                        if (okButton != IntPtr.Zero)
+                        {
+                            PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
+                            this.logger.LogInformation("Clicked OK button on dialog");
+                        }
+                        else
+                        {
+                            // Fallback: Send Enter key to dismiss dialog
+                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                            this.logger.LogInformation("Sent Enter key to dismiss dialog");
+                        }
+
+                        Thread.Sleep(200); // Allow time for dialog to close
+                        break; // Handle one dialog at a time
+                    }
+                }
+
+                // Also try FlaUI approach for more complex dialogs
+                if (this.automation != null)
+                {
+                    var desktop = this.automation.GetDesktop();
+                    var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
+                        .Where(w => w.IsOffscreen == false)
+                        .ToArray();
+
+                    foreach (var dialog in dialogs)
+                    {
+                        try
+                        {
+                            // Check if this window might be a dialog (has certain characteristics)
+                            if (dialog.Name.Contains("Information") || dialog.Name.Contains("Button Click") ||
+                                dialog.Name.Contains("Warning") || dialog.Name.Contains("Error"))
+                            {
+                                this.logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
+
+                                // Look for OK, Yes, or Close buttons
+                                var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
+                                var dismissButton = buttons.FirstOrDefault(b =>
+                                    b.Name?.ToLower().Contains("ok") == true ||
+                                    b.Name?.ToLower().Contains("yes") == true ||
+                                    b.Name?.ToLower().Contains("close") == true);
+
+                                if (dismissButton != null)
+                                {
+                                    dismissButton.Click();
+                                    this.logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
+                                    await Task.Delay(200);
+                                    break;
+                                }
+                                else
+                                {
+                                    // Send Escape to close dialog
+                                    Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
+                                    this.logger.LogInformation("Sent Escape key to dismiss dialog");
+                                    await Task.Delay(200);
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            this.logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogDebug($"Error in dialog handling: {ex.Message}");
+            }
+        });
+    }
+
 }
