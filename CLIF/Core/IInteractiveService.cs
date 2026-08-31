@@ -30,5 +30,4 @@ public interface IInteractiveService
     /// <summary>Gets the current interactive prompt.</summary>
     /// <returns>The prompt text.</returns>
     Task<string> GetPromptAsync();
-
 }
