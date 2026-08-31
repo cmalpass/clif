@@ -163,52 +163,6 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Removes potentially dangerous Unicode characters from input.
-    /// </summary>
-    /// <param name="input">The input string to clean.</param>
-    /// <returns>A cleaned string with dangerous Unicode characters removed.</returns>
-    private static string RemoveDangerousUnicodeCharacters(string input)
-    {
-        var result = new StringBuilder(input.Length);
-
-        foreach (var c in input)
-        {
-            var category = char.GetUnicodeCategory(c);
-
-            // Skip dangerous Unicode categories
-            switch (category)
-            {
-                case System.Globalization.UnicodeCategory.Format:
-                    // Allow only common format characters
-                    if (c == '\u200C' || c == '\u200D') // Zero-width non-joiner/joiner
-                    {
-                        result.Append(c);
-                    }
-
-                    break;
-
-                case System.Globalization.UnicodeCategory.PrivateUse:
-                    // Skip private use characters
-                    break;
-
-                case System.Globalization.UnicodeCategory.Surrogate:
-                    // Skip unpaired surrogates
-                    break;
-
-                case System.Globalization.UnicodeCategory.OtherNotAssigned:
-                    // Skip unassigned characters
-                    break;
-
-                default:
-                    result.Append(c);
-                    break;
-            }
-        }
-
-        return result.ToString();
-    }
-
-    /// <summary>
     /// Validates and sanitizes a process identifier (name or ID).
     /// </summary>
     /// <param name="input">The process identifier to sanitize.</param>
@@ -297,6 +251,52 @@ public static class SanitizationHelper
 
         var truncateLength = Math.Max(0, maxLength - ellipsis.Length);
         return input.Substring(0, truncateLength) + ellipsis;
+    }
+
+    /// <summary>
+    /// Removes potentially dangerous Unicode characters from input.
+    /// </summary>
+    /// <param name="input">The input string to clean.</param>
+    /// <returns>A cleaned string with dangerous Unicode characters removed.</returns>
+    private static string RemoveDangerousUnicodeCharacters(string input)
+    {
+        var result = new StringBuilder(input.Length);
+
+        foreach (var c in input)
+        {
+            var category = char.GetUnicodeCategory(c);
+
+            // Skip dangerous Unicode categories
+            switch (category)
+            {
+                case System.Globalization.UnicodeCategory.Format:
+                    // Allow only common format characters
+                    if (c == '\u200C' || c == '\u200D') // Zero-width non-joiner/joiner
+                    {
+                        result.Append(c);
+                    }
+
+                    break;
+
+                case System.Globalization.UnicodeCategory.PrivateUse:
+                    // Skip private use characters
+                    break;
+
+                case System.Globalization.UnicodeCategory.Surrogate:
+                    // Skip unpaired surrogates
+                    break;
+
+                case System.Globalization.UnicodeCategory.OtherNotAssigned:
+                    // Skip unassigned characters
+                    break;
+
+                default:
+                    result.Append(c);
+                    break;
+            }
+        }
+
+        return result.ToString();
     }
 }
 

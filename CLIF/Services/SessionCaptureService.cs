@@ -84,13 +84,6 @@ public class SessionCaptureService : ISessionCaptureService
     /// <inheritdoc />
     public string? CurrentSessionPath => this.currentSessionPath;
 
-    // Windows API for bringing window to foreground
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
     /// <inheritdoc />
     public async Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
     {
@@ -254,6 +247,13 @@ public class SessionCaptureService : ISessionCaptureService
             }
         });
     }
+
+    // Windows API for bringing window to foreground
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     private void CaptureScreenshot(string filePath)
     {
