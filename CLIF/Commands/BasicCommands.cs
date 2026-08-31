@@ -28,7 +28,10 @@ public class ElementCommand : Command
         {
             Console.WriteLine($"Element operations - implementation coming soon! Process: {process}, Selector: {selector}, Action: {action}");
             await Task.CompletedTask;
-        }, processArgument, selectorArgument, actionOption);
+        },
+            processArgument,
+            selectorArgument,
+            actionOption);
     }
 }
 

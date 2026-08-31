@@ -146,7 +146,13 @@ public class InteractCommand : Command
             {
                 await this.captureService.EndSessionAsync();
             }
-        }, elementOption, controlTypeOption, actionOption, valueOption, indexOption, processIdOption);
+        },
+            elementOption,
+            controlTypeOption,
+            actionOption,
+            valueOption,
+            indexOption,
+            processIdOption);
     }
 
     private static async Task<bool> HandleComboBoxAsync(IAutomationService automation, FlaUI.Core.AutomationElements.AutomationElement element, string action, string? value, int? index)

@@ -55,7 +55,9 @@ public class ListProcessesCommand : Command
             {
                 Console.WriteLine($"Error listing processes: {ex.Message}");
             }
-        }, detailedOption, formatOption);
+        },
+            detailedOption,
+            formatOption);
     }
 
     private async Task OutputTableAsync(List<ProcessInfo> processes, bool detailed)
