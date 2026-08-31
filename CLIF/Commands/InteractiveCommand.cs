@@ -38,7 +38,8 @@ public class InteractiveCommand : Command
             {
                 Console.WriteLine($"Error in interactive mode: {ex.Message}");
             }
-        }, processIdOption);
+        },
+            processIdOption);
     }
 }
 
