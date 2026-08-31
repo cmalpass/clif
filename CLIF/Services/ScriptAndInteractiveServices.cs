@@ -25,11 +25,11 @@ public class ScriptService : IScriptService
         // Start capture session
         var scriptName = Path.GetFileNameWithoutExtension(scriptPath);
         var sessionId = await this._captureService.StartSessionAsync($"{scriptName}_{DateTime.Now:HHmmss}");
-        
+
         try
         {
             await this._captureService.LogInteractionAsync($"Starting script execution: {scriptPath}");
-            
+
             if (!File.Exists(scriptPath))
             {
                 await this._captureService.LogInteractionAsync($"ERROR: Script file not found: {scriptPath}", LogLevel.Error);
@@ -80,7 +80,7 @@ public class ScriptService : IScriptService
             result.ExecutionLog.Add($"Starting script execution: {script.Name}");
             Console.WriteLine($"🎬 Executing script: {script.Name}");
             Console.WriteLine($"📋 Description: {script.Description}");
-            
+
             // Attach to target process
             if (!await this.AttachToProcessAsync(script, processIdOverride))
             {
@@ -88,7 +88,7 @@ public class ScriptService : IScriptService
                 result.Message = "Failed to attach to target process";
                 return result;
             }
-            
+
             foreach (var step in script.Steps)
             {
                 result.StepsExecuted++;
@@ -96,7 +96,7 @@ public class ScriptService : IScriptService
                 try
                 {
                     Console.WriteLine($"⚡ Step {script.Steps.IndexOf(step) + 1}: {step.Action} - {step.Description}");
-                    
+
                     // Delay regular actions, but let an explicit wait step own its full delay.
                     var delayMs = step.Action.Equals("wait", StringComparison.OrdinalIgnoreCase)
                         ? 0
@@ -112,7 +112,7 @@ public class ScriptService : IScriptService
 
                     // Execute the actual automation step with session capture
                     var success = await this.ExecuteAutomationStepAsync(step);
-                    
+
                     if (success)
                     {
                         result.ExecutionLog.Add($"Executed: {step.Action} on {step.Element ?? "N/A"}");
@@ -134,7 +134,7 @@ public class ScriptService : IScriptService
                     result.StepsFailed++;
                     Console.WriteLine($"❌ Step failed: {stepEx.Message}");
                     result.ExecutionLog.Add($"Step failed: {stepEx.Message}");
-                    
+
                     if (script.Options?.StopOnError == true)
                     {
                         throw;
@@ -158,7 +158,7 @@ public class ScriptService : IScriptService
                 await this._captureService.LogInteractionAsync($"Script completed with {result.StepsFailed} failed step(s).", LogLevel.Error);
                 Console.WriteLine($"❌ Script completed with {result.StepsFailed} failed step(s).");
             }
-            
+
         }
         catch (Exception ex)
         {
@@ -172,7 +172,7 @@ public class ScriptService : IScriptService
         {
             stopwatch.Stop();
             result.ExecutionTime = stopwatch.Elapsed;
-            
+
             // End capture session
             await this._captureService.LogInteractionAsync($"Script execution completed in {result.ExecutionTime.TotalSeconds:F2} seconds");
             await this._captureService.EndSessionAsync();
@@ -197,7 +197,7 @@ public class ScriptService : IScriptService
             }
 
             var processes = await this._processService.GetWpfProcessesAsync();
-            var targetProcess = processes.FirstOrDefault(p => 
+            var targetProcess = processes.FirstOrDefault(p =>
                 (processIdOverride.HasValue && p.Id == processIdOverride.Value) ||
                 (!processIdOverride.HasValue && (
                     (!string.IsNullOrWhiteSpace(target!.ProcessName) &&
@@ -404,7 +404,7 @@ public class ScriptService : IScriptService
                     var validateElement = await this._automationService.FindElementAsync(step.Element);
                     if (validateElement != null)
                     {
-                        var expectedValue = step.Parameters.ContainsKey("expectedValue") ? 
+                        var expectedValue = step.Parameters.ContainsKey("expectedValue") ?
                             step.Parameters["expectedValue"].ToString() : step.Value;
                         Console.WriteLine($"✅ Validating '{expectedValue}' in: {step.Element}");
                         // UIA value updates can lag briefly behind a preceding keyboard input.
@@ -502,7 +502,7 @@ public class InteractiveService : IInteractiveService
     private readonly IAutomationService _automationService;
     private readonly IElementTreeService _elementTreeService;
     private readonly ISessionCaptureService _captureService;
-    
+
     public bool IsSessionActive { get; private set; }
 
     public InteractiveService(
@@ -525,10 +525,10 @@ public class InteractiveService : IInteractiveService
     public async Task StartInteractiveSessionAsync(int? processId = null)
     {
         this.IsSessionActive = true;
-        
+
         Console.WriteLine("=== CLIF Interactive Mode ===");
         Console.WriteLine("Type 'help' for available commands or 'exit' to quit.");
-        
+
         if (processId.HasValue)
         {
             var attached = await this._automationService.AttachToProcessAsync(processId.Value);
@@ -546,7 +546,7 @@ public class InteractiveService : IInteractiveService
         {
             var prompt = await this.GetPromptAsync();
             Console.Write(prompt);
-            
+
             var input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
                 continue;
@@ -810,7 +810,7 @@ public class InteractiveService : IInteractiveService
         }
 
         var tree = await this._elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: 10);
-        
+
         // Parse criteria (e.g., "name:Button" or "id:TestButton")
         var searchCriteria = new ElementSearchCriteria();
         if (criteria.Contains(':'))

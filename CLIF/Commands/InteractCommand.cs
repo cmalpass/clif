@@ -9,45 +9,45 @@ namespace CLIF.Commands;
 public class InteractCommand : Command
 {
     private readonly ISessionCaptureService _captureService;
-    
+
     /// <summary>Creates an interaction command backed by automation and session services.</summary>
     /// <param name="automationService">Service used to locate and manipulate controls.</param>
     /// <param name="captureService">Service used to record the interaction session.</param>
     /// <param name="logger">Logger used to report interaction failures.</param>
-    public InteractCommand(IAutomationService automationService, ISessionCaptureService captureService, ILogger<InteractCommand> logger) 
+    public InteractCommand(IAutomationService automationService, ISessionCaptureService captureService, ILogger<InteractCommand> logger)
         : base("interact", "Advanced interactions with various WPF controls")
     {
         this._captureService = captureService;
         // Element selector options
         var elementOption = new Option<string>(
-            "--element", 
+            "--element",
             "Element selector (name=, id=, class=, type=)")
         { IsRequired = true };
-        
+
         // Control type option
         var controlTypeOption = new Option<string>(
             "--control-type",
             "Control type (combobox, listbox, checkbox, radiobutton, slider, tab, tree, datepicker, calendar, expander, datagrid, menu, togglebutton)")
         { IsRequired = true };
-        
+
         // Action option
         var actionOption = new Option<string>(
             "--action",
             "Action to perform (select, set, toggle, expand, collapse, invoke)")
         { IsRequired = true };
-        
+
         // Value option
         var valueOption = new Option<string?>(
             "--value",
             "Value for the action (text, number, true/false, date)")
         { IsRequired = false };
-        
+
         // Index option
         var indexOption = new Option<int?>(
             "--index",
             "Index for selection actions")
         { IsRequired = false };
-        
+
         // Process ID option
         var processIdOption = new Option<int>(
             "--process-id",
@@ -65,11 +65,11 @@ public class InteractCommand : Command
         {
             // Start a mini-session for individual command
             var sessionId = await this._captureService.StartSessionAsync($"INTERACT_{controlType.ToUpper()}_{DateTime.Now:HHmmss}");
-            
+
             try
             {
                 await this._captureService.LogInteractionAsync($"INTERACT command started: {action} on {controlType} element {element} (Process: {processId})");
-                
+
                 Console.WriteLine($"Attaching to process {processId}...");
                 var attachSuccess = await automationService.AttachToProcessAsync(processId);
 
@@ -140,7 +140,7 @@ public class InteractCommand : Command
             {
                 await this._captureService.EndSessionAsync();
             }
-        }, elementOption, controlTypeOption, actionOption, valueOption, indexOption, processIdOption);        
+        }, elementOption, controlTypeOption, actionOption, valueOption, indexOption, processIdOption);
     }
 
     private static async Task<bool> HandleComboBoxAsync(IAutomationService automation, FlaUI.Core.AutomationElements.AutomationElement element, string action, string? value, int? index)
@@ -254,11 +254,11 @@ public class InteractCommand : Command
         {
             "select-row" when index.HasValue => await automation.SelectDataGridRowAsync(element, index.Value),
             "get-data" => await DisplayDataGridData(automation, element),
-            "set-checkbox" when index.HasValue && bool.TryParse(value, out bool checkValue) => 
+            "set-checkbox" when index.HasValue && bool.TryParse(value, out bool checkValue) =>
                 await automation.SetDataGridCheckboxAsync($"id={element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid"}", index.Value, checkValue),
-            "set-checkbox-by-name" when !string.IsNullOrEmpty(value) => 
+            "set-checkbox-by-name" when !string.IsNullOrEmpty(value) =>
                 await HandleDataGridCheckboxByName(automation, element, value),
-            "toggle-checkbox" when index.HasValue => 
+            "toggle-checkbox" when index.HasValue =>
                 await automation.ToggleDataGridCheckboxAsync($"id={element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid"}", index.Value),
             "get-checkbox-states" => await DisplayDataGridCheckboxStates(automation, element),
             "uncheck-all" => await HandleUncheckAllDataGridCheckboxes(automation, element),
@@ -392,10 +392,10 @@ public class InteractCommand : Command
 
         var rowName = parts[0].Trim();
         var elementId = $"id={element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid"}";
-        
+
         Console.WriteLine($"Setting checkbox for row '{rowName}' to {checkValue}");
         var result = await automation.SetDataGridCheckboxByNameAsync(elementId, rowName, checkValue);
-        
+
         if (result)
         {
             Console.WriteLine($"✅ Successfully set checkbox for '{rowName}' to {checkValue}");
@@ -404,7 +404,7 @@ public class InteractCommand : Command
         {
             Console.WriteLine($"❌ Failed to set checkbox for '{rowName}'");
         }
-        
+
         return result;
     }
 
@@ -413,15 +413,15 @@ public class InteractCommand : Command
         var automationId = element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid";
         var elementId = $"id={automationId}";
         var states = await automation.GetDataGridCheckboxStatesAsync(elementId);
-        
+
         Console.WriteLine($"DataGrid checkbox states ({states.Length} rows):");
         var rowNames = new[] { "John Doe", "Jane Smith", "Bob Johnson", "Alice Brown" };
-        
+
         for (int i = 0; i < states.Length && i < rowNames.Length; i++)
         {
             Console.WriteLine($"Row {i} ({rowNames[i]}): {(states[i] ? "Checked" : "Unchecked")}");
         }
-        
+
         return true;
     }
 
@@ -429,21 +429,21 @@ public class InteractCommand : Command
     {
         var elementId = $"id={element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid"}";
         Console.WriteLine("Unchecking all DataGrid checkboxes...");
-        
+
         // Get current states first
         var states = await automation.GetDataGridCheckboxStatesAsync(elementId);
         var rowNames = new[] { "John Doe", "Jane Smith", "Bob Johnson", "Alice Brown" };
-        
+
         bool allSuccessful = true;
         int changedCount = 0;
-        
+
         for (int i = 0; i < states.Length && i < rowNames.Length; i++)
         {
             if (states[i]) // Only uncheck if currently checked
             {
                 Console.WriteLine($"Unchecking row {i} ({rowNames[i]})...");
                 var result = await automation.SetDataGridCheckboxAsync(elementId, i, false);
-                
+
                 if (result)
                 {
                     Console.WriteLine($"✅ Successfully unchecked {rowNames[i]}");
@@ -454,7 +454,7 @@ public class InteractCommand : Command
                     Console.WriteLine($"❌ Failed to uncheck {rowNames[i]}");
                     allSuccessful = false;
                 }
-                
+
                 // Small delay between operations
                 await Task.Delay(200);
             }
@@ -463,7 +463,7 @@ public class InteractCommand : Command
                 Console.WriteLine($"Row {i} ({rowNames[i]}) already unchecked");
             }
         }
-        
+
         Console.WriteLine($"Uncheck operation completed. Changed {changedCount} checkboxes.");
         return allSuccessful;
     }

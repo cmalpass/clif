@@ -15,7 +15,7 @@ public class ClickCommand : Command
     /// <summary>Creates a click command backed by the automation and capture services.</summary>
     /// <param name="automationService">Service used to attach and click the target element.</param>
     /// <param name="captureService">Service used to record the command session.</param>
-    public ClickCommand(IAutomationService automationService, ISessionCaptureService captureService) 
+    public ClickCommand(IAutomationService automationService, ISessionCaptureService captureService)
         : base("click", "Click on a UI element")
     {
         this._automationService = automationService;
@@ -43,14 +43,14 @@ public class ClickCommand : Command
 
             // Start a mini-session for individual command
             var sessionId = await this._captureService.StartSessionAsync($"CLICK_Command_{DateTime.Now:HHmmss}");
-            
+
             try
             {
                 await this._captureService.LogInteractionAsync($"CLICK command started: {elementPath} (Process: {processId})");
-                
+
                 Console.WriteLine($"Attaching to process {processId}...");
                 var success = await this._automationService.AttachToProcessAsync(processId);
-                
+
                 if (!success)
                 {
                     Console.WriteLine("Failed to attach to process.");
@@ -68,7 +68,7 @@ public class ClickCommand : Command
                     context.ExitCode = 1;
                     return;
                 }
-                
+
                 Console.WriteLine($"Clicking element: {elementPath}");
                 if (!await this._automationService.ClickAsync(element))
                 {

@@ -17,7 +17,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(input);
-        
+
         // Assert
         result.Should().Be(expected);
     }
@@ -30,7 +30,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeElementSelector(maliciousInput);
-        
+
         // Assert - Check that dangerous patterns are removed by regex matching
         result.Should().NotContain("alert('test')");
         result.Length.Should().BeLessThan(maliciousInput.Length);
@@ -42,10 +42,10 @@ public class SanitizationHelperTests
         // Act & Assert - Test what the implementation actually does
         var result1 = SanitizationHelper.SanitizeElementSelector("javascript:alert('xss')");
         result1.Should().NotContain("javascript:"); // Protocol should be removed
-        
+
         var result2 = SanitizationHelper.SanitizeElementSelector("vbscript:msgbox('xss')");
         result2.Should().NotContain("vbscript:"); // Protocol should be removed
-        
+
         // The implementation removes the protocol part but may keep function calls
         result1.Length.Should().BeLessThan("javascript:alert('xss')".Length);
         result2.Length.Should().BeLessThan("vbscript:msgbox('xss')".Length);
@@ -59,7 +59,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.RemovePathTraversal(pathTraversalInput);
-        
+
         // Assert
         result.Should().NotContain("../");
         result.Should().NotContain("..\\");
@@ -73,7 +73,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(injectionInput);
-        
+
         // Assert - SanitizeTextInput only removes dangerous Unicode and null chars, not injection patterns
         result.Should().Be(injectionInput); // Should be preserved as-is for text input
     }
@@ -86,7 +86,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(sqlInjection);
-        
+
         // Assert - SanitizeTextInput only removes dangerous Unicode and null chars, not SQL patterns
         result.Should().Be(sqlInjection); // Should be preserved as-is for text input
     }
@@ -98,7 +98,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(mixedInput);
-        
+
         // Assert - SanitizeTextInput only removes dangerous Unicode and null chars
         result.Should().Be(mixedInput); // Should be preserved as-is for text input
     }
@@ -108,7 +108,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(null!);
-        
+
         // Assert
         result.Should().BeEmpty();
     }
@@ -118,7 +118,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput("");
-        
+
         // Assert
         result.Should().BeEmpty();
     }
@@ -130,7 +130,7 @@ public class SanitizationHelperTests
     {
         // Act
         var result = SanitizationHelper.SanitizeTextInput(whitespaceInput);
-        
+
         // Assert - Implementation normalizes line endings \r\n -> \n
         if (whitespaceInput.Contains("\r\n") || whitespaceInput.Contains("\r"))
         {

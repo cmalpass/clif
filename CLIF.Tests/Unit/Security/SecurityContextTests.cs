@@ -16,7 +16,7 @@ public class SecurityContextTests
         // Act
         var instance1 = SecurityContext.Current;
         var instance2 = SecurityContext.Current;
-        
+
         // Assert
         instance1.Should().NotBeNull();
         instance2.Should().NotBeNull();
@@ -28,10 +28,10 @@ public class SecurityContextTests
     {
         // Arrange
         var context = SecurityContext.Current;
-        
+
         // Act
         var isElevated = context.IsElevated;
-        
+
         // Assert
         Assert.IsType<bool>(isElevated);
     }
@@ -41,10 +41,10 @@ public class SecurityContextTests
     {
         // Arrange
         var context = SecurityContext.Current;
-        
+
         // Act
         var currentUser = context.CurrentUser;
-        
+
         // Assert
         currentUser.Should().NotBeNull();
         currentUser.Name.Should().NotBeNullOrEmpty();
@@ -56,10 +56,10 @@ public class SecurityContextTests
         // Arrange
         var context = SecurityContext.Current;
         const string testPath = @"C:\Windows\System32";
-        
+
         // Act
         var result = context.ValidateFileAccess(testPath);
-        
+
         // Assert
         result.Should().NotBeNull();
         result.Should().BeOfType<ValidationResult>();
@@ -70,10 +70,10 @@ public class SecurityContextTests
     {
         // Arrange
         var context = SecurityContext.Current;
-        
+
         // Act
         var isAdmin = context.IsAdministrator;
-        
+
         // Assert
         Assert.IsType<bool>(isAdmin);
     }
@@ -83,13 +83,13 @@ public class SecurityContextTests
     {
         // Arrange
         var context = SecurityContext.Current;
-        
+
         // Act - Call methods multiple times
         var isElevated1 = context.IsElevated;
         var isElevated2 = context.IsElevated;
         var currentUser1 = context.CurrentUser;
         var currentUser2 = context.CurrentUser;
-        
+
         // Assert - Results should be consistent
         isElevated1.Should().Be(isElevated2);
         currentUser1.Should().Be(currentUser2);
@@ -102,10 +102,10 @@ public class SecurityContextTests
     {
         // Arrange
         var context = SecurityContext.Current;
-        
+
         // Act
         var result = context.ValidateFileAccess(restrictedPath);
-        
+
         // Assert
         result.Should().NotBeNull();
         result.Should().BeOfType<ValidationResult>();

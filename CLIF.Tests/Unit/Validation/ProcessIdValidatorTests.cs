@@ -17,10 +17,10 @@ public class ProcessIdValidatorTests
     {
         // Arrange - Use current process ID to test basic validation (existence check may fail due to no UI window)
         var validProcessId = Environment.ProcessId;
-        
+
         // Act
         var result = _validator.Validate(validProcessId);
-        
+
         // Assert - The validator checks for both existence AND UI window
         // For most test runners, the process won't have a UI window, so this is expected behavior
         if (result.IsValid)
@@ -42,7 +42,7 @@ public class ProcessIdValidatorTests
     {
         // Act
         var result = _validator.Validate(processId);
-        
+
         // Assert - These will likely fail if process doesn't exist, which is expected behavior
         // The validator checks both range AND process existence
         if (result.IsValid)
@@ -61,7 +61,7 @@ public class ProcessIdValidatorTests
     {
         // Act
         var result = _validator.Validate(0);
-        
+
         // Assert
         result.IsValid.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Value must be between 1 and 65535");
@@ -72,7 +72,7 @@ public class ProcessIdValidatorTests
     {
         // Act
         var result = _validator.Validate(-1);
-        
+
         // Assert
         result.IsValid.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Value must be between 1 and 65535");
@@ -83,7 +83,7 @@ public class ProcessIdValidatorTests
     {
         // Act
         var result = _validator.Validate(int.MaxValue);
-        
+
         // Assert
         result.IsValid.Should().BeFalse();
         result.ErrorMessage.Should().Contain("Value must be between 1 and 65535");
