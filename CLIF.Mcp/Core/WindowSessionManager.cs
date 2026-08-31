@@ -2,6 +2,7 @@
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
@@ -14,6 +15,7 @@ namespace CLIF.Mcp.Core;
 /// </summary>
 public class WindowSessionManager : IDisposable
 {
+    private static readonly Regex HandlePattern = new(@"^w[1-9][0-9]{0,8}$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     private const int WindowSearchRetries = 10;
     private const int WindowSearchDelayMs = 500;
     private const int AppLaunchDelayMs = 1000;
@@ -85,6 +87,22 @@ public class WindowSessionManager : IDisposable
                 catch
                 {
                     // The process may have exited while cancellation was observed.
+                }
+
+                if (!process.HasExited)
+                {
+                    try
+                    {
+                        if (!process.WaitForExit(1_000) && !process.HasExited)
+                        {
+                            process.Kill(entireProcessTree: true);
+                            process.WaitForExit(1_000);
+                        }
+                    }
+                    catch
+                    {
+                        // Best-effort cleanup; the original launch error is more useful.
+                    }
                 }
             }
 
@@ -229,6 +247,11 @@ public class WindowSessionManager : IDisposable
     /// </summary>
     public Window? GetWindow(string handle)
     {
+        if (string.IsNullOrWhiteSpace(handle) || !HandlePattern.IsMatch(handle))
+        {
+            return null;
+        }
+
         CleanupExitedProcesses();
         lock (_sync)
         {
@@ -314,6 +337,11 @@ public class WindowSessionManager : IDisposable
                 {
                     process.CloseMainWindow();
                     process.WaitForExit(2_000);
+                    if (!process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                        process.WaitForExit(2_000);
+                    }
                 }
             }
             finally
@@ -348,6 +376,11 @@ public class WindowSessionManager : IDisposable
                 if (!process.HasExited)
                 {
                     process.CloseMainWindow();
+                    if (!process.WaitForExit(2_000) && !process.HasExited)
+                    {
+                        process.Kill(entireProcessTree: true);
+                        process.WaitForExit(2_000);
+                    }
                 }
             }
             catch

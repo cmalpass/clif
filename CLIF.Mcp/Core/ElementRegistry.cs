@@ -2,6 +2,7 @@
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 using FlaUI.Core.AutomationElements;
+using System.Text.RegularExpressions;
 
 namespace CLIF.Mcp.Core;
 
@@ -12,6 +13,7 @@ namespace CLIF.Mcp.Core;
 /// </summary>
 public class ElementRegistry
 {
+    private static readonly Regex ReferencePattern = new(@"^w[1-9][0-9]{0,8}e[1-9][0-9]{0,8}$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     private readonly Dictionary<string, AutomationElement> _elements = new();
     private readonly Dictionary<string, int> _windowCounters = new();
 
@@ -51,6 +53,11 @@ public class ElementRegistry
     /// </summary>
     public AutomationElement? GetElement(string refId)
     {
+        if (string.IsNullOrWhiteSpace(refId) || !ReferencePattern.IsMatch(refId))
+        {
+            return null;
+        }
+
         return _elements.TryGetValue(refId, out var element) ? element : null;
     }
 
@@ -59,6 +66,11 @@ public class ElementRegistry
     /// </summary>
     public bool HasElement(string refId)
     {
+        if (string.IsNullOrWhiteSpace(refId) || !ReferencePattern.IsMatch(refId))
+        {
+            return false;
+        }
+
         return _elements.ContainsKey(refId);
     }
 
