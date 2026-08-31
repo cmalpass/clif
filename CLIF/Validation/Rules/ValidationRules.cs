@@ -314,7 +314,7 @@ public class NoInjectionRule : ValidationRule<string>
         // File traversal and path patterns
         "..\\", "../",
         // SQL-ish patterns (simple heuristic to catch obvious SQL injection strings)
-        "drop table", "';"
+        "drop table", "';",
     };
 
     /// <summary>

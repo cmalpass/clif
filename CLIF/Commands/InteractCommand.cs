@@ -106,7 +106,7 @@ public class InteractCommand : Command
                         "datagrid" => await HandleDataGridAsync(automationService, targetElement, action, value, index),
                         "menu" => await HandleMenuAsync(automationService, targetElement, action),
                         "togglebutton" => await HandleToggleButtonAsync(automationService, targetElement, action, value),
-                        _ => throw new ArgumentException($"Unsupported control type: {controlType}")
+                        _ => throw new ArgumentException($"Unsupported control type: {controlType}"),
                     };
 
                     if (success)
@@ -150,7 +150,7 @@ public class InteractCommand : Command
             "select" when value != null => await automation.SelectComboBoxItemAsync(element, value),
             "select" when index.HasValue => await automation.SelectComboBoxItemByIndexAsync(element, index.Value),
             "get-items" => await DisplayComboBoxItems(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -161,7 +161,7 @@ public class InteractCommand : Command
             "select" when value != null => await automation.SelectListBoxItemAsync(element, value),
             "select" when index.HasValue => await automation.SelectListBoxItemByIndexAsync(element, index.Value),
             "get-items" => await DisplayListBoxItems(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -172,7 +172,7 @@ public class InteractCommand : Command
             "set" when bool.TryParse(value, out bool checkValue) => await automation.SetCheckBoxAsync(element, checkValue),
             "toggle" => await automation.SetCheckBoxAsync(element, !await automation.GetCheckBoxStateAsync(element)),
             "get" => await DisplayCheckBoxState(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -182,7 +182,7 @@ public class InteractCommand : Command
         {
             "select" => await automation.SetRadioButtonAsync(element, true),
             "get" => await DisplayRadioButtonState(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -192,7 +192,7 @@ public class InteractCommand : Command
         {
             "set" when double.TryParse(value, out double sliderValue) => await automation.SetSliderValueAsync(element, sliderValue),
             "get" => await DisplaySliderValue(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -203,7 +203,7 @@ public class InteractCommand : Command
             "select" when value != null => await automation.SelectTabAsync(element, value),
             "select" when index.HasValue => await automation.SelectTabByIndexAsync(element, index.Value),
             "get" => await DisplaySelectedTab(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -214,7 +214,7 @@ public class InteractCommand : Command
             "expand" => await automation.ExpandTreeNodeAsync(element),
             "collapse" => await automation.CollapseTreeNodeAsync(element),
             "select" when value != null => await automation.SelectTreeNodeAsync(element, value),
-            _ => false
+            _ => false,
         };
     }
 
@@ -224,7 +224,7 @@ public class InteractCommand : Command
         {
             "set" when DateTime.TryParse(value, out DateTime date) => await automation.SetDatePickerAsync(element, date),
             "get" => await DisplayDatePickerValue(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -234,7 +234,7 @@ public class InteractCommand : Command
         {
             "select" when DateTime.TryParse(value, out DateTime date) => await automation.SetCalendarDateAsync(element, date),
             "get" => await DisplayCalendarValue(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -244,7 +244,7 @@ public class InteractCommand : Command
         {
             "toggle" => await automation.ToggleExpanderAsync(element),
             "get" => await DisplayExpanderState(automation, element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -262,7 +262,7 @@ public class InteractCommand : Command
                 await automation.ToggleDataGridCheckboxAsync($"id={element.Properties.AutomationId.ValueOrDefault ?? "TestDataGrid"}", index.Value),
             "get-checkbox-states" => await DisplayDataGridCheckboxStates(automation, element),
             "uncheck-all" => await HandleUncheckAllDataGridCheckboxes(automation, element),
-            _ => throw new ArgumentException($"Unknown DataGrid action: {action}. Available actions: select-row, get-data, set-checkbox, set-checkbox-by-name, toggle-checkbox, get-checkbox-states, uncheck-all")
+            _ => throw new ArgumentException($"Unknown DataGrid action: {action}. Available actions: select-row, get-data, set-checkbox, set-checkbox-by-name, toggle-checkbox, get-checkbox-states, uncheck-all"),
         };
     }
 
@@ -271,7 +271,7 @@ public class InteractCommand : Command
         return action.ToLower() switch
         {
             "invoke" => await automation.InvokeMenuItemAsync(element),
-            _ => false
+            _ => false,
         };
     }
 
@@ -282,7 +282,7 @@ public class InteractCommand : Command
             "set" when bool.TryParse(value, out bool toggleValue) => await automation.SetToggleButtonAsync(element, toggleValue),
             "toggle" => await automation.SetToggleButtonAsync(element, !await automation.GetToggleButtonStateAsync(element)),
             "get" => await DisplayToggleButtonState(automation, element),
-            _ => false
+            _ => false,
         };
     }
 

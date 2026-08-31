@@ -97,7 +97,7 @@ public class ElementTreeService : IElementTreeService
             IsVisible = !element.IsOffscreen,
             BoundingRectangle = element.BoundingRectangle.ToString(),
             ProcessId = element.Properties.ProcessId.ValueOrDefault,
-            Selector = this.GenerateSelector(element)
+            Selector = this.GenerateSelector(element),
         };
 
         // Get value if available

@@ -79,7 +79,7 @@ public static class SanitizationHelper
             @"document\.",
             @"window\.",
             @"alert\s*\(",
-            @"confirm\s*\("
+            @"confirm\s*\(",
         };
 
         var result = input;
