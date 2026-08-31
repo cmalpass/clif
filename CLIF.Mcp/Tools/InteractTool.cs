@@ -91,8 +91,15 @@ public class InteractTool : ToolBase
     };
 
     /// <inheritdoc />
-    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments) => ExecuteCoreAsync(arguments, CancellationToken.None);
+
+    /// <inheritdoc />
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments, CancellationToken cancellationToken) =>
+        ExecuteCoreAsync(arguments, cancellationToken);
+
+    private async Task<McpToolResult> ExecuteCoreAsync(JsonElement? arguments, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var refId = GetStringArgument(arguments, "ref");
         var controlType = GetStringArgument(arguments, "controlType");
         var action = GetStringArgument(arguments, "action");
@@ -102,21 +109,20 @@ public class InteractTool : ToolBase
 
         if (string.IsNullOrEmpty(refId) || string.IsNullOrEmpty(controlType) || string.IsNullOrEmpty(action))
         {
-            return Task.FromResult(ErrorResult("Missing required arguments: ref, controlType, action"));
+            return ErrorResult("Missing required arguments: ref, controlType, action");
         }
 
         var element = _elementRegistry.GetElement(refId);
         if (element == null)
         {
-            return Task.FromResult(ErrorResult(
-                $"Element not found: {refId}. Run clif_snapshot to refresh element refs."));
+            return ErrorResult($"Element not found: {refId}. Run clif_snapshot to refresh element refs.");
         }
 
         try
         {
             var result = controlType.ToLowerInvariant() switch
             {
-                "combobox" => HandleComboBox(element, action, value, index),
+                "combobox" => await HandleComboBoxAsync(element, action, value, index, cancellationToken),
                 "listbox" => HandleListBox(element, action, value, index),
                 "datagrid" => HandleDataGrid(element, action, value, index, column),
                 "tree" => HandleTreeView(element, action, value),
@@ -131,32 +137,42 @@ public class InteractTool : ToolBase
                 _ => $"Unknown control type: {controlType}",
             };
 
-            return Task.FromResult(TextResult(result));
+            return TextResult(result);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(ErrorResult(
-                $"Failed to interact with {controlType} ({refId}): {ex.Message}"));
+            return ErrorResult($"Failed to interact with {controlType} ({refId}): {ex.Message}");
         }
     }
 
-    private static string HandleComboBox(AutomationElement element, string action, string? value, int index)
+    private static async Task<string> HandleComboBoxAsync(
+        AutomationElement element,
+        string action,
+        string? value,
+        int index,
+        CancellationToken cancellationToken)
     {
         var comboBox = element.AsComboBox();
-        return action.ToLowerInvariant() switch
-        {
-            "select" when !string.IsNullOrEmpty(value) => SelectComboBoxItem(comboBox, value),
-            "select" when index >= 0 => SelectComboBoxByIndex(comboBox, index),
-            "list_items" => ListComboBoxItems(comboBox),
-            "get_value" => comboBox.SelectedItem?.Text ?? "(none)",
-            _ => $"Unknown ComboBox action: {action}",
-        };
+        var normalizedAction = action.ToLowerInvariant();
+        if (normalizedAction == "select" && !string.IsNullOrEmpty(value))
+            return await SelectComboBoxItemAsync(comboBox, value, cancellationToken);
+        if (normalizedAction == "select" && index >= 0)
+            return await SelectComboBoxByIndexAsync(comboBox, index, cancellationToken);
+        if (normalizedAction == "list_items")
+            return await ListComboBoxItemsAsync(comboBox, cancellationToken);
+        return normalizedAction == "get_value"
+            ? comboBox.SelectedItem?.Text ?? "(none)"
+            : $"Unknown ComboBox action: {action}";
     }
 
-    private static string SelectComboBoxItem(ComboBox comboBox, string value)
+    private static async Task<string> SelectComboBoxItemAsync(ComboBox comboBox, string value, CancellationToken cancellationToken)
     {
         comboBox.Expand();
-        Thread.Sleep(100);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(100), cancellationToken);
         var items = comboBox.Items;
         var item = items.FirstOrDefault(i => i.Text == value);
         if (item != null)
@@ -170,10 +186,10 @@ public class InteractTool : ToolBase
         return $"Item not found: \"{value}\". Available: {string.Join(", ", items.Select(i => i.Text))}";
     }
 
-    private static string SelectComboBoxByIndex(ComboBox comboBox, int index)
+    private static async Task<string> SelectComboBoxByIndexAsync(ComboBox comboBox, int index, CancellationToken cancellationToken)
     {
         comboBox.Expand();
-        Thread.Sleep(100);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(100), cancellationToken);
         var items = comboBox.Items;
         if (index >= 0 && index < items.Length)
         {
@@ -186,10 +202,10 @@ public class InteractTool : ToolBase
         return $"Index {index} out of range (0-{items.Length - 1})";
     }
 
-    private static string ListComboBoxItems(ComboBox comboBox)
+    private static async Task<string> ListComboBoxItemsAsync(ComboBox comboBox, CancellationToken cancellationToken)
     {
         comboBox.Expand();
-        Thread.Sleep(100);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(100), cancellationToken);
         var items = comboBox.Items.Select((item, i) => $"  {i}: \"{item.Text}\"");
         comboBox.Collapse();
         return $"Items:\n{string.Join("\n", items)}";
@@ -388,7 +404,6 @@ public class InteractTool : ToolBase
         try
         {
             parent.Expand();
-            Thread.Sleep(50);
         }
         catch
         {

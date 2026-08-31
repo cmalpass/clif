@@ -115,13 +115,13 @@ public class BatchTool : ToolBase
         CancellationToken cancellationToken)
         => ExecuteCoreAsync(arguments, cancellationToken);
 
-    private Task<McpToolResult> ExecuteCoreAsync(
+    private async Task<McpToolResult> ExecuteCoreAsync(
         JsonElement? arguments,
         CancellationToken cancellationToken)
     {
         if (arguments == null || !arguments.Value.TryGetProperty("actions", out var actionsElement))
         {
-            return Task.FromResult(ErrorResult("Missing required argument: actions"));
+            return ErrorResult("Missing required argument: actions");
         }
 
         var stopOnError = true;
@@ -134,13 +134,12 @@ public class BatchTool : ToolBase
         var actions = actionsElement.EnumerateArray().ToList();
         if (actions.Count == 0)
         {
-            return Task.FromResult(ErrorResult("At least one batch action is required."));
+            return ErrorResult("At least one batch action is required.");
         }
 
         if (actions.Count > McpSafetyPolicy.MaximumBatchActions)
         {
-            return Task.FromResult(ErrorResult(
-                $"Batch exceeds the maximum of {McpSafetyPolicy.MaximumBatchActions} actions."));
+            return ErrorResult($"Batch exceeds the maximum of {McpSafetyPolicy.MaximumBatchActions} actions.");
         }
 
         var failed = false;
@@ -153,17 +152,16 @@ public class BatchTool : ToolBase
                 cancellationToken.ThrowIfCancellationRequested();
                 if (stopwatch.ElapsedMilliseconds > McpSafetyPolicy.MaximumBatchDurationMilliseconds)
                 {
-                    return Task.FromResult(ErrorResult(
-                        $"Batch exceeds the maximum duration of {McpSafetyPolicy.MaximumBatchDurationMilliseconds}ms."));
+                    return ErrorResult($"Batch exceeds the maximum duration of {McpSafetyPolicy.MaximumBatchDurationMilliseconds}ms.");
                 }
 
                 var actionType = actionObj.GetProperty("action").GetString();
                 var result = actionType switch
                 {
                     "click" => ExecuteClick(actionObj),
-                    "type" => ExecuteType(actionObj),
-                    "fill" => ExecuteFill(actionObj),
-                    "wait" => ExecuteWait(actionObj),
+                    "type" => await ExecuteTypeAsync(actionObj, cancellationToken),
+                    "fill" => await ExecuteFillAsync(actionObj, cancellationToken),
+                    "wait" => await ExecuteWaitAsync(actionObj, cancellationToken),
                     "snapshot" => ExecuteSnapshot(actionObj),
                     _ => $"Unknown action: {actionType}",
                 };
@@ -177,6 +175,10 @@ public class BatchTool : ToolBase
                         break;
                     }
                 }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -192,7 +194,7 @@ public class BatchTool : ToolBase
 
         var batchResult = TextResult(string.Join("\n", results));
         batchResult.IsError = failed ? true : null;
-        return Task.FromResult(batchResult);
+        return batchResult;
     }
 
     private string ExecuteClick(JsonElement action)
@@ -228,7 +230,7 @@ public class BatchTool : ToolBase
         return $"Clicked {elementName}";
     }
 
-    private string ExecuteType(JsonElement action)
+    private async Task<string> ExecuteTypeAsync(JsonElement action, CancellationToken cancellationToken)
     {
         var text = action.TryGetProperty("text", out var textProp) ? textProp.GetString() : null;
         if (string.IsNullOrEmpty(text))
@@ -246,7 +248,7 @@ public class BatchTool : ToolBase
             }
 
             element.Focus();
-            Thread.Sleep(30);
+            await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
         }
 
         Keyboard.Type(text);
@@ -260,7 +262,7 @@ public class BatchTool : ToolBase
         return $"Typed \"{text}\"";
     }
 
-    private string ExecuteFill(JsonElement action)
+    private async Task<string> ExecuteFillAsync(JsonElement action, CancellationToken cancellationToken)
     {
         var refId = action.TryGetProperty("ref", out var refProp) ? refProp.GetString() : null;
         var value = action.TryGetProperty("value", out var valProp) ? valProp.GetString() : null;
@@ -283,14 +285,14 @@ public class BatchTool : ToolBase
         }
 
         element.Focus();
-        Thread.Sleep(30);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
-        Thread.Sleep(30);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
         Keyboard.Type(value);
         return $"Filled with \"{value}\"";
     }
 
-    private static string ExecuteWait(JsonElement action)
+    private static async Task<string> ExecuteWaitAsync(JsonElement action, CancellationToken cancellationToken)
     {
         var ms = action.TryGetProperty("ms", out var msProp) ? msProp.GetInt32() : 100;
         if (ms < 0 || ms > McpSafetyPolicy.MaximumWaitMilliseconds)
@@ -298,7 +300,7 @@ public class BatchTool : ToolBase
             return $"Wait must be between 0 and {McpSafetyPolicy.MaximumWaitMilliseconds}ms";
         }
 
-        Thread.Sleep(ms);
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(ms), cancellationToken);
         return $"Waited {ms}ms";
     }
 
