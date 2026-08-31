@@ -43,6 +43,37 @@ public sealed class McpModernProtocolBlackBoxTests
         Assert.Equal(-32602, error.GetProperty("code").GetInt32());
         Assert.Contains("Unknown tool", error.GetProperty("message").GetString());
     }
+
+    [Fact]
+    public async Task Discover_AdvertisesModernCapabilitiesAndSupportedRevision()
+    {
+        using var response = await _fixture.SendAsync("server/discover");
+        var result = response.RootElement.GetProperty("result");
+
+        Assert.Contains("2026-07-28", result.GetProperty("supportedVersions")
+            .EnumerateArray().Select(version => version.GetString()));
+        Assert.True(result.GetProperty("capabilities").GetProperty("tools")
+            .GetProperty("listChanged").GetBoolean());
+        Assert.Equal("complete", result.GetProperty("resultType").GetString());
+    }
+
+    [Fact]
+    public async Task CancelledNotification_StopsAnInFlightToolWithoutAResponse()
+    {
+        var requestId = await _fixture.StartRequestAsync("tools/call", new
+        {
+            name = "clif_batch",
+            arguments = new
+            {
+                actions = new[] { new { action = "wait", ms = 5_000 } },
+            },
+        });
+        await Task.Delay(100);
+        await _fixture.SendNotificationAsync("notifications/cancelled", new { requestId, reason = "conformance test" });
+
+        using var response = await _fixture.TryReadAsync(TimeSpan.FromSeconds(2));
+        Assert.Null(response);
+    }
 }
 
 public sealed class ModernMcpProcessFixture : IDisposable
@@ -70,6 +101,7 @@ public sealed class ModernMcpProcessFixture : IDisposable
             RedirectStandardError = true,
             CreateNoWindow = true,
         };
+        startInfo.Environment["CLIF_MCP_ALLOW_INPUT"] = "true";
         _process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start MCP executable.");
         _input = _process.StandardInput;
         _input.AutoFlush = true;
@@ -77,6 +109,17 @@ public sealed class ModernMcpProcessFixture : IDisposable
     }
 
     public async Task<JsonDocument> SendAsync(string method, object? parameters = null)
+    {
+        var id = await StartRequestAsync(method, parameters);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        var line = await _output.ReadLineAsync(timeout.Token)
+            ?? throw new InvalidOperationException("MCP process closed stdout before responding.");
+        var response = JsonDocument.Parse(line);
+        Assert.Equal(id, response.RootElement.GetProperty("id").GetInt32());
+        return response;
+    }
+
+    public async Task<int> StartRequestAsync(string method, object? parameters = null)
     {
         var id = Interlocked.Increment(ref _nextId);
         var requestParameters = new Dictionary<string, object?>
@@ -106,12 +149,32 @@ public sealed class ModernMcpProcessFixture : IDisposable
         };
 
         await _input.WriteLineAsync(JsonSerializer.Serialize(request));
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-        var line = await _output.ReadLineAsync(timeout.Token)
-            ?? throw new InvalidOperationException("MCP process closed stdout before responding.");
-        var response = JsonDocument.Parse(line);
-        Assert.Equal(id, response.RootElement.GetProperty("id").GetInt32());
-        return response;
+        return id;
+    }
+
+    public async Task SendNotificationAsync(string method, object? parameters = null)
+    {
+        var notification = new Dictionary<string, object?>
+        {
+            ["jsonrpc"] = "2.0",
+            ["method"] = method,
+            ["params"] = parameters,
+        };
+        await _input.WriteLineAsync(JsonSerializer.Serialize(notification));
+    }
+
+    public async Task<JsonDocument?> TryReadAsync(TimeSpan timeout)
+    {
+        using var cancellation = new CancellationTokenSource(timeout);
+        try
+        {
+            var line = await _output.ReadLineAsync(cancellation.Token);
+            return line is null ? null : JsonDocument.Parse(line);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
     }
 
     public void Dispose()
