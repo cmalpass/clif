@@ -62,7 +62,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     /// <summary>
     /// Collection of validation rules to apply.
     /// </summary>
-    protected readonly List<IValidationRule<T>> Rules = new();
+    private readonly List<IValidationRule<T>> rules = new();
 
     /// <summary>
     /// Validates the specified input.
@@ -87,7 +87,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     /// <param name="rule">The validation rule to add.</param>
     protected void AddRule(IValidationRule<T> rule)
     {
-        this.Rules.Add(rule);
+        this.rules.Add(rule);
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     {
         var result = ValidationResult.Success();
 
-        foreach (var rule in this.Rules)
+        foreach (var rule in this.rules)
         {
             var ruleResult = rule.Validate(input);
             if (!ruleResult.IsValid)
