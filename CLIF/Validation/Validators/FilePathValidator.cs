@@ -10,9 +10,9 @@ namespace CLIF.Validation.Validators;
 /// </summary>
 public class FilePathValidator : ValidatorBase<string>
 {
-    private readonly bool _mustExist;
-    private readonly string[] _allowedExtensions;
-    private readonly long _maxFileSize;
+    private readonly bool mustExist;
+    private readonly string[] allowedExtensions;
+    private readonly long maxFileSize;
 
     /// <summary>
     /// Initializes a new instance of the FilePathValidator class.
@@ -22,9 +22,9 @@ public class FilePathValidator : ValidatorBase<string>
     /// <param name="maxFileSize">Maximum allowed file size in bytes (default: 10MB).</param>
     public FilePathValidator(bool mustExist = false, string[]? allowedExtensions = null, long maxFileSize = 10 * 1024 * 1024)
     {
-        this._mustExist = mustExist;
-        this._allowedExtensions = allowedExtensions ?? Array.Empty<string>();
-        this._maxFileSize = maxFileSize;
+        this.mustExist = mustExist;
+        this.allowedExtensions = allowedExtensions ?? Array.Empty<string>();
+        this.maxFileSize = maxFileSize;
 
         this.AddRule(new LengthRule(1, 260)); // Windows MAX_PATH
         this.AddRule(new PathTraversalRule());
@@ -76,7 +76,7 @@ public class FilePathValidator : ValidatorBase<string>
         var result = this.ValidateRules(normalizedPath);
 
         // Check if file exists when required
-        if (this._mustExist && result.IsValid)
+        if (this.mustExist && result.IsValid)
         {
             if (!File.Exists(normalizedPath))
             {
@@ -85,12 +85,12 @@ public class FilePathValidator : ValidatorBase<string>
             else
             {
                 // Validate file extension
-                if (this._allowedExtensions.Any())
+                if (this.allowedExtensions.Any())
                 {
                     var extension = Path.GetExtension(normalizedPath).ToLowerInvariant();
-                    if (!this._allowedExtensions.Contains(extension))
+                    if (!this.allowedExtensions.Contains(extension))
                     {
-                        result.AddError($"File extension '{extension}' is not allowed. Allowed extensions: {string.Join(", ", this._allowedExtensions)}");
+                        result.AddError($"File extension '{extension}' is not allowed. Allowed extensions: {string.Join(", ", this.allowedExtensions)}");
                     }
                 }
 
@@ -98,9 +98,9 @@ public class FilePathValidator : ValidatorBase<string>
                 try
                 {
                     var fileInfo = new FileInfo(normalizedPath);
-                    if (fileInfo.Length > this._maxFileSize)
+                    if (fileInfo.Length > this.maxFileSize)
                     {
-                        result.AddError($"File size ({fileInfo.Length:N0} bytes) exceeds maximum allowed size ({this._maxFileSize:N0} bytes)");
+                        result.AddError($"File size ({fileInfo.Length:N0} bytes) exceeds maximum allowed size ({this.maxFileSize:N0} bytes)");
                     }
                 }
                 catch (Exception ex)
@@ -173,8 +173,8 @@ public class FilePathValidator : ValidatorBase<string>
 /// </summary>
 public class DirectoryPathValidator : ValidatorBase<string>
 {
-    private readonly bool _mustExist;
-    private readonly bool _createIfNotExists;
+    private readonly bool mustExist;
+    private readonly bool createIfNotExists;
 
     /// <summary>
     /// Initializes a new instance of the DirectoryPathValidator class.
@@ -183,8 +183,8 @@ public class DirectoryPathValidator : ValidatorBase<string>
     /// <param name="createIfNotExists">Whether to create the directory if it doesn't exist.</param>
     public DirectoryPathValidator(bool mustExist = true, bool createIfNotExists = false)
     {
-        this._mustExist = mustExist;
-        this._createIfNotExists = createIfNotExists;
+        this.mustExist = mustExist;
+        this.createIfNotExists = createIfNotExists;
 
         this.AddRule(new LengthRule(1, 248)); // Windows MAX_PATH minus space for filename
         this.AddRule(new PathTraversalRule());
@@ -221,11 +221,11 @@ public class DirectoryPathValidator : ValidatorBase<string>
         {
             if (!Directory.Exists(directoryPath))
             {
-                if (this._mustExist && !this._createIfNotExists)
+                if (this.mustExist && !this.createIfNotExists)
                 {
                     result.AddError($"Directory not found: {directoryPath}");
                 }
-                else if (this._createIfNotExists)
+                else if (this.createIfNotExists)
                 {
                     try
                     {
