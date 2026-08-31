@@ -16,23 +16,32 @@ public class ListWindowsTool : ToolBase
     private readonly WindowSessionManager _sessionManager;
     private readonly McpSafetyPolicy _safetyPolicy;
 
+    /// <summary>
+    /// Initializes the window-listing tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to enumerate windows.</param>
+    /// <param name="safetyPolicy">Optional policy restricting window operations.</param>
     public ListWindowsTool(WindowSessionManager sessionManager, McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_list_windows";
 
+    /// <inheritdoc />
     public override string Description =>
         "List all open windows on the desktop with their handles, titles, and process names.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
         properties = new { },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         try
@@ -67,16 +76,23 @@ public class FocusWindowTool : ToolBase
 {
     private readonly WindowSessionManager _sessionManager;
 
+    /// <summary>
+    /// Initializes the window-focus tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
     public FocusWindowTool(WindowSessionManager sessionManager)
     {
         _sessionManager = sessionManager;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_focus";
 
+    /// <inheritdoc />
     public override string Description =>
         "Bring a window to the foreground and give it focus.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -91,6 +107,7 @@ public class FocusWindowTool : ToolBase
         required = new[] { "handle" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");
@@ -120,6 +137,12 @@ public class CloseWindowTool : ToolBase
     private readonly ElementRegistry? _elementRegistry;
     private readonly McpSafetyPolicy _safetyPolicy;
 
+    /// <summary>
+    /// Initializes the window-close tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
+    /// <param name="elementRegistry">Optional registry used to clear element references.</param>
+    /// <param name="safetyPolicy">Optional policy restricting window operations.</param>
     public CloseWindowTool(
         WindowSessionManager sessionManager,
         ElementRegistry? elementRegistry = null,
@@ -130,11 +153,14 @@ public class CloseWindowTool : ToolBase
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_close";
 
+    /// <inheritdoc />
     public override string Description =>
         "Close a window by its handle.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -149,6 +175,7 @@ public class CloseWindowTool : ToolBase
         required = new[] { "handle" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");

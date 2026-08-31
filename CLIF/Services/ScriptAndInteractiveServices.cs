@@ -4,6 +4,9 @@ using CLIF.Core;
 
 namespace CLIF.Services;
 
+/// <summary>
+/// Loads, validates, saves, and executes CLIF automation scripts.
+/// </summary>
 public class ScriptService : IScriptService
 {
     private readonly ILogger<ScriptService> _logger;
@@ -12,6 +15,13 @@ public class ScriptService : IScriptService
     private readonly ISessionCaptureService _captureService;
     private int? _attachedProcessId;
 
+    /// <summary>
+    /// Initializes the script service.
+    /// </summary>
+    /// <param name="logger">Logger used for execution diagnostics.</param>
+    /// <param name="processService">Service used to resolve target processes.</param>
+    /// <param name="automationService">Service used to perform UI automation.</param>
+    /// <param name="captureService">Service used to record execution sessions.</param>
     public ScriptService(ILogger<ScriptService> logger, IProcessService processService, IAutomationService automationService, ISessionCaptureService captureService)
     {
         this._logger = logger;
@@ -20,6 +30,7 @@ public class ScriptService : IScriptService
         this._captureService = captureService;
     }
 
+    /// <inheritdoc />
     public async Task<ScriptExecutionResult> ExecuteScriptAsync(string scriptPath, int? processIdOverride = null)
     {
         // Start capture session
@@ -59,6 +70,7 @@ public class ScriptService : IScriptService
 
 
 
+    /// <inheritdoc />
     public async Task<ScriptExecutionResult> ExecuteScriptContentAsync(string jsonContent, int? processIdOverride = null)
     {
         var result = new ScriptExecutionResult();
@@ -514,6 +526,7 @@ public class ScriptService : IScriptService
         }
     }
 
+    /// <inheritdoc />
     public async Task<bool> ValidateScriptAsync(string scriptPath)
     {
         try
@@ -528,6 +541,7 @@ public class ScriptService : IScriptService
         }
     }
 
+    /// <inheritdoc />
     public async Task<Script?> LoadScriptAsync(string scriptPath)
     {
         try
@@ -550,6 +564,7 @@ public class ScriptService : IScriptService
         }
     }
 
+    /// <inheritdoc />
     public async Task SaveScriptAsync(Script script, string scriptPath)
     {
         try
@@ -568,6 +583,9 @@ public class ScriptService : IScriptService
     }
 }
 
+/// <summary>
+/// Runs an interactive command session for desktop automation.
+/// </summary>
 public class InteractiveService : IInteractiveService
 {
     private readonly ILogger<InteractiveService> _logger;
@@ -575,8 +593,16 @@ public class InteractiveService : IInteractiveService
     private readonly IElementTreeService _elementTreeService;
     private readonly ISessionCaptureService _captureService;
 
+    /// <inheritdoc />
     public bool IsSessionActive { get; private set; }
 
+    /// <summary>
+    /// Initializes the interactive service.
+    /// </summary>
+    /// <param name="logger">Logger used for command diagnostics.</param>
+    /// <param name="automationService">Service used to perform UI automation.</param>
+    /// <param name="elementTreeService">Service used to inspect and search UI trees.</param>
+    /// <param name="captureService">Service used to record interactions.</param>
     public InteractiveService(
         ILogger<InteractiveService> logger,
         IAutomationService automationService,
@@ -589,11 +615,16 @@ public class InteractiveService : IInteractiveService
         this._captureService = captureService;
     }
 
+    /// <summary>
+    /// Starts the interactive command mode.
+    /// </summary>
+    /// <param name="processId">Optional process to attach to initially.</param>
     public async Task StartInteractiveModeAsync(int? processId = null)
     {
         await this.StartInteractiveSessionAsync(processId);
     }
 
+    /// <inheritdoc />
     public async Task StartInteractiveSessionAsync(int? processId = null)
     {
         this.IsSessionActive = true;
@@ -642,6 +673,7 @@ public class InteractiveService : IInteractiveService
         Console.WriteLine("Interactive session ended.");
     }
 
+    /// <inheritdoc />
     public async Task<bool> ExecuteCommandAsync(string command)
     {
         try
@@ -965,6 +997,7 @@ public class InteractiveService : IInteractiveService
         return success;
     }
 
+    /// <inheritdoc />
     public async Task ShowHelpAsync()
     {
         await Task.Run(() =>
@@ -985,6 +1018,7 @@ public class InteractiveService : IInteractiveService
         });
     }
 
+    /// <inheritdoc />
     public async Task<string> GetPromptAsync()
     {
         return await Task.FromResult("CLIF> ");
