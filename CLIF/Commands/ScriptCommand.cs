@@ -58,7 +58,9 @@ public class ScriptCommand : Command
             {
                 Console.WriteLine($"Error executing script: {ex.Message}");
             }
-        }, scriptFileArgument, processIdOption);
+        },
+            scriptFileArgument,
+            processIdOption);
     }
 }
 
