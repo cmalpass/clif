@@ -461,7 +461,8 @@ public class InteractCommand : Command
 
         for (int i = 0; i < states.Length && i < rowNames.Length; i++)
         {
-            if (states[i]) // Only uncheck if currently checked
+            // Only uncheck if currently checked
+            if (states[i])
             {
                 Console.WriteLine($"Unchecking row {i} ({rowNames[i]})...");
                 var result = await automation.SetDataGridCheckboxAsync(elementId, i, false);
