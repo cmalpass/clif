@@ -547,7 +547,9 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 if (!this.IsAttached || this._rootElement == null)
+                {
                     return Array.Empty<byte>();
+                }
 
                 var capture = this._rootElement.Capture();
                 using var stream = new MemoryStream();
@@ -618,13 +620,19 @@ public class AutomationService : IAutomationService, IDisposable
         var conditions = new List<ConditionBase>();
 
         if (!string.IsNullOrEmpty(criteria.AutomationId))
+        {
             conditions.Add(conditionFactory.ByAutomationId(criteria.AutomationId));
+        }
 
         if (!string.IsNullOrEmpty(criteria.Name))
+        {
             conditions.Add(conditionFactory.ByName(criteria.Name));
+        }
 
         if (!string.IsNullOrEmpty(criteria.ClassName))
+        {
             conditions.Add(conditionFactory.ByClassName(criteria.ClassName));
+        }
 
         if (!string.IsNullOrEmpty(criteria.ControlType) &&
             Enum.TryParse<ControlType>(criteria.ControlType, ignoreCase: true, out var controlType))
@@ -1700,7 +1708,11 @@ public class AutomationService : IAutomationService, IDisposable
                 var beforeChecked = before.GetValueOrDefault("IsChecked");
                 var afterChecked = after.GetValueOrDefault("IsChecked");
                 bool changed = !Equals(beforeChecked, afterChecked);
-                if (changed) this._logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
+                if (changed)
+                {
+                    this._logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
+                }
+
                 return changed;
             }
             else if (element.ControlType == ControlType.RadioButton)
@@ -1708,7 +1720,11 @@ public class AutomationService : IAutomationService, IDisposable
                 var beforeSelected = before.GetValueOrDefault("IsSelected");
                 var afterSelected = after.GetValueOrDefault("IsSelected");
                 bool changed = !Equals(beforeSelected, afterSelected);
-                if (changed) this._logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
+                if (changed)
+                {
+                    this._logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
+                }
+
                 return changed;
             }
             else if (element.ControlType == ControlType.Button)
@@ -1721,7 +1737,11 @@ public class AutomationService : IAutomationService, IDisposable
                         var beforeToggle = before.GetValueOrDefault("ToggleState");
                         var afterToggle = after.GetValueOrDefault("ToggleState");
                         bool changed = !Equals(beforeToggle, afterToggle);
-                        if (changed) this._logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
+                        if (changed)
+                        {
+                            this._logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
+                        }
+
                         return changed;
                     }
                 }
@@ -1973,7 +1993,10 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 var dataGrid = this.FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null) return false;
+                if (dataGrid == null)
+                {
+                    return false;
+                }
 
                 // Find row by name cell content
                 var nameCell = dataGrid.FindFirstDescendant(cf =>
@@ -1988,7 +2011,10 @@ public class AutomationService : IAutomationService, IDisposable
 
                 // Get the parent row
                 var row = nameCell.Parent;
-                if (row == null) return false;
+                if (row == null)
+                {
+                    return false;
+                }
 
                 // Find checkbox cell in this row
                 AutomationElement? checkboxCell = null;
@@ -2004,7 +2030,10 @@ public class AutomationService : IAutomationService, IDisposable
                     }
                 }
 
-                if (checkboxCell == null) return false;
+                if (checkboxCell == null)
+                {
+                    return false;
+                }
 
                 var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
 
@@ -2042,13 +2071,19 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 var dataGrid = this.FindElementAsync(dataGridSelector).Result;
-                if (dataGrid == null) return false;
+                if (dataGrid == null)
+                {
+                    return false;
+                }
 
                 var dataRows = dataGrid.FindAllDescendants(cf =>
                     cf.ByControlType(ControlType.DataItem)
                     .And(cf.ByName("TestWpfApp.SampleData")));
 
-                if (rowIndex >= dataRows.Length) return false;
+                if (rowIndex >= dataRows.Length)
+                {
+                    return false;
+                }
 
                 var row = dataRows[rowIndex];
 
@@ -2066,7 +2101,10 @@ public class AutomationService : IAutomationService, IDisposable
                     }
                 }
 
-                if (checkboxCell == null) return false;
+                if (checkboxCell == null)
+                {
+                    return false;
+                }
 
                 var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
 
@@ -2208,7 +2246,9 @@ internal static class SelectorParser
     {
         criteria = new SelectorCriteria();
         if (string.IsNullOrWhiteSpace(selector))
+        {
             return false;
+        }
 
         var trimmedSelector = selector.Trim();
         if (!trimmedSelector.Contains('='))
@@ -2218,21 +2258,29 @@ internal static class SelectorParser
 
         var clauses = SplitClauses(trimmedSelector);
         if (clauses.Count == 0)
+        {
             return false;
+        }
 
         foreach (var clause in clauses)
         {
             var separatorIndex = clause.IndexOf('=');
             if (separatorIndex <= 0)
+            {
                 return false;
+            }
 
             var key = clause[..separatorIndex].Trim().ToLowerInvariant();
             if (!SupportedKeys.Contains(key, StringComparer.Ordinal))
+            {
                 return false;
+            }
 
             var value = ParseValue(clause[(separatorIndex + 1)..].Trim());
             if (value is null || !criteria.TrySet(key, value))
+            {
                 return false;
+            }
         }
 
         if (!string.IsNullOrEmpty(criteria.ControlType) &&
@@ -2294,7 +2342,9 @@ internal static class SelectorParser
         }
 
         if (quoted || escaped)
+        {
             return [];
+        }
 
         clauses.Add(selector[start..].Trim());
         return clauses.Any(string.IsNullOrEmpty) ? [] : clauses;
@@ -2303,13 +2353,19 @@ internal static class SelectorParser
     private static string? ParseValue(string value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return null;
+        }
 
         if (value[0] != '"')
+        {
             return value.Contains('"') ? null : value;
+        }
 
         if (value.Length < 2 || value[^1] != '"')
+        {
             return null;
+        }
 
         var result = new System.Text.StringBuilder(value.Length - 2);
         var escaped = false;
@@ -2319,7 +2375,9 @@ internal static class SelectorParser
             if (escaped)
             {
                 if (character is not ('"' or '\\'))
+                {
                     return null;
+                }
 
                 result.Append(character);
                 escaped = false;

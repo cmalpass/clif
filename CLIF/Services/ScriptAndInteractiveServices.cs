@@ -260,7 +260,11 @@ public class ScriptService : IScriptService
                     return true;
 
                 case "clear":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var clearElement = await this._automationService.FindElementAsync(step.Element);
                     if (clearElement != null)
                     {
@@ -271,7 +275,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "type":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var typeElement = await this._automationService.FindElementAsync(step.Element);
                     if (typeElement != null)
                     {
@@ -282,7 +290,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "click":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var clickElement = await this._automationService.FindElementAsync(step.Element);
                     if (clickElement != null)
                     {
@@ -293,12 +305,20 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "focus":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var focusElement = await this._automationService.FindElementAsync(step.Element);
                     return focusElement != null && await this._automationService.FocusAsync(focusElement);
 
                 case "select":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var selectElement = await this._automationService.FindElementAsync(step.Element);
                     if (selectElement != null)
                     {
@@ -310,7 +330,11 @@ public class ScriptService : IScriptService
 
                 case "setvalue":
                 case "setValue":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var valueElement = await this._automationService.FindElementAsync(step.Element);
                     if (valueElement != null)
                     {
@@ -328,7 +352,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "selecttab":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var tabElement = await this._automationService.FindElementAsync(step.Element);
                     if (tabElement != null)
                     {
@@ -339,7 +367,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "selectrow":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var gridElement = await this._automationService.FindElementAsync(step.Element);
                     if (gridElement != null)
                     {
@@ -351,7 +383,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "selectcell":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var cellGridElement = await this._automationService.FindElementAsync(step.Element);
                     if (cellGridElement != null)
                     {
@@ -364,7 +400,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "expand":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var expandElement = await this._automationService.FindElementAsync(step.Element);
                     if (expandElement != null)
                     {
@@ -375,7 +415,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "collapse":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var collapseElement = await this._automationService.FindElementAsync(step.Element);
                     if (collapseElement != null)
                     {
@@ -387,7 +431,11 @@ public class ScriptService : IScriptService
 
                 case "getvalue":
                 case "getselection":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var valueReadElement = await this._automationService.FindElementAsync(step.Element);
                     if (valueReadElement != null)
                     {
@@ -400,7 +448,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "getstate":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var stateReadElement = await this._automationService.FindElementAsync(step.Element);
                     if (stateReadElement != null)
                     {
@@ -413,7 +465,11 @@ public class ScriptService : IScriptService
                     return false;
 
                 case "validate":
-                    if (string.IsNullOrEmpty(step.Element)) return false;
+                    if (string.IsNullOrEmpty(step.Element))
+                    {
+                        return false;
+                    }
+
                     var validateElement = await this._automationService.FindElementAsync(step.Element);
                     if (validateElement != null)
                     {
@@ -477,7 +533,9 @@ public class ScriptService : IScriptService
         try
         {
             if (!File.Exists(scriptPath))
+            {
                 return null;
+            }
 
             var content = await File.ReadAllTextAsync(scriptPath);
             return JsonSerializer.Deserialize<Script>(content, new JsonSerializerOptions
@@ -563,7 +621,9 @@ public class InteractiveService : IInteractiveService
 
             var input = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(input))
+            {
                 continue;
+            }
 
             if (input.Trim().ToLowerInvariant() == "exit")
             {
@@ -588,7 +648,9 @@ public class InteractiveService : IInteractiveService
         {
             var parts = this.ParseCommand(command);
             if (parts.Length == 0)
+            {
                 return true;
+            }
 
             var cmd = parts[0].ToLowerInvariant();
 
@@ -638,7 +700,10 @@ public class InteractiveService : IInteractiveService
                 case "tree":
                     var depth = 5;
                     if (parts.Length > 1 && int.TryParse(parts[1], out var d))
+                    {
                         depth = d;
+                    }
+
                     return await this.ExecuteTreeAsync(depth);
 
                 case "search":
@@ -662,7 +727,10 @@ public class InteractiveService : IInteractiveService
                     }
 
                     if (int.TryParse(parts[1], out var pid))
+                    {
                         return await this.ExecuteAttachAsync(pid);
+                    }
+
                     Console.WriteLine("Invalid process ID");
                     return false;
 
@@ -708,7 +776,9 @@ public class InteractiveService : IInteractiveService
         }
 
         if (current.Length > 0)
+        {
             parts.Add(current.ToString());
+        }
 
         return parts.ToArray();
     }
