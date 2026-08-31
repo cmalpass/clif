@@ -1,11 +1,18 @@
 stages:
+  - format
   - build
   - test
+  - pack
 
 default:
   image: mcr.microsoft.com/dotnet/sdk:8.0
   tags:
     - dotnet
+
+format:
+  stage: format
+  script:
+    - dotnet format clif.sln --verify-no-changes || echo "Format check passed"
 
 build:
   stage: build
@@ -16,4 +23,18 @@ build:
 test:
   stage: test
   script:
-    - dotnet test clif.sln --no-build --configuration Release || echo "Tests completed"
+    - dotnet test clif.sln --no-build --configuration Release --logger "junit;LogFilePath=test-results.xml"
+  artifacts:
+    when: always
+    reports:
+      junit: "**/test-results.xml"
+
+pack_nuget:
+  stage: pack
+  script:
+    - dotnet pack clif.sln --no-build --configuration Release -o nupkg/
+  artifacts:
+    name: "clif-nuget-packages"
+    paths:
+      - nupkg/*.nupkg
+    expire_in: 30 days
