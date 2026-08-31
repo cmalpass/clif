@@ -26,11 +26,11 @@ public class ProcessService : IProcessService
         return await Task.Run(() =>
         {
             var wpfProcesses = new List<ProcessInfo>();
-            
+
             try
             {
                 var processes = Process.GetProcesses();
-                
+
                 foreach (var process in processes)
                 {
                     try
@@ -62,7 +62,7 @@ public class ProcessService : IProcessService
             {
                 this._logger.LogError(ex, "Failed to get WPF processes");
             }
-            
+
             return wpfProcesses.OrderBy(p => p.Name).ToList();
         });
     }
@@ -73,7 +73,7 @@ public class ProcessService : IProcessService
     public async Task<ProcessInfo?> FindProcessByNameAsync(string processName)
     {
         var processes = await this.GetWpfProcessesAsync();
-        return processes.FirstOrDefault(p => 
+        return processes.FirstOrDefault(p =>
             string.Equals(p.Name, processName, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -89,7 +89,7 @@ public class ProcessService : IProcessService
         }
 
         var processes = await this.GetWpfProcessesAsync();
-        return processes.FirstOrDefault(p => 
+        return processes.FirstOrDefault(p =>
             p.WindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -152,7 +152,7 @@ public class ProcessService : IProcessService
             foreach (ProcessModule module in modules)
             {
                 var moduleName = module.ModuleName.ToLowerInvariant();
-                if (moduleName.Contains("presentationframework") || 
+                if (moduleName.Contains("presentationframework") ||
                     moduleName.Contains("presentationcore") ||
                     moduleName.Contains("windowsbase") ||
                     moduleName.Contains("system.windows.forms"))
@@ -160,7 +160,7 @@ public class ProcessService : IProcessService
                     return true;
                 }
             }
-            
+
             // If we can't check modules, assume it's a GUI app if it has a main window
             return process.MainWindowHandle != IntPtr.Zero;
         }

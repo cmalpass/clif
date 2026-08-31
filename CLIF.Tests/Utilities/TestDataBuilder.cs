@@ -20,7 +20,7 @@ public class TestDataBuilder
     {
         _autoFixture = new Fixture();
         _faker = new Faker();
-        
+
         // Configure AutoFixture for better test data generation
         _autoFixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
             .ForEach(b => _autoFixture.Behaviors.Remove(b));
@@ -33,7 +33,7 @@ public class TestDataBuilder
     /// <typeparam name="T">Type to create</typeparam>
     /// <returns>Instance of T</returns>
     public T Create<T>() => _autoFixture.Create<T>();
-    
+
     /// <summary>
     /// Creates multiple instances of type T
     /// </summary>
@@ -48,13 +48,13 @@ public class TestDataBuilder
     /// <param name="length">Maximum length of text</param>
     /// <returns>Random text</returns>
     public string CreateRandomText(int length = 50) => _faker.Lorem.Text().Substring(0, Math.Min(length, 50));
-    
+
     /// <summary>
     /// Creates a random element ID
     /// </summary>
     /// <returns>Element ID</returns>
     public string CreateElementId() => _faker.Internet.DomainWord() + "Element";
-    
+
     /// <summary>
     /// Creates a random process ID
     /// </summary>
@@ -68,15 +68,15 @@ public class TestDataBuilder
     /// <returns>Path to created script file</returns>
     public async Task<string> CreateTestScriptAsync(object scriptObject)
     {
-        var json = JsonSerializer.Serialize(scriptObject, new JsonSerializerOptions 
-        { 
+        var json = JsonSerializer.Serialize(scriptObject, new JsonSerializerOptions
+        {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
-        
+
         var filePath = TestHelpers.GetTempFilePath(".json");
         await File.WriteAllTextAsync(filePath, json);
-        
+
         return filePath;
     }
 

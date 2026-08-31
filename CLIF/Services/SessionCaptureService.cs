@@ -24,12 +24,12 @@ public class SessionCaptureService : ISessionCaptureService
     // Windows API for bringing window to foreground
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
-    
+
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-    
+
     private const int SW_RESTORE = 9;
-    
+
     private readonly ILogger<SessionCaptureService> _logger;
     private string? _currentSessionId;
     private string? _currentSessionPath;
@@ -55,19 +55,19 @@ public class SessionCaptureService : ISessionCaptureService
                 var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 this._currentSessionId = sessionName ?? $"CLIF_Session_{timestamp}";
                 this._targetWindow = targetWindow;
-                
+
                 // Create session directory in the workspace root
                 var workspaceRoot = this.FindWorkspaceRoot();
                 var sessionsDir = Path.Combine(workspaceRoot, "sessions");
                 this._currentSessionPath = Path.Combine(sessionsDir, this._currentSessionId);
-                
+
                 Directory.CreateDirectory(this._currentSessionPath);
                 Directory.CreateDirectory(Path.Combine(this._currentSessionPath, "screenshots"));
-                
+
                 // Create log file
                 this._logFilePath = Path.Combine(this._currentSessionPath, "session.log");
                 this._captureCounter = 0;
-                
+
                 // Write session header
                 var sessionInfo = new[]
                 {
@@ -79,12 +79,12 @@ public class SessionCaptureService : ISessionCaptureService
                     "=" + new string('=', 50),
                     ""
                 };
-                
+
                 File.WriteAllLines(this._logFilePath, sessionInfo);
-                
+
                 this._logger.LogInformation($"📁 Started capture session: {this._currentSessionId}");
                 this._logger.LogInformation($"📂 Session path: {this._currentSessionPath}");
-                
+
                 return this._currentSessionId;
             }
         });
@@ -108,10 +108,10 @@ public class SessionCaptureService : ISessionCaptureService
                     var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
                     var screenshotName = $"{this._captureCounter:D3}_{actionType}_{timestamp.Replace(":", "")}.png";
                     var screenshotPath = Path.Combine(this._currentSessionPath, "screenshots", screenshotName);
-                    
+
                     // Capture screenshot
                     this.CaptureScreenshot(screenshotPath);
-                    
+
                     // Log the interaction
                     var logEntry = new[]
                     {
@@ -122,9 +122,9 @@ public class SessionCaptureService : ISessionCaptureService
                         $"  Screenshot: {screenshotName}",
                         ""
                     };
-                    
+
                     File.AppendAllLines(this._logFilePath, logEntry);
-                    
+
                     this._logger.LogInformation($"📸 Captured step {this._captureCounter}: {actionType} → {screenshotName}");
                 }
             }
@@ -178,13 +178,13 @@ public class SessionCaptureService : ISessionCaptureService
                         $"Screenshots saved in: {Path.Combine(this._currentSessionPath, "screenshots")}",
                         "=== End of Session ==="
                     };
-                    
+
                     File.AppendAllLines(this._logFilePath, sessionFooter);
-                    
+
                     this._logger.LogInformation($"📋 Session completed: {this._currentSessionId}");
                     this._logger.LogInformation($"📊 Total captures: {this._captureCounter}");
                     this._logger.LogInformation($"📁 Session saved: {this._currentSessionPath}");
-                    
+
                     // Reset session state
                     this._currentSessionId = null;
                     this._currentSessionPath = null;
@@ -209,14 +209,14 @@ public class SessionCaptureService : ISessionCaptureService
                 this._logger.LogDebug("Bringing target window to foreground for screenshot");
                 this.BringWindowToForeground(this._targetWindow);
                 Thread.Sleep(500); // Longer delay to ensure window is in focus and UI changes are rendered
-                
+
                 this._logger.LogDebug($"Capturing window: {this._targetWindow.Name} (Size: {this._targetWindow.BoundingRectangle})");
-                
+
                 // Capture the specific window
                 using var capture = FlaUI.Core.Capturing.Capture.Element(this._targetWindow);
                 using var bitmap = capture.Bitmap;
                 bitmap.Save(filePath, ImageFormat.Png);
-                
+
                 this._logger.LogDebug($"Screenshot saved: {filePath} (Size: {bitmap.Width}x{bitmap.Height})");
             }
             else
@@ -230,7 +230,7 @@ public class SessionCaptureService : ISessionCaptureService
         catch (Exception ex)
         {
             this._logger.LogWarning($"Failed to capture screenshot using FlaUI, trying fallback: {ex.Message}");
-            
+
             try
             {
                 // Fallback to basic screen capture
@@ -248,10 +248,10 @@ public class SessionCaptureService : ISessionCaptureService
         try
         {
             var windowHandle = new IntPtr(window.Properties.NativeWindowHandle);
-            
+
             // Restore window if minimized
             ShowWindow(windowHandle, SW_RESTORE);
-            
+
             // Bring to foreground
             SetForegroundWindow(windowHandle);
         }
@@ -260,7 +260,7 @@ public class SessionCaptureService : ISessionCaptureService
             this._logger.LogWarning($"Failed to bring window to foreground: {ex.Message}");
         }
     }
-    
+
     private void CaptureScreenshotFallback(string filePath)
     {
         var screen = Screen.PrimaryScreen
@@ -278,19 +278,19 @@ public class SessionCaptureService : ISessionCaptureService
         // Start from current directory and walk up to find workspace root
         var currentDir = Directory.GetCurrentDirectory();
         var dir = new DirectoryInfo(currentDir);
-        
+
         while (dir != null)
         {
             // Look for indicators of workspace root
-            if (dir.GetFiles("*.sln").Any() || 
-                dir.GetDirectories("CLIF").Any() || 
+            if (dir.GetFiles("*.sln").Any() ||
+                dir.GetDirectories("CLIF").Any() ||
                 dir.GetDirectories("TestWpfApp").Any())
             {
                 return dir.FullName;
             }
             dir = dir.Parent;
         }
-        
+
         // Fallback to current directory
         return currentDir;
     }
