@@ -16,17 +16,21 @@ public class ElementRegistry
     private static readonly Regex ReferencePattern = new(@"^w[1-9][0-9]{0,8}e[1-9][0-9]{0,8}$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
     private readonly Dictionary<string, AutomationElement> _elements = new();
     private readonly Dictionary<string, int> _windowCounters = new();
+    private readonly object _sync = new();
 
     /// <summary>
     /// Clear all elements for a window (called before each new snapshot).
     /// </summary>
     public void ClearWindow(string windowHandle)
     {
-        var prefix = windowHandle + "e";
-        var keysToRemove = _elements.Keys.Where(k => k.StartsWith(prefix)).ToList();
-        foreach (var key in keysToRemove)
+        lock (_sync)
         {
-            _elements.Remove(key);
+            var prefix = windowHandle + "e";
+            var keysToRemove = _elements.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList();
+            foreach (var key in keysToRemove)
+            {
+                _elements.Remove(key);
+            }
         }
 
         // Do not reset the counter. Reusing w1e1 for a new snapshot could make a
@@ -38,14 +42,17 @@ public class ElementRegistry
     /// </summary>
     public string Register(string windowHandle, AutomationElement element)
     {
-        if (!_windowCounters.ContainsKey(windowHandle))
+        lock (_sync)
         {
-            _windowCounters[windowHandle] = 0;
-        }
+            if (!_windowCounters.ContainsKey(windowHandle))
+            {
+                _windowCounters[windowHandle] = 0;
+            }
 
-        var refId = $"{windowHandle}e{++_windowCounters[windowHandle]}";
-        _elements[refId] = element;
-        return refId;
+            var refId = $"{windowHandle}e{++_windowCounters[windowHandle]}";
+            _elements[refId] = element;
+            return refId;
+        }
     }
 
     /// <summary>
@@ -58,7 +65,10 @@ public class ElementRegistry
             return null;
         }
 
-        return _elements.TryGetValue(refId, out var element) ? element : null;
+        lock (_sync)
+        {
+            return _elements.TryGetValue(refId, out var element) ? element : null;
+        }
     }
 
     /// <summary>
@@ -71,7 +81,10 @@ public class ElementRegistry
             return false;
         }
 
-        return _elements.ContainsKey(refId);
+        lock (_sync)
+        {
+            return _elements.ContainsKey(refId);
+        }
     }
 
     /// <summary>
@@ -79,13 +92,16 @@ public class ElementRegistry
     /// </summary>
     public void RemoveWindow(string windowHandle)
     {
-        var prefix = windowHandle + "e";
-        var keysToRemove = _elements.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList();
-        foreach (var key in keysToRemove)
+        lock (_sync)
         {
-            _elements.Remove(key);
-        }
+            var prefix = windowHandle + "e";
+            var keysToRemove = _elements.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).ToList();
+            foreach (var key in keysToRemove)
+            {
+                _elements.Remove(key);
+            }
 
-        _windowCounters.Remove(windowHandle);
+            _windowCounters.Remove(windowHandle);
+        }
     }
 }

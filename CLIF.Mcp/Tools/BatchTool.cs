@@ -50,6 +50,8 @@ public class BatchTool : ToolBase
             actions = new
             {
                 type = "array",
+                minItems = 1,
+                maxItems = McpSafetyPolicy.MaximumBatchActions,
                 description = "List of actions to execute in order",
                 items = new
                 {
@@ -65,11 +67,12 @@ public class BatchTool : ToolBase
                         @ref = new
                         {
                             type = "string",
-                            description = "Element ref for click/type/fill actions",
+                            description = "Element ref required for click, type, and fill actions",
                         },
                         text = new
                         {
                             type = "string",
+                            minLength = 1,
                             description = "Text for type action",
                         },
                         value = new
@@ -80,12 +83,14 @@ public class BatchTool : ToolBase
                         ms = new
                         {
                             type = "integer",
+                            minimum = 0,
+                            maximum = McpSafetyPolicy.MaximumWaitMilliseconds,
                             description = "Milliseconds for wait action (default: 100)",
                         },
                         handle = new
                         {
                             type = "string",
-                            description = "Window handle for snapshot action",
+                            description = "Registered window handle required for snapshot actions",
                         },
                         submit = new
                         {
@@ -119,14 +124,25 @@ public class BatchTool : ToolBase
         JsonElement? arguments,
         CancellationToken cancellationToken)
     {
-        if (arguments == null || !arguments.Value.TryGetProperty("actions", out var actionsElement))
+        if (arguments == null || arguments.Value.ValueKind != JsonValueKind.Object ||
+            !arguments.Value.TryGetProperty("actions", out var actionsElement))
         {
             return ErrorResult("Missing required argument: actions");
+        }
+
+        if (actionsElement.ValueKind != JsonValueKind.Array)
+        {
+            return ErrorResult("Argument 'actions' must be an array.");
         }
 
         var stopOnError = true;
         if (arguments.Value.TryGetProperty("stopOnError", out var stopProp))
         {
+            if (stopProp.ValueKind != JsonValueKind.True && stopProp.ValueKind != JsonValueKind.False)
+            {
+                return ErrorResult("Argument 'stopOnError' must be a boolean.");
+            }
+
             stopOnError = stopProp.GetBoolean();
         }
 
@@ -155,7 +171,21 @@ public class BatchTool : ToolBase
                     return ErrorResult($"Batch exceeds the maximum duration of {McpSafetyPolicy.MaximumBatchDurationMilliseconds}ms.");
                 }
 
-                var actionType = actionObj.GetProperty("action").GetString();
+                if (actionObj.ValueKind != JsonValueKind.Object || !actionObj.TryGetProperty("action", out var actionProperty) ||
+                    actionProperty.ValueKind != JsonValueKind.String)
+                {
+                    results.Add($"{index + 1}. ERROR: Each action must be an object with a string 'action' property.");
+                    failed = true;
+                    if (stopOnError)
+                    {
+                        results.Add($"Stopped at action {index + 1} due to error");
+                        break;
+                    }
+
+                    continue;
+                }
+
+                var actionType = actionProperty.GetString();
                 var result = actionType switch
                 {
                     "click" => ExecuteClick(actionObj),
@@ -239,17 +269,19 @@ public class BatchTool : ToolBase
         }
 
         var refId = action.TryGetProperty("ref", out var refProp) ? refProp.GetString() : null;
-        if (!string.IsNullOrEmpty(refId))
+        if (string.IsNullOrEmpty(refId))
         {
-            var element = _elementRegistry.GetElement(refId);
-            if (element == null)
-            {
-                return $"Element not found: {refId}";
-            }
-
-            element.Focus();
-            await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
+            return "Missing ref";
         }
+
+        var element = _elementRegistry.GetElement(refId);
+        if (element == null)
+        {
+            return $"Element not found: {refId}";
+        }
+
+        element.Focus();
+        await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
 
         Keyboard.Type(text);
 
@@ -315,43 +347,19 @@ public class BatchTool : ToolBase
     private string ExecuteSnapshot(JsonElement action)
     {
         var handle = action.TryGetProperty("handle", out var handleProp) ? handleProp.GetString() : null;
-
-        Window? window = null;
-        if (!string.IsNullOrEmpty(handle))
+        if (string.IsNullOrEmpty(handle))
         {
-            window = _sessionManager.GetWindow(handle);
-            if (window == null)
-            {
-                return $"Window not found: {handle}";
-            }
-        }
-        else
-        {
-            var focusedElement = _sessionManager.Automation.FocusedElement();
-            if (focusedElement != null)
-            {
-                var current = focusedElement;
-                while (current != null)
-                {
-                    if (current.Properties.ControlType.ValueOrDefault == ControlType.Window)
-                    {
-                        window = current.AsWindow();
-                        handle = _sessionManager.RegisterWindow(window);
-                        break;
-                    }
-
-                    current = current.Parent;
-                }
-            }
+            return "Missing handle";
         }
 
+        var window = _sessionManager.GetWindow(handle);
         if (window == null)
         {
-            return "No window found";
+            return $"Window not found: {handle}";
         }
 
         var snapshotBuilder = new SnapshotBuilder(_elementRegistry);
-        var snapshot = snapshotBuilder.BuildSnapshot(handle!, window);
+        var snapshot = snapshotBuilder.BuildSnapshot(handle, window);
         return $"\n{snapshot}";
     }
 }

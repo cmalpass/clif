@@ -1,5 +1,6 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Tools;
 using FlaUI.UIA3;
 using System.IO;
 
@@ -34,6 +35,8 @@ public class WpfUiCollection : ICollectionFixture<WpfTestAppFixture> { }
 /// </remarks>
 public sealed class WpfTestAppFixture : IDisposable
 {
+    private const string TestApplicationWindowTitle = "Comprehensive WPF Controls Test App";
+
     /// <summary>Gets the FlaUI application wrapper, or <c>null</c> when unavailable.</summary>
     public Application? App { get; private set; }
 
@@ -72,12 +75,34 @@ public sealed class WpfTestAppFixture : IDisposable
             Automation = new UIA3Automation();
             App = Application.Launch(exePath);
             App.WaitWhileMainHandleIsMissing(TimeSpan.FromSeconds(15));
+            WaitForAutomationTree();
             IsAvailable = true;
         }
         catch (Exception ex)
         {
             UnavailableReason = $"Failed to launch TestWpfApp ('{exePath}'): {ex.GetType().Name}: {ex.Message}";
             Cleanup();
+        }
+    }
+
+    private void WaitForAutomationTree()
+    {
+        // A native window handle is available before Caliburn.Micro finishes
+        // materialising ShellView. Wait for a stable, automation-visible control
+        // rather than allowing the collection to attach to an empty shell window.
+        var readinessProbe = Retry.WhileNull(
+                () => GetMainWindow()
+                    ?.FindFirstDescendant(cf => cf.ByAutomationId("TestTextBox")),
+                timeout: TimeSpan.FromSeconds(15),
+                interval: TimeSpan.FromMilliseconds(100),
+                throwOnTimeout: false,
+                ignoreException: true)
+            .Result;
+
+        if (readinessProbe == null)
+        {
+            throw new InvalidOperationException(
+                "TestWpfApp opened a window but did not expose TestTextBox through UI Automation within 15 seconds.");
         }
     }
 
@@ -136,7 +161,9 @@ public sealed class WpfTestAppFixture : IDisposable
     /// Returns the main window of the running TestWpfApp.
     /// Callers should only invoke this when <see cref="IsAvailable"/> is <c>true</c>.
     /// </summary>
-    public Window GetMainWindow() => App!.GetMainWindow(Automation!)
+    public Window GetMainWindow() => App!.GetAllTopLevelWindows(Automation!)
+        .FirstOrDefault(window =>
+            string.Equals(window.Title, TestApplicationWindowTitle, StringComparison.Ordinal))
         ?? throw new InvalidOperationException("The TestWpfApp main window is not available.");
 
     private void Cleanup()

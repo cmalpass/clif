@@ -45,6 +45,22 @@ public sealed class McpModernProtocolBlackBoxTests
     }
 
     [Fact]
+    public async Task ToolCall_RejectsMissingRequiredArgumentsBeforeUiAutomation()
+    {
+        using var response = await _fixture.SendAsync("tools/call", new
+        {
+            name = "clif_snapshot",
+            arguments = new { },
+        });
+        var result = response.RootElement.GetProperty("result");
+
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Contains("MCP_INVALID_PARAMS: missing required argument 'handle'", result
+            .GetProperty("content")[0]
+            .GetProperty("text").GetString());
+    }
+
+    [Fact]
     public async Task Discover_AdvertisesModernCapabilitiesAndSupportedRevision()
     {
         using var response = await _fixture.SendAsync("server/discover");

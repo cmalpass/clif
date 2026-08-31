@@ -208,6 +208,14 @@ Element references are session-scoped handles. Do not persist them across a new
 server process or after the corresponding window is closed. `clif_batch` accepts
 at most 25 actions and is bounded by the server's safety limits.
 
+`clif_snapshot` and `clif_search_elements` require a registered window handle;
+they do not inspect the current foreground window. Get a handle through
+`clif_launch` or, when `CLIF_MCP_ALLOW_WINDOW_ENUMERATION=true` is explicitly
+granted, `clif_list_windows`. In `clif_batch`, `click`, `type`, and `fill`
+actions require an element `ref`, while `snapshot` requires a window `handle`.
+This prevents keyboard input or accessibility data collection from falling back
+to an unrelated focused application.
+
 The server implements the modern `2026-07-28` MCP contract and negotiates
 legacy clients such as `2025-06-18`. The `clif_validate_script` tool validates
 inline JSON only; it does not execute files or perform UI actions.

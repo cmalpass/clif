@@ -19,16 +19,24 @@ public class ToolRegistry
     private readonly McpSafetyPolicy _safetyPolicy;
     private readonly McpDiagnostics _diagnostics;
     private readonly UiDispatcher _uiDispatcher;
+    private readonly TimeSpan _toolExecutionTimeout;
 
     /// <summary>Initializes a registry using the supplied immutable session policy.</summary>
     public ToolRegistry(
         McpSafetyPolicy? safetyPolicy = null,
         McpDiagnostics? diagnostics = null,
-        UiDispatcher? uiDispatcher = null)
+        UiDispatcher? uiDispatcher = null,
+        TimeSpan? toolExecutionTimeout = null)
     {
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
         _diagnostics = diagnostics ?? new McpDiagnostics();
         _uiDispatcher = uiDispatcher ?? new UiDispatcher();
+        _toolExecutionTimeout = toolExecutionTimeout ??
+            TimeSpan.FromMilliseconds(McpSafetyPolicy.MaximumToolExecutionMilliseconds);
+        if (_toolExecutionTimeout <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(toolExecutionTimeout), "Tool execution timeout must be positive.");
+        }
     }
 
     /// <summary>
@@ -104,6 +112,23 @@ public class ToolRegistry
             };
         }
 
+        if (!ToolArgumentValidator.Validate(arguments, tool.GetDefinition().InputSchema, out validationError))
+        {
+            _diagnostics.Log("mcp.tool.invalid_params", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["reason"] = validationError,
+            });
+            return new McpToolResult
+            {
+                Content = new List<McpContent>
+                {
+                    new() { Type = "text", Text = $"MCP_INVALID_PARAMS: {validationError}" },
+                },
+                IsError = true,
+            };
+        }
+
         if (!_safetyPolicy.IsCapabilityAllowed(tool.RequiredCapability))
         {
             _diagnostics.Log("mcp.tool.denied", fields: new Dictionary<string, object?>
@@ -128,11 +153,13 @@ public class ToolRegistry
             ["capability"] = tool.RequiredCapability.ToString(),
         });
 
+        using var operationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        operationCancellation.CancelAfter(_toolExecutionTimeout);
         try
         {
             var result = await _uiDispatcher.InvokeAsync(
                 token => tool.ExecuteAsync(arguments, token),
-                cancellationToken).ConfigureAwait(false);
+                operationCancellation.Token).ConfigureAwait(false);
             _diagnostics.Log("mcp.tool.completed", fields: new Dictionary<string, object?>
             {
                 ["tool"] = name,
@@ -140,6 +167,23 @@ public class ToolRegistry
                 ["durationMs"] = stopwatch.Elapsed.TotalMilliseconds,
             });
             return result;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && operationCancellation.IsCancellationRequested)
+        {
+            _diagnostics.Log("mcp.tool.timed_out", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["durationMs"] = stopwatch.Elapsed.TotalMilliseconds,
+                ["timeoutMs"] = _toolExecutionTimeout.TotalMilliseconds,
+            });
+            return new McpToolResult
+            {
+                Content = new List<McpContent>
+                {
+                    new() { Type = "text", Text = $"MCP_TOOL_TIMEOUT: tool exceeded {_toolExecutionTimeout.TotalMilliseconds:0}ms." },
+                },
+                IsError = true,
+            };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

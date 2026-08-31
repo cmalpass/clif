@@ -11,8 +11,13 @@ Reviewed: 2026-08-31
   tests.
 - Tool definitions are registered through an explicit CLIF adapter, sorted by
   ordinal name, and annotated from the existing capability policy.
-- Tool calls are serialized through a cancellable UI dispatcher. The stdio
-  cancellation notification is exercised against a real long-running batch.
+- Tool calls are serialized through a cancellable UI dispatcher. Arguments are
+  validated before dispatch, and a 30-second cooperative deadline is applied to
+  each call. The stdio cancellation notification is exercised against a real
+  long-running batch.
+- Snapshot and search operations require a registered window handle; batch
+  input requires an element reference. CLIF therefore does not fall back to an
+  arbitrary foreground desktop target.
 - Window and element references are bounded canonical handles. Graceful
   process close escalates to process-tree termination to prevent orphaned
   automation processes.

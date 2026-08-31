@@ -178,6 +178,11 @@ Keep these permissions scoped to a dedicated local session and grant only the
 applications and capabilities required for the task. Permission changes take
 effect when a new MCP server process starts.
 
+`clif_snapshot` and `clif_search_elements` require an explicit, registered
+window handle. They never inspect whichever desktop window happens to be
+focused. Obtain a handle by launching an allow-listed application or, when
+explicitly permitted, with `clif_list_windows`.
+
 MCP diagnostics are emitted as one JSON object per line to stderr; stdout is
 reserved for JSON-RPC messages. Set `CLIF_MCP_LOG_LEVEL=off` to disable these
 diagnostics for a quiet local session. Events include request correlation IDs,
@@ -222,7 +227,11 @@ supports the modern `2026-07-28` stateless request metadata and discovery
 contract, while negotiating down-level legacy clients such as `2025-06-18`.
 Modern `tools/list` responses include cache metadata and deterministic ordinal
 tool ordering. UI automation requests are serialized and honor
-`notifications/cancelled`.
+`notifications/cancelled`. Tool arguments are validated before UI automation
+begins; undocumented arguments are rejected for tools with declared parameters.
+Each call has a 30-second cooperative execution deadline. A synchronous Windows
+UI Automation provider cannot be forcibly interrupted, so a provider that is
+stuck in native code may still require host-level recovery.
 
 ```
 Agent: "Open Calculator and compute 7 × 8"
@@ -251,6 +260,10 @@ Agent: "Open Calculator and compute 7 × 8"
 4. clif_screenshot { "handle": "w1" }
    → [Base64 PNG showing "56"]
 ```
+
+For batch actions, `click`, `type`, and `fill` require an element `ref`; a
+`snapshot` action requires a registered window `handle`. CLIF will not type
+into or inspect an implicit foreground target.
 
 ### Advanced MCP Interactions
 
