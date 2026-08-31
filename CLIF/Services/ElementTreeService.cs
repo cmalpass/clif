@@ -6,9 +6,9 @@
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
+using CLIF.Core;
 using FlaUI.Core.AutomationElements;
 using Microsoft.Extensions.Logging;
-using CLIF.Core;
 
 namespace CLIF.Services;
 

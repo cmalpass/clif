@@ -3,20 +3,19 @@
 // </copyright>
 // Licensed under the MIT License.
 
+using System.Drawing;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using CLIF.Core;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Conditions;
+using FlaUI.Core.Definitions;
+using FlaUI.Core.Input;
 using FlaUI.UIA3;
 using Microsoft.Extensions.Logging;
-using CLIF.Core;
-using System.Drawing;
-using FlaUI.Core.Input;
-using FlaUI.Core.Definitions;
-using FlaUI.Core.Conditions;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
-
 
 namespace CLIF.Services;
 
