@@ -15,7 +15,7 @@ namespace CLIF.Security;
 /// </summary>
 public class SecurityContext
 {
-    private static readonly Lazy<SecurityContext> instance = new(() => new SecurityContext());
+    private static readonly Lazy<SecurityContext> Instance = new(() => new SecurityContext());
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SecurityContext"/> class.
@@ -30,7 +30,7 @@ public class SecurityContext
     /// <summary>
     /// Gets the singleton instance of the SecurityContext.
     /// </summary>
-    public static SecurityContext Current => instance.Value;
+    public static SecurityContext Current => Instance.Value;
 
     /// <summary>
     /// Gets a value indicating whether the current user is an administrator.
