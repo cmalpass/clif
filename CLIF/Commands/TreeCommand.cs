@@ -34,7 +34,7 @@ public class TreeCommand : Command
         this.Add(controlTypeOption);
         this.Add(outputFileOption);
 
-        this.SetHandler(async (string process, int depth, bool enabledOnly, bool visibleOnly, 
+        this.SetHandler(async (string process, int depth, bool enabledOnly, bool visibleOnly,
             bool showProperties) =>
         {
             var processService = serviceProvider.GetRequiredService<IProcessService>();
@@ -102,7 +102,7 @@ public class TreeCommand : Command
     private ElementSearchCriteria ParseSearchCriteria(string search)
     {
         var criteria = new ElementSearchCriteria();
-        
+
         // Simple parsing - can be enhanced later
         if (search.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
         {

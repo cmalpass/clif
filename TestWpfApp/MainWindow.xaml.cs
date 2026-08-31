@@ -130,7 +130,7 @@ public partial class MainWindow : Window
     {
         var menuItem = sender as MenuItem;
         UpdateStatus($"Menu item clicked: {menuItem?.Header}");
-        
+
         if (menuItem?.Header?.ToString() == "Exit")
         {
             this.Close();
@@ -153,7 +153,7 @@ public partial class MainWindow : Window
     private void UpdateStatus(string message)
     {
         StatusTextBlock.Text = $"Status: {message}";
-        
+
         // Update status bar
         if (TestStatusBar?.Items.Count > 0 && TestStatusBar.Items[0] is StatusBarItem statusItem)
         {

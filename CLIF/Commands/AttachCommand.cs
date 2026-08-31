@@ -53,7 +53,7 @@ public class AttachCommand : Command
                 }
 
                 Console.WriteLine($"Attaching to process: {targetProcess.Name} (PID: {targetProcess.Id})");
-                
+
                 var attached = await automationService.AttachToProcessAsync(targetProcess.Id);
                 if (!attached)
                 {

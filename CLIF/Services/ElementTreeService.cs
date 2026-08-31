@@ -151,23 +151,23 @@ public class ElementTreeService : IElementTreeService
         // Build the tree line
         var connector = isLast ? "└── " : "├── ";
         var displayName = string.IsNullOrEmpty(node.Name) ? $"<{node.ControlType}>" : node.Name;
-        
+
         sb.AppendLine($"{prefix}{connector}{displayName}");
 
         if (options.ShowProperties)
         {
             var propertyPrefix = prefix + (isLast ? "    " : "│   ");
-            
+
             if (!string.IsNullOrEmpty(node.AutomationId))
                 sb.AppendLine($"{propertyPrefix}  AutomationId: {node.AutomationId}");
-            
+
             if (!string.IsNullOrEmpty(node.ClassName))
                 sb.AppendLine($"{propertyPrefix}  ClassName: {node.ClassName}");
-            
+
             sb.AppendLine($"{propertyPrefix}  ControlType: {node.ControlType}");
             sb.AppendLine($"{propertyPrefix}  Enabled: {node.IsEnabled}");
             sb.AppendLine($"{propertyPrefix}  Visible: {node.IsVisible}");
-            
+
             if (!string.IsNullOrEmpty(node.Value))
                 sb.AppendLine($"{propertyPrefix}  Value: {node.Value}");
 
@@ -243,15 +243,15 @@ public class ElementTreeService : IElementTreeService
             }
         }
 
-        if (!string.IsNullOrEmpty(criteria.AutomationId) && 
+        if (!string.IsNullOrEmpty(criteria.AutomationId) &&
             !node.AutomationId.Contains(criteria.AutomationId, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (!string.IsNullOrEmpty(criteria.ClassName) && 
+        if (!string.IsNullOrEmpty(criteria.ClassName) &&
             !node.ClassName.Contains(criteria.ClassName, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (!string.IsNullOrEmpty(criteria.ControlType) && 
+        if (!string.IsNullOrEmpty(criteria.ControlType) &&
             !node.ControlType.Contains(criteria.ControlType, StringComparison.OrdinalIgnoreCase))
             return false;
 
@@ -261,7 +261,7 @@ public class ElementTreeService : IElementTreeService
         if (criteria.IsVisible.HasValue && node.IsVisible != criteria.IsVisible.Value)
             return false;
 
-        if (!string.IsNullOrEmpty(criteria.ValueContains) && 
+        if (!string.IsNullOrEmpty(criteria.ValueContains) &&
             !node.Value.Contains(criteria.ValueContains, StringComparison.OrdinalIgnoreCase))
             return false;
 

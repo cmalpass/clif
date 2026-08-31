@@ -240,7 +240,7 @@ public class InvalidCharactersRule : ValidationRule<string>
         // Check for typical drive-letter pattern "C:\" or "C:/"
         bool hasPrecedingLetter = index > 0 && char.IsLetter(input[index - 1]);
         bool hasFollowingPathSeparator = index + 1 < input.Length && IsPathSeparator(input[index + 1]);
-        
+
         if (hasPrecedingLetter && hasFollowingPathSeparator)
         {
             return true;
