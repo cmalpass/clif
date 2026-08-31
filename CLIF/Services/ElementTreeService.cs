@@ -87,6 +87,14 @@ public class ElementTreeService : IElementTreeService
         });
     }
 
+    private static bool MatchesSelector(ElementTreeNode node, SelectorCriteria criteria)
+    {
+        return (criteria.AutomationId is null || string.Equals(node.AutomationId, criteria.AutomationId, StringComparison.Ordinal)) &&
+               (criteria.Name is null || string.Equals(node.Name, criteria.Name, StringComparison.Ordinal)) &&
+               (criteria.ClassName is null || string.Equals(node.ClassName, criteria.ClassName, StringComparison.Ordinal)) &&
+               (criteria.ControlType is null || string.Equals(node.ControlType, criteria.ControlType, StringComparison.OrdinalIgnoreCase));
+    }
+
     private ElementTreeNode BuildTreeNode(AutomationElement element, int currentDepth, int maxDepth, bool includeChildren)
     {
         var node = new ElementTreeNode
@@ -255,14 +263,6 @@ public class ElementTreeService : IElementTreeService
         }
 
         return null;
-    }
-
-    private static bool MatchesSelector(ElementTreeNode node, SelectorCriteria criteria)
-    {
-        return (criteria.AutomationId is null || string.Equals(node.AutomationId, criteria.AutomationId, StringComparison.Ordinal)) &&
-               (criteria.Name is null || string.Equals(node.Name, criteria.Name, StringComparison.Ordinal)) &&
-               (criteria.ClassName is null || string.Equals(node.ClassName, criteria.ClassName, StringComparison.Ordinal)) &&
-               (criteria.ControlType is null || string.Equals(node.ControlType, criteria.ControlType, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool MatchesCriteria(ElementTreeNode node, ElementSearchCriteria criteria)

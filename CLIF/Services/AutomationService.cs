@@ -1919,20 +1919,6 @@ public class AutomationService : IAutomationService, IDisposable
     [DllImport("user32.dll")]
     private static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string? className, string? windowTitle);
 
-    private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
-    {
-        return SelectorParser.TryParse(selector, out var criteria)
-            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
-            : null;
-    }
-
-    private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
-    {
-        return SelectorParser.TryParse(selector, out var criteria)
-            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
-            : Array.Empty<AutomationElement>();
-    }
-
     private static ConditionBase CreateSelectorCondition(ConditionFactory conditionFactory, SelectorCriteria criteria)
     {
         var conditions = new List<ConditionBase>();
@@ -1963,6 +1949,20 @@ public class AutomationService : IAutomationService, IDisposable
             1 => conditions[0],
             _ => new AndCondition(conditions),
         };
+    }
+
+    private AutomationElement? FindElementBySelector(AutomationElement root, string selector)
+    {
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindFirstDescendant(cf => CreateSelectorCondition(cf, criteria))
+            : null;
+    }
+
+    private AutomationElement[] FindElementsBySelector(AutomationElement root, string selector)
+    {
+        return SelectorParser.TryParse(selector, out var criteria)
+            ? root.FindAllDescendants(cf => CreateSelectorCondition(cf, criteria))
+            : Array.Empty<AutomationElement>();
     }
 
     private async Task<string?> GetElementTextAsync(AutomationElement element)
