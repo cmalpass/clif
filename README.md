@@ -163,6 +163,12 @@ Keep these permissions scoped to a dedicated local session and grant only the
 applications and capabilities required for the task. Permission changes take
 effect when a new MCP server process starts.
 
+MCP diagnostics are emitted as one JSON object per line to stderr; stdout is
+reserved for JSON-RPC messages. Set `CLIF_MCP_LOG_LEVEL=off` to disable these
+diagnostics for a quiet local session. Events include request correlation IDs,
+method, outcome, and sanitized lifecycle metadata; typed values, script content,
+screenshots, and command-line arguments are not logged by default.
+
 **Using compiled executable:**
 ```json
 {
