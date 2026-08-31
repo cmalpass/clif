@@ -11,6 +11,12 @@ namespace CLIF.Core;
 /// <summary>Provides UI Automation operations for an attached desktop application.</summary>
 public interface IAutomationService
 {
+    /// <summary>Gets a value indicating whether gets whether an automation session is currently attached.</summary>
+    bool IsAttached { get; }
+
+    /// <summary>Gets the attached process identifier, if any.</summary>
+    int? AttachedProcessId { get; }
+
     /// <summary>Attaches the automation client to a process.</summary>
     /// <param name="processId">Identifier of the target process.</param>
     /// <returns><see langword="true"/> when the process was attached successfully.</returns>
@@ -19,12 +25,6 @@ public interface IAutomationService
     /// <summary>Detaches from the currently attached process.</summary>
     /// <returns>A task that completes when detachment has finished.</returns>
     Task DetachAsync();
-
-    /// <summary>Gets a value indicating whether gets whether an automation session is currently attached.</summary>
-    bool IsAttached { get; }
-
-    /// <summary>Gets the attached process identifier, if any.</summary>
-    int? AttachedProcessId { get; }
 
     // Element operations
 

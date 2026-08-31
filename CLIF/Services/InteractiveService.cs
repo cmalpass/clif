@@ -19,9 +19,6 @@ public class InteractiveService : IInteractiveService
     private readonly IElementTreeService elementTreeService;
     private readonly ISessionCaptureService captureService;
 
-    /// <inheritdoc />
-    public bool IsSessionActive { get; private set; }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="InteractiveService"/> class.
     /// Initializes the interactive service.
@@ -41,6 +38,9 @@ public class InteractiveService : IInteractiveService
         this.elementTreeService = elementTreeService;
         this.captureService = captureService;
     }
+
+    /// <inheritdoc />
+    public bool IsSessionActive { get; private set; }
 
     /// <summary>
     /// Starts the interactive command mode.
