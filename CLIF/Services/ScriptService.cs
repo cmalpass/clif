@@ -1,4 +1,4 @@
-// <copyright file="ScriptAndInteractiveServices.cs" company="CLIF - Comprehensive UI Automation CLI">
+// <copyright file="ScriptService.cs" company="CLIF - Comprehensive UI Automation CLI">
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // </copyright>
 // Licensed under the MIT License.
