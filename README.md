@@ -26,6 +26,10 @@ A powerful .NET CLI tool and MCP server for automating Windows desktop applicati
 - .NET 8.0 or later
 - Windows OS (UI Automation is Windows-specific)
 
+For supported Windows environments, release archives, PowerShell setup, MCP
+client configuration, permissions, and troubleshooting, see the
+[CLIF user guide](docs/user-guide.md).
+
 ### Cross-Platform Test Fixture (not a cross-platform CLIF backend)
 
 The repository also includes `TestCrossPlatformApp`, an Avalonia-based desktop
@@ -53,12 +57,21 @@ dotnet test TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj
 ```
 
 ### Build from Source
-```bash
+Run these commands from the repository root:
+
+```powershell
 git clone <repository-url>
 cd clif
-dotnet build
-dotnet publish -c Release -o ./publish
+dotnet restore clif.sln --locked-mode
+dotnet build CLIF/CLIF.csproj --configuration Release
+dotnet publish CLIF/CLIF.csproj --configuration Release --output .\publish\CLIF
 ```
+
+Published Windows archives are available from the
+[GitHub Releases page](https://github.com/cmalpass/clif/releases). They are
+self-contained; extract the matching `CLIF-<version>-win-x64.zip` or
+`win-arm64` archive and run `CLIF.exe`. See
+[RELEASE_ARTIFACTS.md](RELEASE_ARTIFACTS.md) for checksum and manifest details.
 
 ## Quick Start
 
@@ -118,14 +131,16 @@ inspired by [FlaUI-MCP](https://github.com/shanselman/FlaUI-MCP) by Scott Hansel
 
 ### Quick Start
 
-```bash
+```powershell
 # Build the MCP server
-cd CLIF.Mcp
-dotnet build
+dotnet build CLIF.Mcp/CLIF.Mcp.csproj --configuration Release
 
 # Run the MCP server (JSON-RPC over stdio)
-dotnet run --project CLIF.Mcp
+dotnet run --project CLIF.Mcp/CLIF.Mcp.csproj
 ```
+
+If you are already in the `CLIF.Mcp` directory, use `dotnet run`; do not pass
+`--project CLIF.Mcp`, which refers to a nonexistent nested project path.
 
 ### MCP Client Configuration
 
@@ -274,13 +289,17 @@ clif tree Calculator --control-type Button
 ```
 
 ### Script Automation
-```bash
+```powershell
 # Execute automation script
 clif script examples/calculator-script.json
 
 # Validate script syntax
-clif script --validate examples/my-script.json
+Get-Content .\examples\my-script.json -Raw | ConvertFrom-Json | Out-Null
 ```
+
+The CLI validates and reports script errors while loading/executing a script;
+there is no separate `script --validate` command. The MCP
+`clif_validate_script` tool validates inline JSON without executing it.
 
 ## Element Selectors
 
@@ -327,6 +346,16 @@ Advanced interactions with various WPF controls.
 - `--action <action>` - Action to perform (required)
 - `--value <value>` - Value for the action (optional)
 - `--index <number>` - Index for selection actions (optional)
+
+#### `attach <process> [options]`
+Attach to a process by name, window title, or PID and optionally execute one
+action or start interactive mode.
+
+**Options:**
+- `--action <action>` - Action such as `click`, `type`, `get-text`, or `focus`
+- `--element <selector>` - Element selector for the action
+- `--value <value>` - Value for actions such as `type` or `set-value`
+- `--interactive` - Start interactive mode after attaching
 
 #### `tree <process> [options]`
 Display or search the automation element tree.
@@ -621,7 +650,7 @@ The CLIF MCP server (CLIF.Mcp) was inspired by [FlaUI-MCP](https://github.com/sh
 - Verify the target application supports Windows UI Automation
 
 **"Script execution errors"**
-- Validate JSON syntax with `clif script --validate script.json`
+- Validate JSON syntax with PowerShell: `Get-Content .\script.json -Raw | ConvertFrom-Json | Out-Null`
 - Check that all required elements exist using `tree` command first
 - Review example scripts in `examples/` directory for proper syntax
 
@@ -634,3 +663,4 @@ The CLIF MCP server (CLIF.Mcp) was inspired by [FlaUI-MCP](https://github.com/sh
 5. **Review Logs**: Check console output for detailed error messages and validation results
 
 For more help, use `clif --help` or `clif <command> --help` for specific commands.
+For end-to-end CLI and MCP setup, use the [CLIF user guide](docs/user-guide.md).

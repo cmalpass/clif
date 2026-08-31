@@ -40,6 +40,18 @@ sha256sum --check SHA256SUMS.txt
 jq . CLIF-v<version>.release-manifest.json
 ```
 
-The manifest does not contain its own digest because that would be recursive.
-Its SHA-256 can be calculated after download when a separate digest of the
-manifest itself is needed.
+On Windows PowerShell, use the following equivalent checks:
+
+```powershell
+$archive = Get-FileHash .\CLIF-<version>-win-x64.zip -Algorithm SHA256
+$archive.Hash
+Get-Content .\SHA256SUMS.txt
+$manifest = Get-Content .\CLIF-v<version>.release-manifest.json -Raw | ConvertFrom-Json
+$manifest.release
+$manifest.archives
+```
+
+Compare the printed hash with the archive entry in `SHA256SUMS.txt`. The
+manifest is an integrity index for the release; it does not contain its own
+digest because that would be recursive. Its SHA-256 can be calculated after
+download when a separate digest of the manifest itself is needed.
