@@ -104,6 +104,7 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     /// <summary>Detaches from the current process and releases UI Automation resources.</summary>
+    /// <returns>A task that completes when resources have been released.</returns>
     public async Task DetachAsync()
     {
         await Task.Run(() =>
