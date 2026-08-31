@@ -33,6 +33,9 @@ public class BatchTool : ToolBase
     public override string Name => "clif_batch";
 
     /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Input;
+
+    /// <inheritdoc />
     public override string Description =>
         "Execute multiple actions in a single call. Much faster than individual calls. " +
         "Supports click, type, fill, wait, and snapshot actions. Returns results for each action.";

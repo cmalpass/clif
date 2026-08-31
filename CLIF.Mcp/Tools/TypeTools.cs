@@ -4,6 +4,7 @@ using System.Text.Json;
 using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -25,6 +26,9 @@ public class TypeTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_type";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Input;
 
     /// <inheritdoc />
     public override string Description =>
@@ -132,6 +136,9 @@ public class FillTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_fill";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Input;
 
     /// <inheritdoc />
     public override string Description =>
