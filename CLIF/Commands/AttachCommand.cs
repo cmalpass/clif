@@ -120,6 +120,7 @@ public class AttachCommand : Command
                         Console.WriteLine("Value is required for type action");
                         return;
                     }
+
                     result = await automation.TypeTextAsync(element, value);
                     Console.WriteLine(result ? "Type successful" : "Type failed");
                     break;
@@ -130,6 +131,7 @@ public class AttachCommand : Command
                         Console.WriteLine("Value is required for set-value action");
                         return;
                     }
+
                     result = await automation.SetValueAsync(element, value);
                     Console.WriteLine(result ? "Set value successful" : "Set value failed");
                     break;

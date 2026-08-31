@@ -91,6 +91,7 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
         {
             return this.Failure($"Value must be between {this._minimum} and {this._maximum}");
         }
+
         return this.Success();
     }
 }
@@ -130,6 +131,7 @@ public class FormatRule : ValidationRule<string>
         {
             return this.Failure($"Input must match format: {this._formatDescription}");
         }
+
         return this.Success();
     }
 }

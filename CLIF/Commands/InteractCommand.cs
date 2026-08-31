@@ -295,6 +295,7 @@ public class InteractCommand : Command
         {
             Console.WriteLine($"  [{i}] {items[i]}");
         }
+
         return true;
     }
 
@@ -306,6 +307,7 @@ public class InteractCommand : Command
         {
             Console.WriteLine($"  [{i}] {items[i]}");
         }
+
         return true;
     }
 
@@ -370,6 +372,7 @@ public class InteractCommand : Command
                 Console.WriteLine($"    {kvp.Key}: {kvp.Value}");
             }
         }
+
         return true;
     }
 
