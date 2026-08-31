@@ -4,8 +4,8 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 using CLIF.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CLIF.Commands;
 
