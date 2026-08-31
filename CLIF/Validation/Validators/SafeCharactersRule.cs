@@ -41,13 +41,13 @@ public class SafeCharactersRule : ValidationRule<string>
             // Block format characters that could be used for attacks
             if (category == System.Globalization.UnicodeCategory.Format && c != '\u200C' && c != '\u200D')
             {
-                return this.Failure($"Input contains unsafe format character: U+{((int)c):X4}");
+                return this.Failure($"Input contains unsafe format character: U+{(int)c:X4}");
             }
 
             // Block private use characters
             if (category == System.Globalization.UnicodeCategory.PrivateUse)
             {
-                return this.Failure($"Input contains private use character: U+{((int)c):X4}");
+                return this.Failure($"Input contains private use character: U+{(int)c:X4}");
             }
         }
 

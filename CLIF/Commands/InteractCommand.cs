@@ -361,14 +361,14 @@ public class InteractCommand : Command
     private static async Task<bool> DisplayDatePickerValue(IAutomationService automation, FlaUI.Core.AutomationElements.AutomationElement element)
     {
         var date = await automation.GetDatePickerValueAsync(element);
-        Console.WriteLine($"DatePicker value: {(date?.ToString("yyyy-MM-dd") ?? "No date selected")}");
+        Console.WriteLine($"DatePicker value: {date?.ToString("yyyy-MM-dd") ?? "No date selected"}");
         return true;
     }
 
     private static async Task<bool> DisplayCalendarValue(IAutomationService automation, FlaUI.Core.AutomationElements.AutomationElement element)
     {
         var date = await automation.GetCalendarDateAsync(element);
-        Console.WriteLine($"Calendar date: {(date?.ToString("yyyy-MM-dd") ?? "No date selected")}");
+        Console.WriteLine($"Calendar date: {date?.ToString("yyyy-MM-dd") ?? "No date selected"}");
         return true;
     }
 
