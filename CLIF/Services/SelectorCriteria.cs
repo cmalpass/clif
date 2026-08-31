@@ -22,8 +22,11 @@ namespace CLIF.Services;
 internal sealed class SelectorCriteria
 {
     internal string? AutomationId { get; private set; }
+
     internal string? Name { get; private set; }
+
     internal string? ClassName { get; private set; }
+
     internal string? ControlType { get; private set; }
 
     internal bool HasCriteria => this.AutomationId is not null || this.Name is not null || this.ClassName is not null || this.ControlType is not null;
