@@ -68,6 +68,20 @@ public sealed class McpSafetyPolicyTests
         });
     }
 
+    [Fact]
+    public void InputCapability_IsDeniedByDefault()
+    {
+        WithEnvironment(null, null, policy =>
+            policy.IsCapabilityAllowed(McpCapability.Input).Should().BeFalse());
+    }
+
+    [Fact]
+    public void InputCapability_IsGrantedOnlyWhenExplicitlyEnabled()
+    {
+        WithEnvironment("true", null, policy =>
+            policy.IsCapabilityAllowed(McpCapability.Input).Should().BeTrue());
+    }
+
     private static void WithPolicy(string allowedApplications, Action<McpSafetyPolicy> assertion)
     {
         lock (EnvironmentLock)
@@ -81,6 +95,26 @@ public sealed class McpSafetyPolicyTests
             finally
             {
                 Environment.SetEnvironmentVariable("CLIF_MCP_ALLOWED_APPS", previousValue);
+            }
+        }
+    }
+
+    private static void WithEnvironment(string? allowInput, string? allowedApplications, Action<McpSafetyPolicy> assertion)
+    {
+        lock (EnvironmentLock)
+        {
+            var previousInput = Environment.GetEnvironmentVariable("CLIF_MCP_ALLOW_INPUT");
+            var previousApplications = Environment.GetEnvironmentVariable("CLIF_MCP_ALLOWED_APPS");
+            try
+            {
+                Environment.SetEnvironmentVariable("CLIF_MCP_ALLOW_INPUT", allowInput);
+                Environment.SetEnvironmentVariable("CLIF_MCP_ALLOWED_APPS", allowedApplications);
+                assertion(McpSafetyPolicy.FromEnvironment());
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("CLIF_MCP_ALLOW_INPUT", previousInput);
+                Environment.SetEnvironmentVariable("CLIF_MCP_ALLOWED_APPS", previousApplications);
             }
         }
     }

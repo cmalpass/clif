@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using CLIF.Mcp;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tests.Unit;
 
@@ -179,6 +180,33 @@ public class ToolRegistryTests
         await action.Should().ThrowAsync<OperationCanceledException>();
     }
 
+    [Fact]
+    public async Task ExecuteToolAsync_DeniesCapabilityBeforeToolExecution()
+    {
+        var registry = new ToolRegistry(new McpSafetyPolicy(allowInput: false));
+        var tool = new InputTool();
+        registry.RegisterTool(tool);
+
+        var result = await registry.ExecuteToolAsync(tool.Name, null);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().StartWith("MCP_PERMISSION_DENIED:");
+        tool.Executed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_AllowsCapabilityWhenGranted()
+    {
+        var registry = new ToolRegistry(new McpSafetyPolicy(allowInput: true));
+        var tool = new InputTool();
+        registry.RegisterTool(tool);
+
+        var result = await registry.ExecuteToolAsync(tool.Name, null);
+
+        result.IsError.Should().NotBeTrue();
+        tool.Executed.Should().BeTrue();
+    }
+
     // --- Fake tool implementations for testing ---
 
     private sealed class FakeToolA : ToolBase
@@ -259,6 +287,21 @@ public class ToolRegistryTests
             ReceivedToken = cancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(TextResult("cancellation-aware execution"));
+        }
+    }
+
+    private sealed class InputTool : ToolBase
+    {
+        public override string Name => "clif_input";
+        public override string Description => "Input tool for testing";
+        public override object InputSchema => new { type = "object" };
+        public override McpCapability RequiredCapability => McpCapability.Input;
+        public bool Executed { get; private set; }
+
+        public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+        {
+            Executed = true;
+            return Task.FromResult(TextResult("executed"));
         }
     }
 }
