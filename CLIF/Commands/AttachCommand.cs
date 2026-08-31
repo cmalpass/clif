@@ -15,7 +15,8 @@ public class AttachCommand : Command
 {
     /// <summary>Initializes a new instance of the <see cref="AttachCommand"/> class. Creates the attach command and registers its command-line options.</summary>
     /// <param name="serviceProvider">Provider used to resolve command services.</param>
-    public AttachCommand(IServiceProvider serviceProvider) : base("attach", "Attach to a WPF process and execute actions")
+    public AttachCommand(IServiceProvider serviceProvider)
+        : base("attach", "Attach to a WPF process and execute actions")
     {
         var processArgument = new Argument<string>("process") { Description = "Process name, window title, or process ID" };
         var actionOption = new Option<string?>("--action") { Description = "Action to perform (click, type, get-text, etc.)" };
