@@ -27,7 +27,9 @@ public class InteractiveCommand : Command
 
         this.AddOption(processIdOption);
 
-        this.SetHandler(async (int? processId) =>
+        this.SetHandler(
+            async (
+                int? processId) =>
         {
             try
             {
