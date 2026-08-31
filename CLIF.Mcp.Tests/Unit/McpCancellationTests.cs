@@ -1,5 +1,4 @@
 using System.Text.Json;
-using FluentAssertions;
 using CLIF.Mcp;
 
 namespace CLIF.Mcp.Tests.Unit;
@@ -36,7 +35,7 @@ public class McpCancellationTests
 
             serverTask = new McpServer(registry).RunAsync(cancellation.Token);
             var receivedToken = await tool.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            receivedToken.Should().Be(cancellation.Token);
+            Assert.Equal(cancellation.Token, receivedToken);
 
             cancellation.Cancel();
             await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
@@ -55,9 +54,9 @@ public class McpCancellationTests
             .Where(response => response is not null)
             .ToList();
 
-        responses.Should().ContainSingle();
-        responses[0]!.Id!.Value.GetInt32().Should().Be(1);
-        output.ToString().Should().NotContain("Internal error");
+        var response = Assert.Single(responses);
+        Assert.Equal(1, response!.Id!.Value.GetInt32());
+        Assert.DoesNotContain("Internal error", output.ToString());
     }
 
     private static string InitializeRequest(string id) =>
