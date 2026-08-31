@@ -110,7 +110,8 @@ public class TextInputValidator : ValidatorBase<string>
 
         // Check for excessive control characters
         var controlCharCount = text.Count(c => char.IsControl(c) && c != '\r' && c != '\n' && c != '\t');
-        if (controlCharCount > text.Length * 0.1) // More than 10% control characters
+        // More than 10% control characters
+        if (controlCharCount > text.Length * 0.1)
         {
             result.AddError("Text contains too many control characters");
         }

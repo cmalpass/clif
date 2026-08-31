@@ -271,7 +271,8 @@ public static class SanitizationHelper
             {
                 case System.Globalization.UnicodeCategory.Format:
                     // Allow only common format characters
-                    if (c == '\u200C' || c == '\u200D') // Zero-width non-joiner/joiner
+                    // Zero-width non-joiner/joiner
+                    if (c == '\u200C' || c == '\u200D')
                     {
                         result.Append(c);
                     }
