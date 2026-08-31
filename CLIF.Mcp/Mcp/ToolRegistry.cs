@@ -3,6 +3,8 @@
 
 using System.Text.Json;
 using System.Text;
+using System.Diagnostics;
+using CLIF.Mcp.Diagnostics;
 using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp;
@@ -14,11 +16,13 @@ public class ToolRegistry
 {
     private readonly Dictionary<string, ITool> _tools = new();
     private readonly McpSafetyPolicy _safetyPolicy;
+    private readonly McpDiagnostics _diagnostics;
 
     /// <summary>Initializes a registry using the supplied immutable session policy.</summary>
-    public ToolRegistry(McpSafetyPolicy? safetyPolicy = null)
+    public ToolRegistry(McpSafetyPolicy? safetyPolicy = null, McpDiagnostics? diagnostics = null)
     {
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
+        _diagnostics = diagnostics ?? new McpDiagnostics();
     }
 
     /// <summary>
@@ -52,6 +56,7 @@ public class ToolRegistry
 
         if (!_tools.TryGetValue(name, out var tool))
         {
+            _diagnostics.Log("mcp.tool.unknown", fields: new Dictionary<string, object?> { ["tool"] = name });
             return new McpToolResult
             {
                 Content = new List<McpContent>
@@ -64,6 +69,11 @@ public class ToolRegistry
 
         if (!ValidateArguments(arguments, out var validationError))
         {
+            _diagnostics.Log("mcp.tool.invalid_params", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["reason"] = validationError,
+            });
             return new McpToolResult
             {
                 Content = new List<McpContent>
@@ -76,6 +86,11 @@ public class ToolRegistry
 
         if (!_safetyPolicy.IsCapabilityAllowed(tool.RequiredCapability))
         {
+            _diagnostics.Log("mcp.tool.denied", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["capability"] = tool.RequiredCapability.ToString(),
+            });
             return new McpToolResult
             {
                 Content = new List<McpContent>
@@ -86,16 +101,41 @@ public class ToolRegistry
             };
         }
 
+        var stopwatch = Stopwatch.StartNew();
+        _diagnostics.Log("mcp.tool.started", fields: new Dictionary<string, object?>
+        {
+            ["tool"] = name,
+            ["capability"] = tool.RequiredCapability.ToString(),
+        });
+
         try
         {
-            return await tool.ExecuteAsync(arguments, cancellationToken);
+            var result = await tool.ExecuteAsync(arguments, cancellationToken);
+            _diagnostics.Log("mcp.tool.completed", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["outcome"] = result.IsError == true ? "error" : "success",
+                ["durationMs"] = stopwatch.Elapsed.TotalMilliseconds,
+            });
+            return result;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            _diagnostics.Log("mcp.tool.canceled", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["durationMs"] = stopwatch.Elapsed.TotalMilliseconds,
+            });
             throw;
         }
         catch (Exception ex)
         {
+            _diagnostics.Log("mcp.tool.failed", fields: new Dictionary<string, object?>
+            {
+                ["tool"] = name,
+                ["durationMs"] = stopwatch.Elapsed.TotalMilliseconds,
+                ["errorType"] = ex.GetType().Name,
+            });
             return new McpToolResult
             {
                 Content = new List<McpContent>
