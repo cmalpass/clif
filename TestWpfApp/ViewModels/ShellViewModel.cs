@@ -349,7 +349,8 @@ public class ShellViewModel : Screen
 
     public void TestButton()
     {
-        MessageBox.Show("Hello from Comprehensive WPF App!", "Button Click", MessageBoxButton.OK, MessageBoxImage.Information);
+        // The fixture must remain non-modal so a script can continue through its
+        // subsequent controls after invoking this button.
         UpdateStatus("Button clicked!");
     }
 

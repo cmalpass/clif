@@ -39,6 +39,13 @@ public sealed class McpSafetyPolicy
     public const int MaximumBatchDurationMilliseconds = 30_000;
 
     /// <summary>
+    /// Maximum time a tool may run before CLIF requests cooperative cancellation.
+    /// UI Automation providers are synchronous, so this is a bounded cancellation
+    /// request rather than unsafe forced interruption of a native UIA call.
+    /// </summary>
+    public const int MaximumToolExecutionMilliseconds = 30_000;
+
+    /// <summary>
     /// Creates an immutable policy for one MCP session.
     /// </summary>
     /// <param name="allowedApplications">Exact executable names or canonical paths allowed to launch.</param>

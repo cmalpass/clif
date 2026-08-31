@@ -3,7 +3,6 @@
 using System.Text;
 using System.Text.Json;
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Definitions;
 using CLIF.Mcp.Core;
 
 namespace CLIF.Mcp.Tools;
@@ -47,7 +46,8 @@ public class SearchTool : ToolBase
             handle = new
             {
                 type = "string",
-                description = "Window handle to search in. If omitted, uses focused window.",
+                minLength = 1,
+                description = "Registered window handle to search in.",
             },
             name = new
             {
@@ -70,6 +70,7 @@ public class SearchTool : ToolBase
                 description = "Filter by class name (partial match)",
             },
         },
+        required = new[] { "handle" },
     };
 
     /// <inheritdoc />
@@ -81,47 +82,25 @@ public class SearchTool : ToolBase
         var controlTypeFilter = GetStringArgument(arguments, "controlType");
         var className = GetStringArgument(arguments, "className");
 
+        if (string.IsNullOrEmpty(handle))
+        {
+            return Task.FromResult(ErrorResult(
+                "Missing required argument: handle. Use clif_launch or clif_list_windows first."));
+        }
+
         try
         {
-            Window? window = null;
-            if (!string.IsNullOrEmpty(handle))
-            {
-                window = _sessionManager.GetWindow(handle);
-                if (window == null)
-                {
-                    return Task.FromResult(ErrorResult($"Window not found: {handle}"));
-                }
-            }
-            else
-            {
-                var focusedElement = _sessionManager.Automation.FocusedElement();
-                if (focusedElement != null)
-                {
-                    var current = focusedElement;
-                    while (current != null)
-                    {
-                        if (current.Properties.ControlType.ValueOrDefault == ControlType.Window)
-                        {
-                            window = current.AsWindow();
-                            handle = _sessionManager.RegisterWindow(window);
-                            break;
-                        }
-
-                        current = current.Parent;
-                    }
-                }
-            }
-
+            var window = _sessionManager.GetWindow(handle);
             if (window == null)
             {
-                return Task.FromResult(ErrorResult("No window found. Use clif_launch or clif_list_windows first."));
+                return Task.FromResult(ErrorResult($"Window not found: {handle}"));
             }
 
             // Search directly through the live tree. Do not rebuild the snapshot here,
             // because BuildSnapshot clears and regenerates the window registry, which
             // invalidates previously issued element refs as a hidden side effect.
             var results = new List<string>();
-            SearchElement(window, handle!, name, automationId, controlTypeFilter, className, results, 0);
+            SearchElement(window, handle, name, automationId, controlTypeFilter, className, results, 0);
 
             if (results.Count == 0)
             {

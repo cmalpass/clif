@@ -2,7 +2,6 @@
 
 using System.Text.Json;
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Definitions;
 using CLIF.Mcp.Core;
 
 namespace CLIF.Mcp.Tools;
@@ -44,57 +43,33 @@ public class SnapshotTool : ToolBase
             handle = new
             {
                 type = "string",
-                description = "Window handle (e.g., 'w1'). If omitted, uses the focused window.",
+                minLength = 1,
+                description = "Registered window handle (e.g., 'w1').",
             },
         },
+        required = new[] { "handle" },
     };
 
     /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");
+        if (string.IsNullOrEmpty(handle))
+        {
+            return Task.FromResult(ErrorResult(
+                "Missing required argument: handle. Use clif_launch or clif_list_windows first."));
+        }
 
         try
         {
-            Window? window = null;
-
-            if (!string.IsNullOrEmpty(handle))
-            {
-                window = _sessionManager.GetWindow(handle);
-                if (window == null)
-                {
-                    return Task.FromResult(ErrorResult($"Window not found: {handle}"));
-                }
-            }
-            else
-            {
-                // Try to use the focused window
-                var focusedElement = _sessionManager.Automation.FocusedElement();
-                if (focusedElement != null)
-                {
-                    var current = focusedElement;
-                    while (current != null)
-                    {
-                        if (current.Properties.ControlType.ValueOrDefault == ControlType.Window)
-                        {
-                            window = current.AsWindow();
-                            handle = _sessionManager.RegisterWindow(window);
-                            break;
-                        }
-
-                        current = current.Parent;
-                    }
-                }
-            }
-
+            var window = _sessionManager.GetWindow(handle);
             if (window == null)
             {
-                return Task.FromResult(ErrorResult(
-                    "No window found. Use clif_launch or clif_list_windows first."));
+                return Task.FromResult(ErrorResult($"Window not found: {handle}"));
             }
 
             var snapshotBuilder = new SnapshotBuilder(_elementRegistry);
-            var snapshot = snapshotBuilder.BuildSnapshot(handle!, window);
+            var snapshot = snapshotBuilder.BuildSnapshot(handle, window);
             return Task.FromResult(TextResult(snapshot));
         }
         catch (Exception ex)

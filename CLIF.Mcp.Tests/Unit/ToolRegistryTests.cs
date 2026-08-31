@@ -165,7 +165,8 @@ public class ToolRegistryTests
 
         await registry.ExecuteToolAsync("clif_cancellation_aware", null, cts.Token);
 
-        tool.ReceivedToken.Should().Be(cts.Token);
+        tool.ReceivedToken.CanBeCanceled.Should().BeTrue();
+        tool.ReceivedToken.IsCancellationRequested.Should().BeFalse();
     }
 
     [Fact]
@@ -233,6 +234,44 @@ public class ToolRegistryTests
 
         result.IsError.Should().BeTrue();
         result.Content[0].Text.Should().Contain("MCP_INVALID_PARAMS");
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_EnforcesRequiredTypeEnumAndClosedObjectSchemaBeforeExecution()
+    {
+        var registry = new ToolRegistry();
+        var tool = new SchemaBoundTool();
+        registry.RegisterTool(tool);
+
+        using var missingRequired = JsonDocument.Parse("{}");
+        var missingResult = await registry.ExecuteToolAsync(tool.Name, missingRequired.RootElement);
+        missingResult.Content[0].Text.Should().Contain("missing required argument 'mode'");
+
+        using var invalidType = JsonDocument.Parse("""{"mode":4}""");
+        var typeResult = await registry.ExecuteToolAsync(tool.Name, invalidType.RootElement);
+        typeResult.Content[0].Text.Should().Contain("arguments.mode must be a string");
+
+        using var invalidEnum = JsonDocument.Parse("""{"mode":"unsafe"}""");
+        var enumResult = await registry.ExecuteToolAsync(tool.Name, invalidEnum.RootElement);
+        enumResult.Content[0].Text.Should().Contain("arguments.mode is not an allowed value");
+
+        using var unexpectedArgument = JsonDocument.Parse("""{"mode":"safe","typo":true}""");
+        var unexpectedResult = await registry.ExecuteToolAsync(tool.Name, unexpectedArgument.RootElement);
+        unexpectedResult.Content[0].Text.Should().Contain("unexpected argument 'typo'");
+
+        tool.Executed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_ReturnsTimeoutForCooperativelyCancellableTool()
+    {
+        var registry = new ToolRegistry(toolExecutionTimeout: TimeSpan.FromMilliseconds(25));
+        registry.RegisterTool(new BlockingTool());
+
+        var result = await registry.ExecuteToolAsync("clif_blocking", null);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().StartWith("MCP_TOOL_TIMEOUT:");
     }
 
     [Fact]
@@ -349,6 +388,48 @@ public class ToolRegistryTests
         {
             Executed = true;
             return Task.FromResult(TextResult("executed"));
+        }
+    }
+
+    private sealed class SchemaBoundTool : ToolBase
+    {
+        public override string Name => "clif_schema_bound";
+        public override string Description => "Schema validation test tool";
+        public override object InputSchema => new
+        {
+            type = "object",
+            properties = new
+            {
+                mode = new { type = "string", @enum = new[] { "safe", "strict" } },
+                attempts = new { type = "integer", minimum = 0, maximum = 3 },
+            },
+            required = new[] { "mode" },
+            additionalProperties = false,
+        };
+        public bool Executed { get; private set; }
+
+        public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+        {
+            Executed = true;
+            return Task.FromResult(TextResult("executed"));
+        }
+    }
+
+    private sealed class BlockingTool : ToolBase
+    {
+        public override string Name => "clif_blocking";
+        public override string Description => "Cooperatively cancellable blocking test tool";
+        public override object InputSchema => new { type = "object" };
+
+        public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments) =>
+            Task.FromResult(TextResult("legacy execution"));
+
+        public override async Task<McpToolResult> ExecuteAsync(
+            JsonElement? arguments,
+            CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            return TextResult("unreachable");
         }
     }
 }

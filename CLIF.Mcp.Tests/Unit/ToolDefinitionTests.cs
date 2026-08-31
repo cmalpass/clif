@@ -265,6 +265,32 @@ public class ToolDefinitionTests
     }
 
     [Fact]
+    public async Task BatchTool_TypeWithoutReference_IsRejectedBeforeSendingKeyboardInput()
+    {
+        var tool = new BatchTool(CreateMinimalWindowSessionManager(), new ElementRegistry());
+        var args = JsonSerializer.Deserialize<JsonElement>(
+            """{"actions":[{"action":"type","text":"must not be typed"}]}""");
+
+        var result = await tool.ExecuteAsync(args);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Contain("Missing ref");
+    }
+
+    [Fact]
+    public async Task BatchTool_SnapshotWithoutHandle_IsRejectedBeforeInspectingFocusedWindow()
+    {
+        var tool = new BatchTool(CreateMinimalWindowSessionManager(), new ElementRegistry());
+        var args = JsonSerializer.Deserialize<JsonElement>(
+            """{"actions":[{"action":"snapshot"}]}""");
+
+        var result = await tool.ExecuteAsync(args);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Contain("Missing handle");
+    }
+
+    [Fact]
     public async Task ScriptTool_MissingContent_ReturnsError()
     {
         var tool = new ScriptTool();
@@ -316,6 +342,32 @@ public class ToolDefinitionTests
         var result = await tool.ExecuteAsync(args);
 
         result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ScriptTool_UnsupportedAction_ReturnsError()
+    {
+        var tool = new ScriptTool();
+        var scriptJson = "{\"name\":\"Unsupported\",\"steps\":[{\"action\":\"delete_everything\"}]}";
+        var args = JsonSerializer.Deserialize<JsonElement>("{\"content\":" + JsonSerializer.Serialize(scriptJson) + "}");
+
+        var result = await tool.ExecuteAsync(args);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Contain("unsupported action");
+    }
+
+    [Fact]
+    public async Task ScriptTool_ElementActionWithoutSelector_ReturnsError()
+    {
+        var tool = new ScriptTool();
+        var scriptJson = "{\"name\":\"Missing selector\",\"steps\":[{\"action\":\"click\"}]}";
+        var args = JsonSerializer.Deserialize<JsonElement>("{\"content\":" + JsonSerializer.Serialize(scriptJson) + "}");
+
+        var result = await tool.ExecuteAsync(args);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Contain("requires an element selector");
     }
 
     [Fact]

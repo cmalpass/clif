@@ -174,8 +174,13 @@ public class AutomationService : IAutomationService, IDisposable
                 // Capture state before click for validation
                 var beforeState = await this.CaptureElementStateAsync(element);
 
+                var togglePattern = element.Patterns.Toggle.PatternOrDefault;
                 var invokePattern = element.Patterns.Invoke.PatternOrDefault;
-                if (invokePattern != null)
+                if (togglePattern != null)
+                {
+                    togglePattern.Toggle();
+                }
+                else if (invokePattern != null)
                 {
                     invokePattern.Invoke();
                 }
