@@ -14,7 +14,8 @@ public class TreeCommand : Command
 {
     /// <summary>Initializes a new instance of the <see cref="TreeCommand"/> class. Creates the tree command and registers its display options.</summary>
     /// <param name="serviceProvider">Provider used to resolve process and tree services.</param>
-    public TreeCommand(IServiceProvider serviceProvider) : base("tree", "Display or search the automation element tree")
+    public TreeCommand(IServiceProvider serviceProvider)
+        : base("tree", "Display or search the automation element tree")
     {
         var processArgument = new Argument<string>("process") { Description = "Process name, window title, or process ID" };
         var depthOption = new Option<int>("--depth") { Description = "Maximum tree depth to display" };

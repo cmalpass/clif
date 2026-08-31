@@ -13,7 +13,8 @@ public class ElementCommand : Command
 {
     /// <summary>Initializes a new instance of the <see cref="ElementCommand"/> class. Creates the element command and registers its arguments.</summary>
     /// <param name="serviceProvider">Provider reserved for resolving element services.</param>
-    public ElementCommand(IServiceProvider serviceProvider) : base("element", "Element operations")
+    public ElementCommand(IServiceProvider serviceProvider)
+        : base("element", "Element operations")
     {
         var processArgument = new Argument<string>("process") { Description = "Process name or ID" };
         var selectorArgument = new Argument<string>("selector") { Description = "Element selector" };
