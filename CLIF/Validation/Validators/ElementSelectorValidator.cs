@@ -175,9 +175,9 @@ public class SelectorFormatRule : ValidationRule<string>
 /// </summary>
 public class TextInputValidator : ValidatorBase<string>
 {
-    private readonly int _minLength;
-    private readonly int _maxLength;
-    private readonly bool _allowEmpty;
+    private readonly int minLength;
+    private readonly int maxLength;
+    private readonly bool allowEmpty;
 
     /// <summary>
     /// Initializes a new instance of the TextInputValidator class.
@@ -195,9 +195,9 @@ public class TextInputValidator : ValidatorBase<string>
             throw new ArgumentException("Minimum length cannot be greater than maximum length.", nameof(minLength));
         }
 
-        this._minLength = minLength;
-        this._maxLength = maxLength;
-        this._allowEmpty = allowEmpty;
+        this.minLength = minLength;
+        this.maxLength = maxLength;
+        this.allowEmpty = allowEmpty;
 
         this.AddRule(new NoInjectionRule());
         this.AddRule(new SafeCharactersRule());
@@ -217,27 +217,27 @@ public class TextInputValidator : ValidatorBase<string>
         }
 
         // Handle empty or whitespace-only input (unless allowEmpty is true)
-        if (!this._allowEmpty && string.IsNullOrWhiteSpace(text))
+        if (!this.allowEmpty && string.IsNullOrWhiteSpace(text))
         {
             return ValidationResult.Failure("Text input cannot be empty");
         }
 
         // When allowEmpty is true and the text is empty, skip length checks
-        if (this._allowEmpty && text.Length == 0)
+        if (this.allowEmpty && text.Length == 0)
         {
             return this.ValidateRules(text);
         }
 
         // Check minimum length
-        if (text.Length < this._minLength)
+        if (text.Length < this.minLength)
         {
-            return ValidationResult.Failure($"Text input does not meet the minimum length of {this._minLength} characters");
+            return ValidationResult.Failure($"Text input does not meet the minimum length of {this.minLength} characters");
         }
 
         // Check maximum length
-        if (text.Length > this._maxLength)
+        if (text.Length > this.maxLength)
         {
-            return ValidationResult.Failure($"Text input exceeds the maximum length of {this._maxLength} characters");
+            return ValidationResult.Failure($"Text input exceeds the maximum length of {this.maxLength} characters");
         }
 
         // Now validate using rules (including malicious content detection)

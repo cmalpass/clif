@@ -10,12 +10,12 @@ namespace CLIF.Security;
 /// </summary>
 public class SecurityContext
 {
-    private static readonly Lazy<SecurityContext> _instance = new(() => new SecurityContext());
+    private static readonly Lazy<SecurityContext> instance = new(() => new SecurityContext());
 
     /// <summary>
     /// Gets the singleton instance of the SecurityContext.
     /// </summary>
-    public static SecurityContext Current => _instance.Value;
+    public static SecurityContext Current => instance.Value;
 
     /// <summary>
     /// Gets a value indicating whether the current user is an administrator.
@@ -170,7 +170,7 @@ public class SecurityContext
 /// </summary>
 public class PermissionValidator
 {
-    private readonly SecurityContext _securityContext;
+    private readonly SecurityContext securityContext;
 
     /// <summary>
     /// Initializes a new instance of the PermissionValidator class.
@@ -178,7 +178,7 @@ public class PermissionValidator
     /// <param name="securityContext">The security context to use.</param>
     public PermissionValidator(SecurityContext? securityContext = null)
     {
-        this._securityContext = securityContext ?? SecurityContext.Current;
+        this.securityContext = securityContext ?? SecurityContext.Current;
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class PermissionValidator
         var result = ValidationResult.Success();
 
         // Check if we have the necessary permissions for UI automation
-        if (!this._securityContext.IsElevated)
+        if (!this.securityContext.IsElevated)
         {
             result.AddError("UI Automation may require elevated privileges for some operations. Consider running as administrator if you encounter access issues.");
         }

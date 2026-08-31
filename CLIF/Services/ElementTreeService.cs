@@ -11,13 +11,13 @@ namespace CLIF.Services;
 [SupportedOSPlatform("windows7.0")]
 public class ElementTreeService : IElementTreeService
 {
-    private readonly ILogger<ElementTreeService> _logger;
+    private readonly ILogger<ElementTreeService> logger;
 
     /// <summary>Initializes a new instance of the <see cref="ElementTreeService"/> class.</summary>
     /// <param name="logger">Logger used to record UI Automation traversal failures.</param>
     public ElementTreeService(ILogger<ElementTreeService> logger)
     {
-        this._logger = logger;
+        this.logger = logger;
     }
 
     /// <summary>Builds an element tree rooted at the specified automation element.</summary>
@@ -35,7 +35,7 @@ public class ElementTreeService : IElementTreeService
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error building element tree");
+                this.logger.LogError(ex, "Error building element tree");
                 return new ElementTreeNode();
             }
         });
@@ -125,13 +125,13 @@ public class ElementTreeService : IElementTreeService
                     }
                     catch (Exception ex)
                     {
-                        this._logger.LogWarning($"Error processing child element: {ex.Message}");
+                        this.logger.LogWarning($"Error processing child element: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogWarning($"Error getting children for element: {ex.Message}");
+                this.logger.LogWarning($"Error getting children for element: {ex.Message}");
             }
         }
 

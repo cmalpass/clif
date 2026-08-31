@@ -61,8 +61,8 @@ public abstract class ValidationRule<T> : IValidationRule<T>
 /// <typeparam name="T">The numeric type to validate.</typeparam>
 public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
 {
-    private readonly T _minimum;
-    private readonly T _maximum;
+    private readonly T minimum;
+    private readonly T maximum;
 
     /// <summary>
     /// Initializes a new instance of the RangeRule class.
@@ -71,8 +71,8 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     /// <param name="maximum">The maximum allowed value.</param>
     public RangeRule(T minimum, T maximum)
     {
-        this._minimum = minimum;
-        this._maximum = maximum;
+        this.minimum = minimum;
+        this.maximum = maximum;
     }
 
     /// <summary>
@@ -87,9 +87,9 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     /// <returns>A validation result.</returns>
     public override ValidationResult Validate(T input)
     {
-        if (input.CompareTo(this._minimum) < 0 || input.CompareTo(this._maximum) > 0)
+        if (input.CompareTo(this.minimum) < 0 || input.CompareTo(this.maximum) > 0)
         {
-            return this.Failure($"Value must be between {this._minimum} and {this._maximum}");
+            return this.Failure($"Value must be between {this.minimum} and {this.maximum}");
         }
 
         return this.Success();
@@ -101,8 +101,8 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
 /// </summary>
 public class FormatRule : ValidationRule<string>
 {
-    private readonly System.Text.RegularExpressions.Regex _regex;
-    private readonly string _formatDescription;
+    private readonly System.Text.RegularExpressions.Regex regex;
+    private readonly string formatDescription;
 
     /// <summary>
     /// Initializes a new instance of the FormatRule class.
@@ -111,8 +111,8 @@ public class FormatRule : ValidationRule<string>
     /// <param name="formatDescription">A description of the expected format.</param>
     public FormatRule(string pattern, string formatDescription)
     {
-        this._regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
-        this._formatDescription = formatDescription;
+        this.regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
+        this.formatDescription = formatDescription;
     }
 
     /// <summary>
@@ -127,9 +127,9 @@ public class FormatRule : ValidationRule<string>
     /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
-        if (string.IsNullOrEmpty(input) || !this._regex.IsMatch(input))
+        if (string.IsNullOrEmpty(input) || !this.regex.IsMatch(input))
         {
-            return this.Failure($"Input must match format: {this._formatDescription}");
+            return this.Failure($"Input must match format: {this.formatDescription}");
         }
 
         return this.Success();
@@ -141,8 +141,8 @@ public class FormatRule : ValidationRule<string>
 /// </summary>
 public class LengthRule : ValidationRule<string>
 {
-    private readonly int _minLength;
-    private readonly int _maxLength;
+    private readonly int minLength;
+    private readonly int maxLength;
 
     /// <summary>
     /// Initializes a new instance of the LengthRule class.
@@ -151,8 +151,8 @@ public class LengthRule : ValidationRule<string>
     /// <param name="maxLength">The maximum allowed length.</param>
     public LengthRule(int minLength, int maxLength = int.MaxValue)
     {
-        this._minLength = minLength;
-        this._maxLength = maxLength;
+        this.minLength = minLength;
+        this.maxLength = maxLength;
     }
 
     /// <summary>
@@ -169,14 +169,14 @@ public class LengthRule : ValidationRule<string>
     {
         var length = input?.Length ?? 0;
 
-        if (length < this._minLength)
+        if (length < this.minLength)
         {
-            return this.Failure($"Input must be at least {this._minLength} characters long");
+            return this.Failure($"Input must be at least {this.minLength} characters long");
         }
 
-        if (length > this._maxLength)
+        if (length > this.maxLength)
         {
-            return this.Failure($"Input cannot exceed {this._maxLength} characters");
+            return this.Failure($"Input cannot exceed {this.maxLength} characters");
         }
 
         return this.Success();
