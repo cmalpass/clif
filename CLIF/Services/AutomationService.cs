@@ -30,9 +30,9 @@ public class AutomationService : IAutomationService, IDisposable
     private UIA3Automation? automation;
     private FlaUI.Core.Application? application;
     private AutomationElement? rootElement;
-    private const uint WM_KEYDOWN = 0x0100;
-    private const int VK_RETURN = 0x0D;
-    private const int VK_ESCAPE = 0x1B;
+    private const uint WmKeyDown = 0x0100;
+    private const int VkReturn = 0x0D;
+    private const int VkEscape = 0x1B;
 
     /// <summary>Initializes a new instance of the <see cref="AutomationService"/> class. Initializes the automation service.</summary>
     /// <param name="logger">Logger used to record automation operations.</param>
@@ -2167,7 +2167,7 @@ public class AutomationService : IAutomationService, IDisposable
                         else
                         {
                             // Fallback: Send Enter key to dismiss dialog
-                            PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                            PostMessage(dialogHandle, WmKeyDown, new IntPtr(VkReturn), IntPtr.Zero);
                             this.logger.LogInformation("Sent Enter key to dismiss dialog");
                         }
 

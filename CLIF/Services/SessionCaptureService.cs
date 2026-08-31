@@ -58,7 +58,7 @@ public interface ISessionCaptureService
 /// </summary>
 public class SessionCaptureService : ISessionCaptureService
 {
-    private const int SW_RESTORE = 9;
+    private const int SwRestore = 9;
 
     private readonly ILogger<SessionCaptureService> logger;
     private string? currentSessionId;
@@ -305,7 +305,7 @@ public class SessionCaptureService : ISessionCaptureService
             var windowHandle = new IntPtr(window.Properties.NativeWindowHandle);
 
             // Restore window if minimized
-            ShowWindow(windowHandle, SW_RESTORE);
+            ShowWindow(windowHandle, SwRestore);
 
             // Bring to foreground
             SetForegroundWindow(windowHandle);
