@@ -636,6 +636,7 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     // Advanced control interaction methods
+
     /// <summary>Selects a combo box item by its displayed text.</summary>
     /// <param name="element">Combo box to update.</param>
     /// <param name="itemText">Displayed text of the item to select.</param>
@@ -1298,6 +1299,7 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     // Data extraction methods for advanced controls
+
     /// <summary>Gets the displayed items in a combo box.</summary>
     /// <param name="element">Combo box to inspect.</param>
     /// <returns>The displayed item texts, or an empty array when none are available.</returns>
@@ -1837,6 +1839,7 @@ public class AutomationService : IAutomationService, IDisposable
     }
 
     // DataGrid-specific checkbox operations
+
     /// <summary>Sets the check box state in a data-grid row.</summary>
     /// <param name="dataGridSelector">Selector identifying the data grid.</param>
     /// <param name="rowIndex">Zero-based row index.</param>
