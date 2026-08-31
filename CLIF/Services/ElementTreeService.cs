@@ -121,7 +121,10 @@ public class ElementTreeService : IElementTreeService
                 node.Value = valuePattern.Value ?? string.Empty;
             }
         }
-        catch { /* Ignore pattern access errors */ }
+        catch
+        {
+            // Ignore pattern access errors.
+        }
 
         // Build children if requested and within depth limit
         if (includeChildren && currentDepth < maxDepth)
