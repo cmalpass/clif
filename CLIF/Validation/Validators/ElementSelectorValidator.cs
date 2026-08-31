@@ -102,6 +102,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
                 {
                     result.AddError("XPath selector must start with '//'");
                 }
+
                 break;
 
             case "id":
@@ -110,6 +111,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
                 {
                     result.AddError($"{selectorType} selector cannot contain spaces");
                 }
+
                 break;
 
             case "class":
@@ -118,6 +120,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
                 {
                     result.AddError("Class selector can only contain letters, digits, dots, hyphens, and underscores");
                 }
+
                 break;
         }
 

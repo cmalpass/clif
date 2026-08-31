@@ -179,6 +179,7 @@ public static class SanitizationHelper
                     {
                         result.Append(c);
                     }
+
                     break;
 
                 case System.Globalization.UnicodeCategory.PrivateUse:

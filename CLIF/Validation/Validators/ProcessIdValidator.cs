@@ -41,6 +41,7 @@ public class ProcessIdValidator : ValidatorBase<int>
                 {
                     result.AddError($"Process {processId} has already exited");
                 }
+
                 // Check if process has a main window (indicating it's a UI application)
                 else if (process.MainWindowHandle == IntPtr.Zero)
                 {

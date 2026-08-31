@@ -217,6 +217,7 @@ public class PermissionValidator
                     {
                         using var readStream = File.OpenRead(filePath);
                     }
+
                     break;
 
                 case FileAccess.Write:
@@ -231,6 +232,7 @@ public class PermissionValidator
                         File.WriteAllText(tempFile, "test");
                         File.Delete(tempFile);
                     }
+
                     break;
 
                 case FileAccess.ReadWrite:
