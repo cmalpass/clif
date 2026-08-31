@@ -4,8 +4,8 @@
 // Licensed under the MIT License.
 
 using System.Text.Json;
-using Microsoft.Extensions.Logging;
 using CLIF.Core;
+using Microsoft.Extensions.Logging;
 
 namespace CLIF.Services;
 

@@ -5,9 +5,9 @@
 
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using Microsoft.Extensions.Logging;
 using CLIF.Core;
 using CLIF.Services;
+using Microsoft.Extensions.Logging;
 
 namespace CLIF.Commands;
 

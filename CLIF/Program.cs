@@ -3,12 +3,12 @@
 // </copyright>
 using System.CommandLine;
 using System.Runtime.Versioning;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using CLIF.Commands;
 using CLIF.Core;
 using CLIF.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 // <copyright file="Program.cs" company="CLIF - Comprehensive UI Automation CLI">
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.

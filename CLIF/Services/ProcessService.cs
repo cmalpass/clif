@@ -6,8 +6,8 @@
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.Versioning;
-using Microsoft.Extensions.Logging;
 using CLIF.Core;
+using Microsoft.Extensions.Logging;
 
 namespace CLIF.Services;
 

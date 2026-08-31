@@ -3,13 +3,13 @@
 // </copyright>
 // Licensed under the MIT License.
 
-using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Capturing;
-using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace CLIF.Services;
 
