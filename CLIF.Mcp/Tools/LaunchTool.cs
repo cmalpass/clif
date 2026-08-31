@@ -85,4 +85,38 @@ public class LaunchTool : ToolBase
             return Task.FromResult(ErrorResult("Failed to launch the approved application."));
         }
     }
+
+    /// <inheritdoc />
+    public override Task<McpToolResult> ExecuteAsync(
+        JsonElement? arguments,
+        CancellationToken cancellationToken)
+    {
+        var app = GetStringArgument(arguments, "app");
+        if (string.IsNullOrEmpty(app))
+        {
+            return Task.FromResult(ErrorResult("Missing required argument: app"));
+        }
+
+        if (!_safetyPolicy.IsApplicationAllowed(app))
+        {
+            return Task.FromResult(ErrorResult(
+                "MCP_PERMISSION_DENIED: launch is not allowed by policy."));
+        }
+
+        var args = GetArgument<string[]>(arguments, "args");
+        try
+        {
+            var (handle, window) = _sessionManager.LaunchApp(app, args, cancellationToken);
+            return Task.FromResult(TextResult(
+                $"Launched {app}\nWindow handle: {handle}\nTitle: {window.Title}"));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Task.FromResult(ErrorResult("Failed to launch the approved application."));
+        }
+    }
 }

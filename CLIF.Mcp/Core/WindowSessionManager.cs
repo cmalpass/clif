@@ -22,7 +22,13 @@ public class WindowSessionManager : IDisposable
     private readonly UIA3Automation _automation;
     private readonly Dictionary<string, Window> _windows = new();
     private readonly Dictionary<nint, string> _nativeHandleToHandle = new();
+    private readonly Dictionary<string, Process> _launchedProcesses = new();
+    private readonly object _sync = new();
     private int _windowCounter;
+    private bool _disposed;
+
+    /// <summary>Raised when a tracked window is removed because it closed or its process exited.</summary>
+    public event Action<string>? WindowRemoved;
 
     /// <summary>
     /// Initializes a session manager backed by UI Automation 3.
@@ -40,8 +46,14 @@ public class WindowSessionManager : IDisposable
     /// <summary>
     /// Launch an application and return the window handle and Window object.
     /// </summary>
-    public (string handle, Window window) LaunchApp(string appPath, string[]? args = null)
+    public (string handle, Window window) LaunchApp(
+        string appPath,
+        string[]? args = null,
+        CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        cancellationToken.ThrowIfCancellationRequested();
+
         var psi = new ProcessStartInfo
         {
             FileName = appPath,
@@ -62,6 +74,23 @@ public class WindowSessionManager : IDisposable
             throw new InvalidOperationException($"Failed to start process: {appPath}");
         }
 
+        void AbortLaunch()
+        {
+            if (!process.HasExited)
+            {
+                try
+                {
+                    process.CloseMainWindow();
+                }
+                catch
+                {
+                    // The process may have exited while cancellation was observed.
+                }
+            }
+
+            process.Dispose();
+        }
+
         try
         {
             process.WaitForInputIdle(InputIdleTimeoutMs);
@@ -71,7 +100,11 @@ public class WindowSessionManager : IDisposable
             // Some processes don't support WaitForInputIdle
         }
 
-        Thread.Sleep(AppLaunchDelayMs);
+        if (cancellationToken.WaitHandle.WaitOne(AppLaunchDelayMs))
+        {
+            AbortLaunch();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
 
         var desktop = _automation.GetDesktop();
         Window? window = null;
@@ -93,7 +126,13 @@ public class WindowSessionManager : IDisposable
 
             for (int i = 0; i < WindowSearchRetries && window == null; i++)
             {
-                Thread.Sleep(WindowSearchDelayMs);
+                if (cancellationToken.WaitHandle.WaitOne(WindowSearchDelayMs))
+                {
+                    AbortLaunch();
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
                 var windows = desktop.FindAllChildren(
                     cf => cf.ByControlType(ControlType.Window));
 
@@ -116,11 +155,25 @@ public class WindowSessionManager : IDisposable
 
         if (window == null)
         {
+            AbortLaunch();
             throw new InvalidOperationException(
                 $"Could not find window for {appPath}. Try using clif_list_windows and clif_focus instead.");
         }
 
+        if (process.HasExited)
+        {
+            AbortLaunch();
+            throw new InvalidOperationException($"Application exited before its window became usable: {appPath}");
+        }
+
         var windowHandle = RegisterWindow(window);
+        lock (_sync)
+        {
+            _launchedProcesses[windowHandle] = process;
+            process.EnableRaisingEvents = true;
+            process.Exited += (_, _) => OnLaunchedProcessExited(windowHandle, process);
+        }
+
         return (windowHandle, window);
     }
 
@@ -148,23 +201,27 @@ public class WindowSessionManager : IDisposable
     /// </summary>
     public string RegisterWindow(Window window)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
-        if (nativeHandle != default && _nativeHandleToHandle.TryGetValue(nativeHandle, out var existingHandle))
+        lock (_sync)
         {
-            // Update the window object in case it was refreshed, but keep the same handle
-            _windows[existingHandle] = window;
-            return existingHandle;
+            if (nativeHandle != default && _nativeHandleToHandle.TryGetValue(nativeHandle, out var existingHandle))
+            {
+                // Update the window object in case it was refreshed, but keep the same handle.
+                _windows[existingHandle] = window;
+                return existingHandle;
+            }
+
+            var handle = $"w{++_windowCounter}";
+            _windows[handle] = window;
+
+            if (nativeHandle != default)
+            {
+                _nativeHandleToHandle[nativeHandle] = handle;
+            }
+
+            return handle;
         }
-
-        var handle = $"w{++_windowCounter}";
-        _windows[handle] = window;
-
-        if (nativeHandle != default)
-        {
-            _nativeHandleToHandle[nativeHandle] = handle;
-        }
-
-        return handle;
     }
 
     /// <summary>
@@ -172,7 +229,11 @@ public class WindowSessionManager : IDisposable
     /// </summary>
     public Window? GetWindow(string handle)
     {
-        return _windows.TryGetValue(handle, out var window) ? window : null;
+        CleanupExitedProcesses();
+        lock (_sync)
+        {
+            return _windows.TryGetValue(handle, out var window) ? window : null;
+        }
     }
 
     /// <summary>
@@ -180,6 +241,7 @@ public class WindowSessionManager : IDisposable
     /// </summary>
     public List<(string handle, string title, string? processName)> ListWindows()
     {
+        CleanupExitedProcesses();
         var desktop = _automation.GetDesktop();
         var windows = desktop.FindAllChildren(
             cf => cf.ByControlType(ControlType.Window));
@@ -229,19 +291,127 @@ public class WindowSessionManager : IDisposable
             ?? throw new InvalidOperationException($"Window not found: {handle}");
         var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
         window.Close();
-        _windows.Remove(handle);
-        if (nativeHandle != default)
+        Process? process = null;
+        lock (_sync)
         {
-            _nativeHandleToHandle.Remove(nativeHandle);
+            _windows.Remove(handle);
+            if (nativeHandle != default)
+            {
+                _nativeHandleToHandle.Remove(nativeHandle);
+            }
+
+            if (_launchedProcesses.Remove(handle, out process))
+            {
+                // The exit callback is harmless after removal and may already be queued.
+            }
+        }
+
+        if (process != null)
+        {
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.CloseMainWindow();
+                    process.WaitForExit(2_000);
+                }
+            }
+            finally
+            {
+                process.Dispose();
+            }
         }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        _windows.Clear();
-        _nativeHandleToHandle.Clear();
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        Process[] processes;
+        lock (_sync)
+        {
+            processes = _launchedProcesses.Values.ToArray();
+            _launchedProcesses.Clear();
+            _windows.Clear();
+            _nativeHandleToHandle.Clear();
+        }
+
+        foreach (var process in processes)
+        {
+            try
+            {
+                if (!process.HasExited)
+                {
+                    process.CloseMainWindow();
+                }
+            }
+            catch
+            {
+                // Cleanup must not prevent the UIA provider from being disposed.
+            }
+            finally
+            {
+                process.Dispose();
+            }
+        }
+
         _automation.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private void CleanupExitedProcesses()
+    {
+        string[] exitedHandles;
+        lock (_sync)
+        {
+            exitedHandles = _launchedProcesses
+                .Where(pair => pair.Value.HasExited)
+                .Select(pair => pair.Key)
+                .ToArray();
+        }
+
+        foreach (var handle in exitedHandles)
+        {
+            RemoveWindow(handle);
+        }
+    }
+
+    private void OnLaunchedProcessExited(string handle, Process process)
+    {
+        RemoveWindow(handle);
+    }
+
+    private void RemoveWindow(string handle)
+    {
+        Process? process = null;
+        var removed = false;
+        lock (_sync)
+        {
+            if (!_windows.Remove(handle, out var window))
+            {
+                return;
+            }
+
+            removed = true;
+
+            var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
+            if (nativeHandle != default)
+            {
+                _nativeHandleToHandle.Remove(nativeHandle);
+            }
+
+            _launchedProcesses.Remove(handle, out process);
+        }
+
+        process?.Dispose();
+        if (removed)
+        {
+            WindowRemoved?.Invoke(handle);
+        }
     }
 }
