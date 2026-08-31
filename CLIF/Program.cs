@@ -14,7 +14,6 @@ using Microsoft.Extensions.Logging;
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // </copyright>
 // Licensed under the MIT License.
-
 namespace CLIF;
 
 internal class Program
