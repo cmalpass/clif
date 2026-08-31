@@ -10,6 +10,37 @@ on:
   workflow_dispatch:
 
 jobs:
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: windows-latest
+
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore locked dependency graph
+      run: dotnet restore clif.sln --locked-mode
+
+    - name: Fail on known vulnerable packages
+      shell: pwsh
+      run: |
+        $audit = dotnet list clif.sln package --vulnerable --include-transitive 2>&1 | Out-String
+        Write-Host $audit
+        if ($LASTEXITCODE -ne 0) {
+          throw "The dependency vulnerability audit command failed."
+        }
+        if ($audit -match '(?m)^\s*>.*\s+(Low|Moderate|High|Critical)\s+') {
+          throw "Known vulnerable NuGet packages were found."
+        }
+
   build:
     name: Build Solution
     runs-on: windows-latest
