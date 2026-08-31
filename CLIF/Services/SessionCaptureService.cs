@@ -288,6 +288,7 @@ public class SessionCaptureService : ISessionCaptureService
             {
                 return dir.FullName;
             }
+
             dir = dir.Parent;
         }
 

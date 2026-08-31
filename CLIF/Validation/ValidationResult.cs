@@ -98,6 +98,7 @@ public class ValidationResult
         {
             this._errors.AddRange(other.Errors);
         }
+
         return this;
     }
 

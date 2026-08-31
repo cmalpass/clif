@@ -118,6 +118,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
         {
             return ValidationResult.Failure($"{paramName} cannot be null", paramName);
         }
+
         return ValidationResult.Success();
     }
 }

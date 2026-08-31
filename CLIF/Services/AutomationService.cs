@@ -191,6 +191,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     element.Click();
                 }
+
                 this._logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
 
                 // Wait for potential state changes
@@ -373,6 +374,7 @@ public class AutomationService : IAutomationService, IDisposable
                         // Fallback to keyboard
                         Keyboard.Type(value);
                     }
+
                     this._logger.LogInformation($"Set value '{value}' using keyboard input");
                 }
 
@@ -445,6 +447,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     return valuePattern.Value ?? string.Empty;
                 }
+
                 return element.Name ?? string.Empty;
             }
             catch (Exception ex)
@@ -524,6 +527,7 @@ public class AutomationService : IAutomationService, IDisposable
                     scrollPattern.ScrollIntoView();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -686,6 +690,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                     return success;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -712,6 +717,7 @@ public class AutomationService : IAutomationService, IDisposable
                     comboBox.Select(index);
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -742,6 +748,7 @@ public class AutomationService : IAutomationService, IDisposable
                         return true;
                     }
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -768,6 +775,7 @@ public class AutomationService : IAutomationService, IDisposable
                     listBox.Items[index].Select();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -826,6 +834,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                     return success;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -887,6 +896,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                     return success;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -913,6 +923,7 @@ public class AutomationService : IAutomationService, IDisposable
                     slider.Value = value;
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -943,6 +954,7 @@ public class AutomationService : IAutomationService, IDisposable
                         return true;
                     }
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -969,6 +981,7 @@ public class AutomationService : IAutomationService, IDisposable
                     tabControl.TabItems[tabIndex].Select();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -994,6 +1007,7 @@ public class AutomationService : IAutomationService, IDisposable
                     treeItem.Expand();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1019,6 +1033,7 @@ public class AutomationService : IAutomationService, IDisposable
                     treeItem.Collapse();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1047,6 +1062,7 @@ public class AutomationService : IAutomationService, IDisposable
                     treeItem.Select();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1178,8 +1194,10 @@ public class AutomationService : IAutomationService, IDisposable
                     {
                         expandCollapsePattern.Collapse();
                     }
+
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1206,6 +1224,7 @@ public class AutomationService : IAutomationService, IDisposable
                     dataGrid.Rows[rowIndex].Click();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1237,6 +1256,7 @@ public class AutomationService : IAutomationService, IDisposable
                         return true;
                     }
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1262,6 +1282,7 @@ public class AutomationService : IAutomationService, IDisposable
                     menuItem.Invoke();
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1288,6 +1309,7 @@ public class AutomationService : IAutomationService, IDisposable
                     toggleButton.IsToggled = isToggled;
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
@@ -1314,6 +1336,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     return comboBox.Items.Select(i => i.Text).ToArray();
                 }
+
                 return Array.Empty<string>();
             }
             catch (Exception ex)
@@ -1338,6 +1361,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     return listBox.Items.Select(i => i.Text).ToArray();
                 }
+
                 return Array.Empty<string>();
             }
             catch (Exception ex)
@@ -1551,11 +1575,13 @@ public class AutomationService : IAutomationService, IDisposable
                         {
                             rowData[$"Column{i}"] = row.Cells[i].Value ?? string.Empty;
                         }
+
                         results.Add(rowData);
                     }
 
                     return results.ToArray();
                 }
+
                 return Array.Empty<Dictionary<string, object>>();
             }
             catch (Exception ex)
@@ -1605,6 +1631,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     return element.AsLabel()?.Text ?? element.Name;
                 }
+
                 return element.Name;
             }
             catch (Exception ex)
@@ -1658,6 +1685,7 @@ public class AutomationService : IAutomationService, IDisposable
             {
                 this._logger.LogDebug($"Could not capture all state for element: {ex.Message}");
             }
+
             return state;
         });
     }
@@ -1701,6 +1729,7 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     // Not a toggle button, treat as regular button
                 }
+
                 return false; // Regular button - no detectable change expected
             }
             else if (element.ControlType == ControlType.Button)
@@ -1988,6 +2017,7 @@ public class AutomationService : IAutomationService, IDisposable
                         checkboxElement.Toggle();
                         this._logger.LogInformation($"Toggled checkbox for row '{rowName}' to {isChecked}");
                     }
+
                     return true;
                 }
 
