@@ -4,16 +4,16 @@ using System.Text.RegularExpressions;
 namespace CLIF.Security;
 
 /// <summary>
-/// Provides utilities for sanitizing and cleaning user input
+/// Provides utilities for sanitizing and cleaning user input.
 /// </summary>
 public static class SanitizationHelper
 {
     /// <summary>
-    /// Sanitizes a string for safe use in file paths
+    /// Sanitizes a string for safe use in file paths.
     /// </summary>
-    /// <param name="input">The input string to sanitize</param>
-    /// <param name="replacement">The character to replace invalid characters with</param>
-    /// <returns>A sanitized string safe for use in file paths</returns>
+    /// <param name="input">The input string to sanitize.</param>
+    /// <param name="replacement">The character to replace invalid characters with.</param>
+    /// <returns>A sanitized string safe for use in file paths.</returns>
     public static string SanitizeFilePath(string input, char replacement = '_')
     {
         if (string.IsNullOrEmpty(input))
@@ -57,10 +57,10 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Sanitizes a string for safe use in element selectors
+    /// Sanitizes a string for safe use in element selectors.
     /// </summary>
-    /// <param name="input">The input string to sanitize</param>
-    /// <returns>A sanitized string safe for use in element selectors</returns>
+    /// <param name="input">The input string to sanitize.</param>
+    /// <returns>A sanitized string safe for use in element selectors.</returns>
     public static string SanitizeElementSelector(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -101,11 +101,11 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Sanitizes text input to prevent injection attacks
+    /// Sanitizes text input to prevent injection attacks.
     /// </summary>
-    /// <param name="input">The input text to sanitize</param>
-    /// <param name="preserveFormatting">Whether to preserve basic formatting characters</param>
-    /// <returns>A sanitized string safe for text input</returns>
+    /// <param name="input">The input text to sanitize.</param>
+    /// <param name="preserveFormatting">Whether to preserve basic formatting characters.</param>
+    /// <returns>A sanitized string safe for text input.</returns>
     public static string SanitizeTextInput(string input, bool preserveFormatting = true)
     {
         if (string.IsNullOrEmpty(input))
@@ -143,10 +143,10 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Escapes special characters in a string for safe use in regular expressions
+    /// Escapes special characters in a string for safe use in regular expressions.
     /// </summary>
-    /// <param name="input">The input string to escape</param>
-    /// <returns>An escaped string safe for use in regular expressions</returns>
+    /// <param name="input">The input string to escape.</param>
+    /// <returns>An escaped string safe for use in regular expressions.</returns>
     public static string EscapeRegexSpecialCharacters(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -158,10 +158,10 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Removes potentially dangerous Unicode characters from input
+    /// Removes potentially dangerous Unicode characters from input.
     /// </summary>
-    /// <param name="input">The input string to clean</param>
-    /// <returns>A cleaned string with dangerous Unicode characters removed</returns>
+    /// <param name="input">The input string to clean.</param>
+    /// <returns>A cleaned string with dangerous Unicode characters removed.</returns>
     private static string RemoveDangerousUnicodeCharacters(string input)
     {
         var result = new StringBuilder(input.Length);
@@ -203,10 +203,10 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Validates and sanitizes a process identifier (name or ID)
+    /// Validates and sanitizes a process identifier (name or ID).
     /// </summary>
-    /// <param name="input">The process identifier to sanitize</param>
-    /// <returns>A sanitized process identifier</returns>
+    /// <param name="input">The process identifier to sanitize.</param>
+    /// <returns>A sanitized process identifier.</returns>
     public static string SanitizeProcessIdentifier(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
@@ -242,10 +242,10 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Removes directory traversal patterns from a path
+    /// Removes directory traversal patterns from a path.
     /// </summary>
-    /// <param name="path">The path to sanitize</param>
-    /// <returns>A path with traversal patterns removed</returns>
+    /// <param name="path">The path to sanitize.</param>
+    /// <returns>A path with traversal patterns removed.</returns>
     public static string RemovePathTraversal(string path)
     {
         if (string.IsNullOrEmpty(path))
@@ -276,12 +276,12 @@ public static class SanitizationHelper
     }
 
     /// <summary>
-    /// Truncates a string to a maximum length, adding ellipsis if truncated
+    /// Truncates a string to a maximum length, adding ellipsis if truncated.
     /// </summary>
-    /// <param name="input">The input string</param>
-    /// <param name="maxLength">The maximum allowed length</param>
-    /// <param name="ellipsis">The ellipsis string to append when truncated</param>
-    /// <returns>A truncated string</returns>
+    /// <param name="input">The input string.</param>
+    /// <param name="maxLength">The maximum allowed length.</param>
+    /// <param name="ellipsis">The ellipsis string to append when truncated.</param>
+    /// <returns>A truncated string.</returns>
     public static string TruncateWithEllipsis(string input, int maxLength, string ellipsis = "...")
     {
         if (string.IsNullOrEmpty(input) || input.Length <= maxLength)

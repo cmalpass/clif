@@ -5,70 +5,70 @@ using System.Linq;
 namespace CLIF.Validation.Rules;
 
 /// <summary>
-/// Interface for validation rules
+/// Interface for validation rules.
 /// </summary>
-/// <typeparam name="T">The type of input to validate</typeparam>
+/// <typeparam name="T">The type of input to validate.</typeparam>
 public interface IValidationRule<T>
 {
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     string RuleName { get; }
 
     /// <summary>
-    /// Validates the specified input
+    /// Validates the specified input.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     ValidationResult Validate(T input);
 }
 
 /// <summary>
-/// Abstract base class for validation rules
+/// Abstract base class for validation rules.
 /// </summary>
-/// <typeparam name="T">The type of input to validate</typeparam>
+/// <typeparam name="T">The type of input to validate.</typeparam>
 public abstract class ValidationRule<T> : IValidationRule<T>
 {
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public abstract string RuleName { get; }
 
     /// <summary>
-    /// Validates the specified input
+    /// Validates the specified input.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public abstract ValidationResult Validate(T input);
 
     /// <summary>
-    /// Creates a successful validation result
+    /// Creates a successful validation result.
     /// </summary>
-    /// <returns>A successful validation result</returns>
+    /// <returns>A successful validation result.</returns>
     protected ValidationResult Success() => ValidationResult.Success();
 
     /// <summary>
-    /// Creates a failed validation result with the specified message
+    /// Creates a failed validation result with the specified message.
     /// </summary>
-    /// <param name="message">The failure message</param>
-    /// <returns>A failed validation result</returns>
+    /// <param name="message">The failure message.</param>
+    /// <returns>A failed validation result.</returns>
     protected ValidationResult Failure(string message) => ValidationResult.Failure(message);
 }
 
 /// <summary>
-/// Validation rule for numeric range checking
+/// Validation rule for numeric range checking.
 /// </summary>
-/// <typeparam name="T">The numeric type to validate</typeparam>
+/// <typeparam name="T">The numeric type to validate.</typeparam>
 public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
 {
     private readonly T _minimum;
     private readonly T _maximum;
 
     /// <summary>
-    /// Initializes a new instance of the RangeRule class
+    /// Initializes a new instance of the RangeRule class.
     /// </summary>
-    /// <param name="minimum">The minimum allowed value</param>
-    /// <param name="maximum">The maximum allowed value</param>
+    /// <param name="minimum">The minimum allowed value.</param>
+    /// <param name="maximum">The maximum allowed value.</param>
     public RangeRule(T minimum, T maximum)
     {
         this._minimum = minimum;
@@ -76,15 +76,15 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     }
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "Range";
 
     /// <summary>
-    /// Validates that the input is within the specified range
+    /// Validates that the input is within the specified range.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(T input)
     {
         if (input.CompareTo(this._minimum) < 0 || input.CompareTo(this._maximum) > 0)
@@ -96,7 +96,7 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
 }
 
 /// <summary>
-/// Validation rule for string format checking using regular expressions
+/// Validation rule for string format checking using regular expressions.
 /// </summary>
 public class FormatRule : ValidationRule<string>
 {
@@ -104,10 +104,10 @@ public class FormatRule : ValidationRule<string>
     private readonly string _formatDescription;
 
     /// <summary>
-    /// Initializes a new instance of the FormatRule class
+    /// Initializes a new instance of the FormatRule class.
     /// </summary>
-    /// <param name="pattern">The regular expression pattern</param>
-    /// <param name="formatDescription">A description of the expected format</param>
+    /// <param name="pattern">The regular expression pattern.</param>
+    /// <param name="formatDescription">A description of the expected format.</param>
     public FormatRule(string pattern, string formatDescription)
     {
         this._regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
@@ -115,15 +115,15 @@ public class FormatRule : ValidationRule<string>
     }
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "Format";
 
     /// <summary>
-    /// Validates that the input matches the specified format
+    /// Validates that the input matches the specified format.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrEmpty(input) || !this._regex.IsMatch(input))
@@ -135,7 +135,7 @@ public class FormatRule : ValidationRule<string>
 }
 
 /// <summary>
-/// Validation rule for string length checking
+/// Validation rule for string length checking.
 /// </summary>
 public class LengthRule : ValidationRule<string>
 {
@@ -143,10 +143,10 @@ public class LengthRule : ValidationRule<string>
     private readonly int _maxLength;
 
     /// <summary>
-    /// Initializes a new instance of the LengthRule class
+    /// Initializes a new instance of the LengthRule class.
     /// </summary>
-    /// <param name="minLength">The minimum allowed length</param>
-    /// <param name="maxLength">The maximum allowed length</param>
+    /// <param name="minLength">The minimum allowed length.</param>
+    /// <param name="maxLength">The maximum allowed length.</param>
     public LengthRule(int minLength, int maxLength = int.MaxValue)
     {
         this._minLength = minLength;
@@ -154,15 +154,15 @@ public class LengthRule : ValidationRule<string>
     }
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "Length";
 
     /// <summary>
-    /// Validates that the input length is within the specified range
+    /// Validates that the input length is within the specified range.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         var length = input?.Length ?? 0;
@@ -182,22 +182,22 @@ public class LengthRule : ValidationRule<string>
 }
 
 /// <summary>
-/// Validation rule for preventing path traversal attacks
+/// Validation rule for preventing path traversal attacks.
 /// </summary>
 public class PathTraversalRule : ValidationRule<string>
 {
     private static readonly string[] DangerousPatterns = { "..", "~", "%2e%2e", "%2E%2E" };
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "PathTraversal";
 
     /// <summary>
-    /// Validates that the input does not contain path traversal patterns
+    /// Validates that the input does not contain path traversal patterns.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -218,7 +218,7 @@ public class PathTraversalRule : ValidationRule<string>
 }
 
 /// <summary>
-/// Validation rule for checking invalid file path characters
+/// Validation rule for checking invalid file path characters.
 /// </summary>
 public class InvalidCharactersRule : ValidationRule<string>
 {
@@ -228,12 +228,12 @@ public class InvalidCharactersRule : ValidationRule<string>
         .ToArray();
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "InvalidCharacters";
 
     /// <summary>
-    /// Checks if a colon at the given position is part of a Windows drive letter pattern
+    /// Checks if a colon at the given position is part of a Windows drive letter pattern.
     /// </summary>
     private static bool IsWindowsDriveLetterColon(string input, int index)
     {
@@ -256,7 +256,7 @@ public class InvalidCharactersRule : ValidationRule<string>
     }
 
     /// <summary>
-    /// Checks if a character is a path separator (backslash or forward slash)
+    /// Checks if a character is a path separator (backslash or forward slash).
     /// </summary>
     private static bool IsPathSeparator(char c)
     {
@@ -264,10 +264,10 @@ public class InvalidCharactersRule : ValidationRule<string>
     }
 
     /// <summary>
-    /// Validates that the input does not contain invalid file path characters
+    /// Validates that the input does not contain invalid file path characters.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -297,7 +297,7 @@ public class InvalidCharactersRule : ValidationRule<string>
 }
 
 /// <summary>
-/// Validation rule for preventing script injection attacks
+/// Validation rule for preventing script injection attacks.
 /// </summary>
 public class NoInjectionRule : ValidationRule<string>
 {
@@ -316,15 +316,15 @@ public class NoInjectionRule : ValidationRule<string>
     };
 
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "NoInjection";
 
     /// <summary>
-    /// Validates that the input does not contain potentially dangerous script content
+    /// Validates that the input does not contain potentially dangerous script content.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrEmpty(input))
