@@ -207,6 +207,33 @@ public class InteractiveService : IInteractiveService
         }
     }
 
+    /// <inheritdoc />
+    public async Task ShowHelpAsync()
+    {
+        await Task.Run(() =>
+        {
+            Console.WriteLine();
+            Console.WriteLine("Available Commands:");
+            Console.WriteLine("  click <selector>          - Click an element");
+            Console.WriteLine("  type <selector> <text>    - Type text into an element");
+            Console.WriteLine("  get-text <selector>       - Get text from an element");
+            Console.WriteLine("  get-value <selector>      - Get value from an element");
+            Console.WriteLine("  tree [depth]              - Show element tree");
+            Console.WriteLine("  search <criteria>         - Search for elements");
+            Console.WriteLine("  screenshot [file]         - Take screenshot");
+            Console.WriteLine("  attach <process>          - Attach to different process");
+            Console.WriteLine("  help                      - Show this help");
+            Console.WriteLine("  exit                      - Exit interactive mode");
+            Console.WriteLine();
+        });
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GetPromptAsync()
+    {
+        return await Task.FromResult("CLIF> ");
+    }
+
     private string[] ParseCommand(string command)
     {
         // Simple parsing - splits by space but respects quoted strings
@@ -425,30 +452,5 @@ public class InteractiveService : IInteractiveService
         return success;
     }
 
-    /// <inheritdoc />
-    public async Task ShowHelpAsync()
-    {
-        await Task.Run(() =>
-        {
-            Console.WriteLine();
-            Console.WriteLine("Available Commands:");
-            Console.WriteLine("  click <selector>          - Click an element");
-            Console.WriteLine("  type <selector> <text>    - Type text into an element");
-            Console.WriteLine("  get-text <selector>       - Get text from an element");
-            Console.WriteLine("  get-value <selector>      - Get value from an element");
-            Console.WriteLine("  tree [depth]              - Show element tree");
-            Console.WriteLine("  search <criteria>         - Search for elements");
-            Console.WriteLine("  screenshot [file]         - Take screenshot");
-            Console.WriteLine("  attach <process>          - Attach to different process");
-            Console.WriteLine("  help                      - Show this help");
-            Console.WriteLine("  exit                      - Exit interactive mode");
-            Console.WriteLine();
-        });
-    }
 
-    /// <inheritdoc />
-    public async Task<string> GetPromptAsync()
-    {
-        return await Task.FromResult("CLIF> ");
-    }
 }

@@ -199,6 +199,62 @@ public class ScriptService : IScriptService
         return result;
     }
 
+    /// <inheritdoc />
+    public async Task<bool> ValidateScriptAsync(string scriptPath)
+    {
+        try
+        {
+            var script = await this.LoadScriptAsync(scriptPath);
+            return script != null;
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError(ex, $"Error validating script: {scriptPath}");
+            return false;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<Script?> LoadScriptAsync(string scriptPath)
+    {
+        try
+        {
+            if (!File.Exists(scriptPath))
+            {
+                return null;
+            }
+
+            var content = await File.ReadAllTextAsync(scriptPath);
+            return JsonSerializer.Deserialize<Script>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            });
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError(ex, $"Error loading script: {scriptPath}");
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SaveScriptAsync(Script script, string scriptPath)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(script, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+            });
+            await File.WriteAllTextAsync(scriptPath, json);
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError(ex, $"Error saving script: {scriptPath}");
+            throw;
+        }
+    }
+
     private async Task<bool> AttachToProcessAsync(Script script, int? processIdOverride = null)
     {
         try
@@ -533,59 +589,5 @@ public class ScriptService : IScriptService
         }
     }
 
-    /// <inheritdoc />
-    public async Task<bool> ValidateScriptAsync(string scriptPath)
-    {
-        try
-        {
-            var script = await this.LoadScriptAsync(scriptPath);
-            return script != null;
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, $"Error validating script: {scriptPath}");
-            return false;
-        }
-    }
 
-    /// <inheritdoc />
-    public async Task<Script?> LoadScriptAsync(string scriptPath)
-    {
-        try
-        {
-            if (!File.Exists(scriptPath))
-            {
-                return null;
-            }
-
-            var content = await File.ReadAllTextAsync(scriptPath);
-            return JsonSerializer.Deserialize<Script>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-            });
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, $"Error loading script: {scriptPath}");
-            return null;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task SaveScriptAsync(Script script, string scriptPath)
-    {
-        try
-        {
-            var json = JsonSerializer.Serialize(script, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-            });
-            await File.WriteAllTextAsync(scriptPath, json);
-        }
-        catch (Exception ex)
-        {
-            this.logger.LogError(ex, $"Error saving script: {scriptPath}");
-            throw;
-        }
-    }
 }
