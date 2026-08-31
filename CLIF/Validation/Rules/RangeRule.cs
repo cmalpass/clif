@@ -13,7 +13,8 @@ namespace CLIF.Validation.Rules;
 /// Validation rule for numeric range checking.
 /// </summary>
 /// <typeparam name="T">The numeric type to validate.</typeparam>
-public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
+public class RangeRule<T> : ValidationRule<T>
+    where T : IComparable<T>
 {
     private readonly T minimum;
     private readonly T maximum;
