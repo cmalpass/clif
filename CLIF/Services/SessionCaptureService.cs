@@ -137,7 +137,10 @@ public class SessionCaptureService : ISessionCaptureService
 
     public async Task LogInteractionAsync(string message, LogLevel level = LogLevel.Information)
     {
-        if (this._logFilePath == null) return;
+        if (this._logFilePath == null)
+        {
+            return;
+        }
 
         await Task.Run(() =>
         {
@@ -160,7 +163,10 @@ public class SessionCaptureService : ISessionCaptureService
 
     public async Task EndSessionAsync()
     {
-        if (this._currentSessionPath == null || this._logFilePath == null) return;
+        if (this._currentSessionPath == null || this._logFilePath == null)
+        {
+            return;
+        }
 
         await Task.Run(() =>
         {
