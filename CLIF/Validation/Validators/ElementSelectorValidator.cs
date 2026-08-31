@@ -7,7 +7,7 @@ using CLIF.Validation.Rules;
 namespace CLIF.Validation.Validators;
 
 /// <summary>
-/// Validator for element selectors used in UI automation
+/// Validator for element selectors used in UI automation.
 /// </summary>
 public class ElementSelectorValidator : ValidatorBase<string>
 {
@@ -22,7 +22,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
     };
 
     /// <summary>
-    /// Initializes a new instance of the ElementSelectorValidator class
+    /// Initializes a new instance of the ElementSelectorValidator class.
     /// </summary>
     public ElementSelectorValidator()
     {
@@ -32,10 +32,10 @@ public class ElementSelectorValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the specified element selector
+    /// Validates the specified element selector.
     /// </summary>
-    /// <param name="selector">The element selector to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="selector">The element selector to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string selector)
     {
         if (selector is null)
@@ -60,10 +60,10 @@ public class ElementSelectorValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the format of the selector
+    /// Validates the format of the selector.
     /// </summary>
-    /// <param name="selector">The selector to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="selector">The selector to validate.</param>
+    /// <returns>A validation result.</returns>
     private static ValidationResult ValidateSelectorFormat(string selector)
     {
         var result = ValidationResult.Success();
@@ -126,20 +126,20 @@ public class ElementSelectorValidator : ValidatorBase<string>
 }
 
 /// <summary>
-/// Validation rule for element selector format
+/// Validation rule for element selector format.
 /// </summary>
 public class SelectorFormatRule : ValidationRule<string>
 {
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "SelectorFormat";
 
     /// <summary>
-    /// Validates that the selector has a valid format
+    /// Validates that the selector has a valid format.
     /// </summary>
-    /// <param name="input">The selector to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The selector to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
@@ -168,7 +168,7 @@ public class SelectorFormatRule : ValidationRule<string>
 }
 
 /// <summary>
-/// Validator for text input used in UI automation
+/// Validator for text input used in UI automation.
 /// </summary>
 public class TextInputValidator : ValidatorBase<string>
 {
@@ -177,11 +177,11 @@ public class TextInputValidator : ValidatorBase<string>
     private readonly bool _allowEmpty;
 
     /// <summary>
-    /// Initializes a new instance of the TextInputValidator class
+    /// Initializes a new instance of the TextInputValidator class.
     /// </summary>
-    /// <param name="minLength">Minimum allowed text length</param>
-    /// <param name="maxLength">Maximum allowed text length</param>
-    /// <param name="allowEmpty">Whether empty text is allowed</param>
+    /// <param name="minLength">Minimum allowed text length.</param>
+    /// <param name="maxLength">Maximum allowed text length.</param>
+    /// <param name="allowEmpty">Whether empty text is allowed.</param>
     public TextInputValidator(int minLength = 4, int maxLength = 300, bool allowEmpty = false)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(minLength);
@@ -201,10 +201,10 @@ public class TextInputValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the specified text input
+    /// Validates the specified text input.
     /// </summary>
-    /// <param name="text">The text to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="text">The text to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string text)
     {
         // Handle null input with specific message expected by tests
@@ -250,10 +250,10 @@ public class TextInputValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates that the text is safe for UI input
+    /// Validates that the text is safe for UI input.
     /// </summary>
-    /// <param name="text">The text to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="text">The text to validate.</param>
+    /// <returns>A validation result.</returns>
     private static ValidationResult ValidateTextSafety(string text)
     {
         var result = ValidationResult.Success();
@@ -276,20 +276,20 @@ public class TextInputValidator : ValidatorBase<string>
 }
 
 /// <summary>
-/// Validation rule for checking safe characters in text input
+/// Validation rule for checking safe characters in text input.
 /// </summary>
 public class SafeCharactersRule : ValidationRule<string>
 {
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "SafeCharacters";
 
     /// <summary>
-    /// Validates that the input contains only safe characters
+    /// Validates that the input contains only safe characters.
     /// </summary>
-    /// <param name="input">The input to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="input">The input to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string input)
     {
         if (string.IsNullOrEmpty(input))

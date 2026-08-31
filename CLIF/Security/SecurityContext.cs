@@ -6,34 +6,34 @@ using CLIF.Validation;
 namespace CLIF.Security;
 
 /// <summary>
-/// Provides security context information for the application
+/// Provides security context information for the application.
 /// </summary>
 public class SecurityContext
 {
     private static readonly Lazy<SecurityContext> _instance = new(() => new SecurityContext());
 
     /// <summary>
-    /// Gets the singleton instance of the SecurityContext
+    /// Gets the singleton instance of the SecurityContext.
     /// </summary>
     public static SecurityContext Current => _instance.Value;
 
     /// <summary>
-    /// Gets a value indicating whether the current user is an administrator
+    /// Gets a value indicating whether the current user is an administrator.
     /// </summary>
     public bool IsAdministrator { get; }
 
     /// <summary>
-    /// Gets the current user identity
+    /// Gets the current user identity.
     /// </summary>
     public IIdentity CurrentUser { get; }
 
     /// <summary>
-    /// Gets a value indicating whether the application is running with elevated privileges
+    /// Gets a value indicating whether the application is running with elevated privileges.
     /// </summary>
     public bool IsElevated { get; }
 
     /// <summary>
-    /// Initializes a new instance of the SecurityContext class
+    /// Initializes a new instance of the SecurityContext class.
     /// </summary>
     private SecurityContext()
     {
@@ -43,10 +43,10 @@ public class SecurityContext
     }
 
     /// <summary>
-    /// Validates that the current user has permission to access the specified process
+    /// Validates that the current user has permission to access the specified process.
     /// </summary>
-    /// <param name="processId">The process ID to check</param>
-    /// <returns>A validation result indicating whether access is allowed</returns>
+    /// <param name="processId">The process ID to check.</param>
+    /// <returns>A validation result indicating whether access is allowed.</returns>
     public ValidationResult ValidateProcessAccess(int processId)
     {
         try
@@ -78,10 +78,10 @@ public class SecurityContext
     }
 
     /// <summary>
-    /// Validates that the current user has permission to access the specified file path
+    /// Validates that the current user has permission to access the specified file path.
     /// </summary>
-    /// <param name="filePath">The file path to check</param>
-    /// <returns>A validation result indicating whether access is allowed</returns>
+    /// <param name="filePath">The file path to check.</param>
+    /// <returns>A validation result indicating whether access is allowed.</returns>
     public ValidationResult ValidateFileAccess(string filePath)
     {
         try
@@ -129,9 +129,9 @@ public class SecurityContext
     }
 
     /// <summary>
-    /// Checks if the current user is running with elevated privileges
+    /// Checks if the current user is running with elevated privileges.
     /// </summary>
-    /// <returns>True if elevated, false otherwise</returns>
+    /// <returns>True if elevated, false otherwise.</returns>
     private static bool IsCurrentUserElevated()
     {
         try
@@ -147,9 +147,9 @@ public class SecurityContext
     }
 
     /// <summary>
-    /// Checks if the current user is an administrator
+    /// Checks if the current user is an administrator.
     /// </summary>
-    /// <returns>True if administrator, false otherwise</returns>
+    /// <returns>True if administrator, false otherwise.</returns>
     private static bool IsCurrentUserAdministrator()
     {
         try
@@ -166,25 +166,25 @@ public class SecurityContext
 }
 
 /// <summary>
-/// Provides permission validation services
+/// Provides permission validation services.
 /// </summary>
 public class PermissionValidator
 {
     private readonly SecurityContext _securityContext;
 
     /// <summary>
-    /// Initializes a new instance of the PermissionValidator class
+    /// Initializes a new instance of the PermissionValidator class.
     /// </summary>
-    /// <param name="securityContext">The security context to use</param>
+    /// <param name="securityContext">The security context to use.</param>
     public PermissionValidator(SecurityContext? securityContext = null)
     {
         this._securityContext = securityContext ?? SecurityContext.Current;
     }
 
     /// <summary>
-    /// Validates that the user has permission to perform automation operations
+    /// Validates that the user has permission to perform automation operations.
     /// </summary>
-    /// <returns>A validation result</returns>
+    /// <returns>A validation result.</returns>
     public ValidationResult ValidateAutomationPermissions()
     {
         var result = ValidationResult.Success();
@@ -199,11 +199,11 @@ public class PermissionValidator
     }
 
     /// <summary>
-    /// Validates permissions for file operations
+    /// Validates permissions for file operations.
     /// </summary>
-    /// <param name="filePath">The file path to check</param>
-    /// <param name="requiredAccess">The type of access required</param>
-    /// <returns>A validation result</returns>
+    /// <param name="filePath">The file path to check.</param>
+    /// <param name="requiredAccess">The type of access required.</param>
+    /// <returns>A validation result.</returns>
     public ValidationResult ValidateFilePermissions(string filePath, FileAccess requiredAccess)
     {
         var result = ValidationResult.Success();
