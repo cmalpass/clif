@@ -10,6 +10,7 @@
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="Auto"
         FontFamily="{DynamicResource MaterialDesignFont}"
+        Title="Comprehensive WPF Controls Test App"
         Height="800" Width="1200"
         WindowState="Maximized">
     <materialDesign:DialogHost Identifier="RootDialog">
