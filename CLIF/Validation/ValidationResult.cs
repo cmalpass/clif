@@ -9,22 +9,22 @@ namespace CLIF.Validation;
 /// </summary>
 public class ValidationResult
 {
-    private readonly List<ValidationError> _errors = new();
+    private readonly List<ValidationError> errors = new();
 
     /// <summary>
     /// Gets a value indicating whether the validation was successful.
     /// </summary>
-    public bool IsValid => !this._errors.Any();
+    public bool IsValid => !this.errors.Any();
 
     /// <summary>
     /// Gets the collection of validation errors.
     /// </summary>
-    public IReadOnlyList<ValidationError> Errors => this._errors.AsReadOnly();
+    public IReadOnlyList<ValidationError> Errors => this.errors.AsReadOnly();
 
     /// <summary>
     /// Gets a combined error message from all validation errors.
     /// </summary>
-    public string ErrorMessage => string.Join("; ", this._errors.Select(e => e.Message));
+    public string ErrorMessage => string.Join("; ", this.errors.Select(e => e.Message));
 
     /// <summary>
     /// Creates a successful validation result.
@@ -60,7 +60,7 @@ public class ValidationResult
     /// <returns>This validation result for method chaining.</returns>
     public ValidationResult AddError(string message, string? field = null)
     {
-        this._errors.Add(new ValidationError(message ?? string.Empty, field));
+        this.errors.Add(new ValidationError(message ?? string.Empty, field));
         return this;
     }
 
@@ -72,7 +72,7 @@ public class ValidationResult
     public ValidationResult AddError(ValidationError error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        this._errors.Add(error);
+        this.errors.Add(error);
         return this;
     }
 
@@ -83,7 +83,7 @@ public class ValidationResult
     /// <returns>This validation result for method chaining.</returns>
     public ValidationResult AddErrors(IEnumerable<ValidationError> errors)
     {
-        this._errors.AddRange(errors);
+        this.errors.AddRange(errors);
         return this;
     }
 
@@ -96,7 +96,7 @@ public class ValidationResult
     {
         if (other != null && !other.IsValid)
         {
-            this._errors.AddRange(other.Errors);
+            this.errors.AddRange(other.Errors);
         }
 
         return this;

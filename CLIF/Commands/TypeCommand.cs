@@ -9,8 +9,8 @@ namespace CLIF.Commands;
 /// <summary>Provides the command-line entry point for typing text into an element.</summary>
 public class TypeCommand : Command
 {
-    private readonly IAutomationService _automationService;
-    private readonly ISessionCaptureService _captureService;
+    private readonly IAutomationService automationService;
+    private readonly ISessionCaptureService captureService;
 
     /// <summary>Creates a type command backed by the automation and capture services.</summary>
     /// <param name="automationService">Service used to attach and type into the target.</param>
@@ -18,8 +18,8 @@ public class TypeCommand : Command
     public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService)
         : base("type", "Type text into a UI element")
     {
-        this._automationService = automationService;
-        this._captureService = captureService;
+        this.automationService = automationService;
+        this.captureService = captureService;
 
         var processIdOption = new Option<int>(
             "--process-id",
@@ -50,55 +50,55 @@ public class TypeCommand : Command
             var text = context.ParseResult.GetValueForOption(textOption)!;
 
             // Start a mini-session for individual command
-            var sessionId = await this._captureService.StartSessionAsync($"TYPE_Command_{DateTime.Now:HHmmss}");
+            var sessionId = await this.captureService.StartSessionAsync($"TYPE_Command_{DateTime.Now:HHmmss}");
 
             try
             {
-                await this._captureService.LogInteractionAsync($"TYPE command started: '{text}' into {elementPath} (Process: {processId})");
+                await this.captureService.LogInteractionAsync($"TYPE command started: '{text}' into {elementPath} (Process: {processId})");
 
                 Console.WriteLine($"Attaching to process {processId}...");
-                var success = await this._automationService.AttachToProcessAsync(processId);
+                var success = await this.automationService.AttachToProcessAsync(processId);
 
                 if (!success)
                 {
                     Console.WriteLine("Failed to attach to process.");
-                    await this._captureService.LogInteractionAsync("ERROR: Failed to attach to process", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync("ERROR: Failed to attach to process", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine($"Finding element: {elementPath}");
-                var element = await this._automationService.FindElementAsync(elementPath);
+                var element = await this.automationService.FindElementAsync(elementPath);
                 if (element == null)
                 {
                     Console.WriteLine($"Element '{elementPath}' not found.");
-                    await this._captureService.LogInteractionAsync($"ERROR: Element '{elementPath}' not found", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync($"ERROR: Element '{elementPath}' not found", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine($"Typing text '{text}' into element: {elementPath}");
-                if (!await this._automationService.TypeTextAsync(element, text))
+                if (!await this.automationService.TypeTextAsync(element, text))
                 {
                     Console.WriteLine("Text input failed.");
-                    await this._captureService.LogInteractionAsync("ERROR: Text input failed", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync("ERROR: Text input failed", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine("Text input completed successfully.");
-                await this._captureService.LogInteractionAsync("TYPE command completed successfully");
+                await this.captureService.LogInteractionAsync("TYPE command completed successfully");
                 context.ExitCode = 0;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error typing text: {ex.Message}");
-                await this._captureService.LogInteractionAsync($"ERROR: {ex.Message}", LogLevel.Error);
+                await this.captureService.LogInteractionAsync($"ERROR: {ex.Message}", LogLevel.Error);
                 context.ExitCode = 1;
             }
             finally
             {
-                await this._captureService.EndSessionAsync();
+                await this.captureService.EndSessionAsync();
             }
         });
     }

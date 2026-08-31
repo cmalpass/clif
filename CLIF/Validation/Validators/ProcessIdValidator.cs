@@ -100,14 +100,14 @@ public class ProcessExistenceRule : ValidationRule<int>
 /// </summary>
 public class ProcessIdentifierValidator : ValidatorBase<string>
 {
-    private readonly ProcessIdValidator _processIdValidator;
+    private readonly ProcessIdValidator processIdValidator;
 
     /// <summary>
     /// Initializes a new instance of the ProcessIdentifierValidator class.
     /// </summary>
     public ProcessIdentifierValidator()
     {
-        this._processIdValidator = new ProcessIdValidator();
+        this.processIdValidator = new ProcessIdValidator();
         this.AddRule(new LengthRule(1, 255));
         this.AddRule(new InvalidCharactersRule());
     }
@@ -129,7 +129,7 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
         // If it's a numeric ID, validate as process ID
         if (int.TryParse(processIdentifier, out var processId))
         {
-            var idResult = this._processIdValidator.Validate(processId);
+            var idResult = this.processIdValidator.Validate(processId);
             result.Combine(idResult);
         }
         else

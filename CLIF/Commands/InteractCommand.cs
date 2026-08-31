@@ -8,7 +8,7 @@ namespace CLIF.Commands;
 /// <summary>Provides advanced interactions with common WPF controls.</summary>
 public class InteractCommand : Command
 {
-    private readonly ISessionCaptureService _captureService;
+    private readonly ISessionCaptureService captureService;
 
     /// <summary>Creates an interaction command backed by automation and session services.</summary>
     /// <param name="automationService">Service used to locate and manipulate controls.</param>
@@ -17,7 +17,7 @@ public class InteractCommand : Command
     public InteractCommand(IAutomationService automationService, ISessionCaptureService captureService, ILogger<InteractCommand> logger)
         : base("interact", "Advanced interactions with various WPF controls")
     {
-        this._captureService = captureService;
+        this.captureService = captureService;
         // Element selector options
         var elementOption = new Option<string>(
             "--element",
@@ -64,11 +64,11 @@ public class InteractCommand : Command
         this.SetHandler(async (element, controlType, action, value, index, processId) =>
         {
             // Start a mini-session for individual command
-            var sessionId = await this._captureService.StartSessionAsync($"INTERACT_{controlType.ToUpper()}_{DateTime.Now:HHmmss}");
+            var sessionId = await this.captureService.StartSessionAsync($"INTERACT_{controlType.ToUpper()}_{DateTime.Now:HHmmss}");
 
             try
             {
-                await this._captureService.LogInteractionAsync($"INTERACT command started: {action} on {controlType} element {element} (Process: {processId})");
+                await this.captureService.LogInteractionAsync($"INTERACT command started: {action} on {controlType} element {element} (Process: {processId})");
 
                 Console.WriteLine($"Attaching to process {processId}...");
                 var attachSuccess = await automationService.AttachToProcessAsync(processId);
@@ -76,7 +76,7 @@ public class InteractCommand : Command
                 if (!attachSuccess)
                 {
                     Console.WriteLine("Failed to attach to process.");
-                    await this._captureService.LogInteractionAsync("ERROR: Failed to attach to process", Microsoft.Extensions.Logging.LogLevel.Error);
+                    await this.captureService.LogInteractionAsync("ERROR: Failed to attach to process", Microsoft.Extensions.Logging.LogLevel.Error);
                     return;
                 }
 
@@ -112,33 +112,33 @@ public class InteractCommand : Command
                     if (success)
                     {
                         Console.WriteLine($"✓ Action '{action}' completed successfully on {controlType}");
-                        await this._captureService.LogInteractionAsync($"INTERACT command completed successfully: {action} on {controlType}");
+                        await this.captureService.LogInteractionAsync($"INTERACT command completed successfully: {action} on {controlType}");
                     }
                     else
                     {
                         Console.WriteLine($"✗ Action '{action}' failed on {controlType}");
-                        await this._captureService.LogInteractionAsync($"INTERACT command failed: {action} on {controlType}", Microsoft.Extensions.Logging.LogLevel.Warning);
+                        await this.captureService.LogInteractionAsync($"INTERACT command failed: {action} on {controlType}", Microsoft.Extensions.Logging.LogLevel.Warning);
                     }
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Error performing {action} on {controlType}");
                     Console.WriteLine($"✗ Error: {ex.Message}");
-                    await this._captureService.LogInteractionAsync($"ERROR: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error);
+                    await this.captureService.LogInteractionAsync($"ERROR: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error);
                 }
                 finally
                 {
-                    await this._captureService.EndSessionAsync();
+                    await this.captureService.EndSessionAsync();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in INTERACT command: {ex.Message}");
-                await this._captureService.LogInteractionAsync($"ERROR: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error);
+                await this.captureService.LogInteractionAsync($"ERROR: {ex.Message}", Microsoft.Extensions.Logging.LogLevel.Error);
             }
             finally
             {
-                await this._captureService.EndSessionAsync();
+                await this.captureService.EndSessionAsync();
             }
         }, elementOption, controlTypeOption, actionOption, valueOption, indexOption, processIdOption);
     }
