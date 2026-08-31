@@ -13,7 +13,7 @@ namespace CLIF.Commands;
 /// <summary>Attaches to a WPF process and optionally executes one action.</summary>
 public class AttachCommand : Command
 {
-    /// <summary>Creates the attach command and registers its command-line options.</summary>
+    /// <summary>Initializes a new instance of the <see cref="AttachCommand"/> class. Creates the attach command and registers its command-line options.</summary>
     /// <param name="serviceProvider">Provider used to resolve command services.</param>
     public AttachCommand(IServiceProvider serviceProvider) : base("attach", "Attach to a WPF process and execute actions")
     {

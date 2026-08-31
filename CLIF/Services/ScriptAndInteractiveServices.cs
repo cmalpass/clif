@@ -21,6 +21,7 @@ public class ScriptService : IScriptService
     private int? attachedProcessId;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="ScriptService"/> class.
     /// Initializes the script service.
     /// </summary>
     /// <param name="logger">Logger used for execution diagnostics.</param>
@@ -602,6 +603,7 @@ public class InteractiveService : IInteractiveService
     public bool IsSessionActive { get; private set; }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="InteractiveService"/> class.
     /// Initializes the interactive service.
     /// </summary>
     /// <param name="logger">Logger used for command diagnostics.</param>

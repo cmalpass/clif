@@ -13,7 +13,7 @@ public class InteractiveCommand : Command
 {
     private readonly IInteractiveService interactiveService;
 
-    /// <summary>Creates an interactive command backed by the interactive service.</summary>
+    /// <summary>Initializes a new instance of the <see cref="InteractiveCommand"/> class. Creates an interactive command backed by the interactive service.</summary>
     /// <param name="interactiveService">Service that owns the interactive session.</param>
     public InteractiveCommand(IInteractiveService interactiveService)
         : base("interactive", "Enter interactive mode for UI automation")

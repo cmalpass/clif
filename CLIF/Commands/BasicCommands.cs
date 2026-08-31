@@ -11,7 +11,7 @@ namespace CLIF.Commands;
 /// <summary>Provides the command-line entry point for element operations.</summary>
 public class ElementCommand : Command
 {
-    /// <summary>Creates the element command and registers its arguments.</summary>
+    /// <summary>Initializes a new instance of the <see cref="ElementCommand"/> class. Creates the element command and registers its arguments.</summary>
     /// <param name="serviceProvider">Provider reserved for resolving element services.</param>
     public ElementCommand(IServiceProvider serviceProvider) : base("element", "Element operations")
     {

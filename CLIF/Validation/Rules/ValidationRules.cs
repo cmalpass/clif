@@ -70,7 +70,7 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     private readonly T maximum;
 
     /// <summary>
-    /// Initializes a new instance of the RangeRule class.
+    /// Initializes a new instance of the <see cref="RangeRule{T}"/> class.
     /// </summary>
     /// <param name="minimum">The minimum allowed value.</param>
     /// <param name="maximum">The maximum allowed value.</param>
@@ -110,7 +110,7 @@ public class FormatRule : ValidationRule<string>
     private readonly string formatDescription;
 
     /// <summary>
-    /// Initializes a new instance of the FormatRule class.
+    /// Initializes a new instance of the <see cref="FormatRule"/> class.
     /// </summary>
     /// <param name="pattern">The regular expression pattern.</param>
     /// <param name="formatDescription">A description of the expected format.</param>
@@ -150,7 +150,7 @@ public class LengthRule : ValidationRule<string>
     private readonly int maxLength;
 
     /// <summary>
-    /// Initializes a new instance of the LengthRule class.
+    /// Initializes a new instance of the <see cref="LengthRule"/> class.
     /// </summary>
     /// <param name="minLength">The minimum allowed length.</param>
     /// <param name="maxLength">The maximum allowed length.</param>
