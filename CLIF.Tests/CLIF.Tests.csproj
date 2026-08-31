@@ -24,6 +24,9 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="AutoFixture" Version="4.18.1" />
     <PackageReference Include="Bogus" Version="35.6.5" />
+    <!-- Avoid Fare's legacy NETStandard dependency graph, which pulls vulnerable 4.3.0 assemblies. -->
+    <PackageReference Include="Fare" Version="2.2.2" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
