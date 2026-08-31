@@ -186,5 +186,6 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
         return result;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

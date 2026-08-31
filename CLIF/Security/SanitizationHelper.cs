@@ -299,5 +299,6 @@ public static class SanitizationHelper
         return input.Substring(0, truncateLength) + ellipsis;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

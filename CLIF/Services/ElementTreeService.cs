@@ -346,5 +346,6 @@ public class ElementTreeService : IElementTreeService
         return string.Join(" and ", parts);
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

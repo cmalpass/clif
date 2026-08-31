@@ -33,6 +33,7 @@ public class FilePathValidator : ValidatorBase<string>
 
         this.AddRule(new LengthRule(1, 260)); // Windows MAX_PATH
         this.AddRule(new PathTraversalRule());
+
         // Note: InvalidCharactersRule removed since Path.GetFullPath normalization handles character validation
     }
 
@@ -247,5 +248,6 @@ public class DirectoryPathValidator : ValidatorBase<string>
         return result;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.
