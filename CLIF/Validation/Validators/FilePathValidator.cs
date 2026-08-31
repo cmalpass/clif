@@ -20,7 +20,7 @@ public class FilePathValidator : ValidatorBase<string>
     private readonly long maxFileSize;
 
     /// <summary>
-    /// Initializes a new instance of the FilePathValidator class.
+    /// Initializes a new instance of the <see cref="FilePathValidator"/> class.
     /// </summary>
     /// <param name="mustExist">Whether the file must exist.</param>
     /// <param name="allowedExtensions">Array of allowed file extensions (e.g., ".json", ".txt").</param>
@@ -182,7 +182,7 @@ public class DirectoryPathValidator : ValidatorBase<string>
     private readonly bool createIfNotExists;
 
     /// <summary>
-    /// Initializes a new instance of the DirectoryPathValidator class.
+    /// Initializes a new instance of the <see cref="DirectoryPathValidator"/> class.
     /// </summary>
     /// <param name="mustExist">Whether the directory must exist.</param>
     /// <param name="createIfNotExists">Whether to create the directory if it doesn't exist.</param>

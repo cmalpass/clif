@@ -38,7 +38,7 @@ public class SecurityContext
     public bool IsElevated { get; }
 
     /// <summary>
-    /// Initializes a new instance of the SecurityContext class.
+    /// Initializes a new instance of the <see cref="SecurityContext"/> class.
     /// </summary>
     private SecurityContext()
     {
@@ -178,7 +178,7 @@ public class PermissionValidator
     private readonly SecurityContext securityContext;
 
     /// <summary>
-    /// Initializes a new instance of the PermissionValidator class.
+    /// Initializes a new instance of the <see cref="PermissionValidator"/> class.
     /// </summary>
     /// <param name="securityContext">The security context to use.</param>
     public PermissionValidator(SecurityContext? securityContext = null)

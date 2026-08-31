@@ -54,7 +54,7 @@ public class AutomationService : IAutomationService, IDisposable
     private const int VK_RETURN = 0x0D;
     private const int VK_ESCAPE = 0x1B;
 
-    /// <summary>Initializes the automation service.</summary>
+    /// <summary>Initializes a new instance of the <see cref="AutomationService"/> class. Initializes the automation service.</summary>
     /// <param name="logger">Logger used to record automation operations.</param>
     /// <param name="captureService">Service used to capture interaction evidence.</param>
     public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)

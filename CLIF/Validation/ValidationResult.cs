@@ -123,7 +123,7 @@ public class ValidationResult
 public class ValidationError
 {
     /// <summary>
-    /// Initializes a new instance of the ValidationError class.
+    /// Initializes a new instance of the <see cref="ValidationError"/> class.
     /// </summary>
     /// <param name="message">The error message.</param>
     /// <param name="field">The optional field name that failed validation.</param>
