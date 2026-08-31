@@ -13,14 +13,14 @@ in individual project files rather than centrally.
 | Area | Packages and current versions |
 | --- | --- |
 | CLIF CLI | FlaUI.Core 5.0.0; FlaUI.UIA3 5.0.0; Microsoft.Extensions.Configuration, Microsoft.Extensions.Configuration.Json, Microsoft.Extensions.DependencyInjection, Microsoft.Extensions.Logging.Console, System.Text.Json, and System.Drawing.Common 9.0.10; System.CommandLine 2.0.0-beta4.22272.1; StyleCop.Analyzers 1.2.0-beta.556 |
-| MCP server | FlaUI.Core 5.0.0; FlaUI.UIA3 5.0.0; System.Text.Json and System.Drawing.Common 9.0.10 |
+| MCP server | FlaUI.Core 5.0.0; FlaUI.UIA3 5.0.0; Microsoft.Extensions.DependencyInjection and System.Text.Json 10.0.10; System.Drawing.Common 9.0.10 |
 | .NET tests | Microsoft.NET.Test.Sdk 18.0.0; xunit 2.9.3; xunit.runner.visualstudio 3.1.5; coverlet.collector 6.0.4; FluentAssertions 8.8.0 |
 | CLIF tests only | Moq 4.20.72; AutoFixture 4.18.1; Bogus 35.6.5 |
 | Avalonia fixture | Avalonia, Avalonia.Desktop, and Avalonia.Themes.Fluent 11.2.3 |
 | WPF fixture | Caliburn.Micro 4.0.212; MaterialDesignThemes 5.1.0; MaterialDesignColors 3.1.0 |
 
-The repository does not currently track `Directory.Packages.props`,
-`global.json`, or a repository-level `NuGet.config`. It now tracks one
+The repository does not currently track `Directory.Packages.props` or a
+repository-level `NuGet.config`. It tracks `global.json` to pin the .NET SDK and one
 `packages.lock.json` per restoring project; generated `obj/project.assets.json`
 files remain out of source control. CI, release, and Copilot setup restores use
 `--locked-mode` so an unexpected package-graph change fails before build or
@@ -28,18 +28,18 @@ publication.
 
 ## Reproducibility status and validated baseline
 
-The current build is reproducible only when the machine supplies the same SDK,
+The current build is reproducible only when the machine supplies the pinned SDK,
 Windows Desktop targeting pack, NuGet feeds, and resolved package graph. The
-repository currently leaves the SDK and package graph partially implicit:
+repository currently leaves package ownership partially implicit:
 
 - All projects target `net8.0`; Windows projects target `net8.0-windows` and
   require the Windows Desktop targeting pack. The Avalonia fixture and its
   contract tests target `net8.0`.
-- CI, the release workflow, and the Copilot setup use `8.0.x`, which selects a
-  moving SDK patch rather than one repository-owned SDK version.
-- The local audit host has SDKs `9.0.308` and `10.0.101`, but no .NET 8 SDK or
-  Windows Desktop runtime. This is useful for project-graph inspection but is
-  not sufficient to select or approve the repository's Windows SDK pin.
+- `global.json` pins the repository to SDK `8.0.424` with patch roll-forward
+  disabled. CI, release, CodeQL, and Copilot setup all install that exact SDK.
+- The local validation host has SDKs `8.0.424` and `10.0.303`, plus the
+  corresponding .NET 8 Windows Desktop runtime. The repository's pinned SDK is
+  therefore directly testable on the development host.
 - On 2026-08-05, the complete solution restored successfully with:
 
   ```sh
@@ -47,19 +47,21 @@ repository currently leaves the SDK and package graph partially implicit:
   ```
 
   A subsequent locked restore of the complete solution also passed on this
-  branch with `--locked-mode`. This validates the lockfile graph on the audit
-  host, but does not validate a selected `global.json` or Windows UI test
+  branch with `--locked-mode`. This validates the lockfile graph and the pinned
+  SDK on the Windows host; it does not replace interactive Windows UI test
   execution.
 
-Do not add `global.json` or convert to central package management in the same
-change. Each changes restore resolution and must be validated on a Windows
-runner with the .NET 8 SDK and Windows Desktop targeting pack installed.
+The SDK pin and package lockfiles are independent controls. A package-management
+migration (for example, adding `Directory.Packages.props`) must remain a separate
+change and be validated on a Windows runner with the pinned SDK and Windows
+Desktop targeting pack installed.
 
 ## Audit findings
 
-- There is no direct version drift among the duplicated shared references: the
-  FlaUI, test SDK, xUnit, test adapter, coverage collector, and FluentAssertions
-  versions are consistent wherever they are used.
+- There is no direct version drift among the duplicated test and FlaUI
+  references. The MCP SDK requires the 10.0.10 Microsoft.Extensions/System.Text.Json
+  family, while the CLI remains on the 9.0.10 family; this is an intentional
+  framework-package boundary and should be upgraded as a tested family.
 - The main maintainability risk is version ownership, not floating versions.
   Updating a shared package requires editing multiple project files and makes a
   lockfile migration harder to review.
@@ -94,15 +96,13 @@ runner with the .NET 8 SDK and Windows Desktop targeting pack installed.
 
 Changes should be made in separate, reviewable steps:
 
-1. On `windows-latest`, record `dotnet --info`, `dotnet --list-sdks`, and the
-   installed Windows Desktop targeting packs. Select the latest supported
-   .NET 8 SDK patch that is available on that runner, then add a `global.json`
-   with that exact SDK version. Use `rollForward: disable` unless the support
-   policy intentionally permits patch roll-forward. Update every CI/setup
-   `dotnet-version` input to install the version selected by `global.json`.
-   Acceptance criteria: `dotnet --version` matches the policy in every job;
-   solution restore/build succeeds on Windows; WPF, MCP, integration, and
-   cross-platform fixture gates remain green.
+1. The repository now pins SDK `8.0.424` in `global.json` with
+   `rollForward: disable`. Every CI, release, CodeQL, and Copilot setup step
+   requests the same exact SDK. Acceptance criteria: `dotnet --version` matches
+   `8.0.424` in every job; solution restore/build succeeds on Windows; WPF, MCP,
+   integration, and cross-platform fixture gates remain green. If the hosted
+   runner no longer provides this patch, update `global.json` and every setup
+   step together in a dedicated SDK-baseline change.
 2. Generate a lockfile migration in a dedicated change, preserving the current
    package versions:
 

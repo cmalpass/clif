@@ -21,7 +21,7 @@ The workflow is split into three parallel jobs for faster feedback:
 
 ### Job 1: Build Solution (`build`)
 1. **Checkout Code**: Retrieves the repository code
-2. **Setup .NET**: Installs .NET 8.0 SDK
+2. **Setup .NET**: Installs the pinned .NET SDK 8.0.424 from `global.json`
 3. **Display .NET info**: Logs SDK, SDK list, and runtime info for diagnostics
 4. **Restore Dependencies**: Restores NuGet packages for the solution
 5. **Build Solution**: Compiles the entire solution in Release configuration
@@ -69,7 +69,9 @@ Code coverage is collected via [coverlet](https://github.com/coverlet-coverage/c
 ### File Location
 `.github/copilot-setup-steps.yml`
 
-This file configures the Copilot coding agent's development environment to run on `windows-latest` with .NET 8.0, ensuring it can build and test the full solution including WPF dependencies.
+This file configures the Copilot coding agent's development environment to run
+on `windows-latest` with the pinned .NET SDK 8.0.424 from `global.json`, ensuring
+it can build and test the full solution including WPF dependencies.
 
 ## Test Execution
 
@@ -106,6 +108,9 @@ The repository README includes a status badge showing the current build status:
 To run the same tests locally on Windows:
 
 ```powershell
+# global.json selects the repository SDK; verify it before restoring
+dotnet --version
+
 # Restore dependencies
 dotnet restore clif.sln --locked-mode
 
