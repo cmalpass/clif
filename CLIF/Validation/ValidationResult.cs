@@ -102,6 +102,10 @@ public class ValidationResult
         return this;
     }
 
+    /// <summary>
+    /// Returns a human-readable representation of the validation result.
+    /// </summary>
+    /// <returns><c>Success</c> when valid; otherwise the combined error message.</returns>
     public override string ToString()
     {
         return this.IsValid ? "Success" : this.ErrorMessage;

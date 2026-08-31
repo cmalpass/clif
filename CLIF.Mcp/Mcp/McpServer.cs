@@ -14,6 +14,10 @@ public class McpServer
     private readonly ToolRegistry _toolRegistry;
     private McpSessionState _sessionState = McpSessionState.Uninitialized;
 
+    /// <summary>
+    /// Initializes a new MCP server using the supplied tool registry.
+    /// </summary>
+    /// <param name="toolRegistry">Registry containing the tools exposed by the server.</param>
     public McpServer(ToolRegistry toolRegistry)
     {
         _toolRegistry = toolRegistry;

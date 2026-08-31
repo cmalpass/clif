@@ -14,18 +14,26 @@ public class LaunchTool : ToolBase
     private readonly WindowSessionManager _sessionManager;
     private readonly McpSafetyPolicy _safetyPolicy;
 
+    /// <summary>
+    /// Initializes the window launch tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to track launched windows.</param>
+    /// <param name="safetyPolicy">Optional policy restricting launch operations.</param>
     public LaunchTool(WindowSessionManager sessionManager, McpSafetyPolicy? safetyPolicy = null)
     {
         _sessionManager = sessionManager;
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_launch";
 
+    /// <inheritdoc />
     public override string Description =>
         "Launch a Windows application and return its window handle. " +
         "Supports Win32, WPF, WinForms, and UWP applications.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -46,6 +54,7 @@ public class LaunchTool : ToolBase
         required = new[] { "app" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var app = GetStringArgument(arguments, "app");
