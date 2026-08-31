@@ -18,6 +18,16 @@ public class SecurityContext
     private static readonly Lazy<SecurityContext> instance = new(() => new SecurityContext());
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="SecurityContext"/> class.
+    /// </summary>
+    private SecurityContext()
+    {
+        this.CurrentUser = WindowsIdentity.GetCurrent();
+        this.IsElevated = IsCurrentUserElevated();
+        this.IsAdministrator = IsCurrentUserAdministrator();
+    }
+
+    /// <summary>
     /// Gets the singleton instance of the SecurityContext.
     /// </summary>
     public static SecurityContext Current => instance.Value;
@@ -36,16 +46,6 @@ public class SecurityContext
     /// Gets a value indicating whether the application is running with elevated privileges.
     /// </summary>
     public bool IsElevated { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SecurityContext"/> class.
-    /// </summary>
-    private SecurityContext()
-    {
-        this.CurrentUser = WindowsIdentity.GetCurrent();
-        this.IsElevated = IsCurrentUserElevated();
-        this.IsAdministrator = IsCurrentUserAdministrator();
-    }
 
     /// <summary>
     /// Validates that the current user has permission to access the specified process.
