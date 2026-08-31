@@ -15,15 +15,15 @@ namespace CLIF.Validation.Validators;
 /// </summary>
 public class ProcessIdValidator : ValidatorBase<int>
 {
-    private const int MIN_PROCESS_ID = 1;
-    private const int MAX_PROCESS_ID = 65535;
+    private const int MinProcessId = 1;
+    private const int MaxProcessId = 65535;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessIdValidator"/> class.
     /// </summary>
     public ProcessIdValidator()
     {
-        this.AddRule(new RangeRule<int>(MIN_PROCESS_ID, MAX_PROCESS_ID));
+        this.AddRule(new RangeRule<int>(MinProcessId, MaxProcessId));
         this.AddRule(new ProcessExistenceRule());
     }
 
