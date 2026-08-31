@@ -281,7 +281,7 @@ public class ScriptService : IScriptService
                     if (clearElement != null)
                     {
                         Console.WriteLine($"🧹 Clearing element: {step.Element}");
-                        return await this.automationService.SetValueAsync(clearElement, "");
+                        return await this.automationService.SetValueAsync(clearElement, string.Empty);
                     }
 
                     return false;

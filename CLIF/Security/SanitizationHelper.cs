@@ -85,7 +85,7 @@ public static class SanitizationHelper
         var result = input;
         foreach (var pattern in dangerous)
         {
-            result = Regex.Replace(result, pattern, "", RegexOptions.IgnoreCase);
+            result = Regex.Replace(result, pattern, string.Empty, RegexOptions.IgnoreCase);
         }
 
         // Remove control characters except common ones
@@ -120,7 +120,7 @@ public static class SanitizationHelper
         // and only strip truly dangerous control/unicode characters or nulls.
 
         // Remove null characters
-        result = result.Replace("\0", "");
+        result = result.Replace("\0", string.Empty);
 
         // Remove or replace dangerous Unicode characters
         result = RemoveDangerousUnicodeCharacters(result);
@@ -267,7 +267,7 @@ public static class SanitizationHelper
         var result = path;
         foreach (var pattern in patterns)
         {
-            result = Regex.Replace(result, pattern, "", RegexOptions.IgnoreCase);
+            result = Regex.Replace(result, pattern, string.Empty, RegexOptions.IgnoreCase);
         }
 
         // Normalize path separators

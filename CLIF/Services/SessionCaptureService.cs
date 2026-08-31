@@ -113,7 +113,7 @@ public class SessionCaptureService : ISessionCaptureService
                     $"Session Path: {this.currentSessionPath}",
                     $"Target Window: {(targetWindow?.Name ?? "Full Screen")}",
                     "=" + new string('=', 50),
-                    "",
+                    string.Empty,
                 };
 
                 File.WriteAllLines(this.logFilePath, sessionInfo);
@@ -143,7 +143,7 @@ public class SessionCaptureService : ISessionCaptureService
                 {
                     this.captureCounter++;
                     var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
-                    var screenshotName = $"{this.captureCounter:D3}_{actionType}_{timestamp.Replace(":", "")}.png";
+                    var screenshotName = $"{this.captureCounter:D3}_{actionType}_{timestamp.Replace(":", string.Empty)}.png";
                     var screenshotPath = Path.Combine(this.currentSessionPath, "screenshots", screenshotName);
 
                     // Capture screenshot
@@ -157,7 +157,7 @@ public class SessionCaptureService : ISessionCaptureService
                         $"  Success: {success}",
                         $"  Validation: {validationResult ?? "N/A"}",
                         $"  Screenshot: {screenshotName}",
-                        "",
+                        string.Empty,
                     };
 
                     File.AppendAllLines(this.logFilePath, logEntry);
@@ -217,7 +217,7 @@ public class SessionCaptureService : ISessionCaptureService
                     // Write session footer
                     var sessionFooter = new[]
                     {
-                        "",
+                        string.Empty,
                         "=" + new string('=', 50),
                         $"Session ended: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                         $"Total captures: {this.captureCounter}",
