@@ -48,7 +48,7 @@ public class ScriptService : IScriptService
                 return new ScriptExecutionResult
                 {
                     Success = false,
-                    Message = $"Script file not found: {scriptPath}"
+                    Message = $"Script file not found: {scriptPath}",
                 };
             }
 
@@ -63,7 +63,7 @@ public class ScriptService : IScriptService
             return new ScriptExecutionResult
             {
                 Success = false,
-                Message = $"Error reading script file: {ex.Message}"
+                Message = $"Error reading script file: {ex.Message}",
             };
         }
     }

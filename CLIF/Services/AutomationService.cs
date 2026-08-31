@@ -643,7 +643,7 @@ public class AutomationService : IAutomationService, IDisposable
         return conditions.Count switch
         {
             1 => conditions[0],
-            _ => new AndCondition(conditions)
+            _ => new AndCondition(conditions),
         };
     }
 
@@ -1798,7 +1798,7 @@ public class AutomationService : IAutomationService, IDisposable
                     (null, "Information"),
                     (null, "Warning"),
                     (null, "Error"),
-                    (null, "Confirm")
+                    (null, "Confirm"),
                 };
 
                 foreach (var pattern in dialogPatterns)
