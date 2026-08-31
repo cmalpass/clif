@@ -10,6 +10,9 @@ namespace CLIF.Core;
 /// <summary>Manages an interactive CLIF automation session.</summary>
 public interface IInteractiveService
 {
+    /// <summary>Gets a value indicating whether gets whether an interactive session is active.</summary>
+    bool IsSessionActive { get; }
+
     /// <summary>Starts an interactive session.</summary>
     /// <param name="processId">Optional process to attach to initially.</param>
     /// <returns>A task that completes when the interactive session starts.</returns>
@@ -28,6 +31,4 @@ public interface IInteractiveService
     /// <returns>The prompt text.</returns>
     Task<string> GetPromptAsync();
 
-    /// <summary>Gets a value indicating whether gets whether an interactive session is active.</summary>
-    bool IsSessionActive { get; }
 }
