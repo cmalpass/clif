@@ -1,3 +1,8 @@
+// <copyright file="SessionCaptureService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -342,3 +347,5 @@ public class SessionCaptureService : ISessionCaptureService
         return currentDir;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

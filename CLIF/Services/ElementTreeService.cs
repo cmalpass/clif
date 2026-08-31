@@ -1,3 +1,8 @@
+// <copyright file="ElementTreeService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -341,3 +346,5 @@ public class ElementTreeService : IElementTreeService
         return string.Join(" and ", parts);
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

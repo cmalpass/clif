@@ -1,3 +1,8 @@
+// <copyright file="AutomationService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
@@ -2427,3 +2432,5 @@ internal sealed class SelectorCriteria
         }
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

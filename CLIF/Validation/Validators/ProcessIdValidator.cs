@@ -1,3 +1,8 @@
+// <copyright file="ProcessIdValidator.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -181,3 +186,5 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
         return result;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

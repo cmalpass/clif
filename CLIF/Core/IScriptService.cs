@@ -1,3 +1,8 @@
+// <copyright file="IScriptService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.Text.Json.Serialization;
 
 namespace CLIF.Core;
@@ -244,3 +249,5 @@ public class ScriptExecutionResult
     /// <summary>Gets or sets the number of failed steps.</summary>
     public int StepsFailed { get; set; }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

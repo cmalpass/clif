@@ -1,3 +1,8 @@
+// <copyright file="SanitizationHelper.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -294,3 +299,5 @@ public static class SanitizationHelper
         return input.Substring(0, truncateLength) + ellipsis;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

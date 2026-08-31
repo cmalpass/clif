@@ -1,4 +1,7 @@
-﻿using System.CommandLine;
+// <copyright file="Program.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+using System.CommandLine;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +9,11 @@ using Microsoft.Extensions.Logging;
 using CLIF.Commands;
 using CLIF.Core;
 using CLIF.Services;
+
+// <copyright file="Program.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
 
 namespace CLIF;
 
@@ -51,3 +59,5 @@ class Program
         return await rootCommand.InvokeAsync(args);
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.
