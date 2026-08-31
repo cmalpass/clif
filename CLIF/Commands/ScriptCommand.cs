@@ -13,7 +13,7 @@ public class ScriptCommand : Command
 {
     private readonly IScriptService scriptService;
 
-    /// <summary>Creates a script command backed by the script service.</summary>
+    /// <summary>Initializes a new instance of the <see cref="ScriptCommand"/> class. Creates a script command backed by the script service.</summary>
     /// <param name="scriptService">Service used to load, validate, and execute scripts.</param>
     public ScriptCommand(IScriptService scriptService)
         : base("script", "Execute an automation script")

@@ -17,7 +17,7 @@ public class TypeCommand : Command
     private readonly IAutomationService automationService;
     private readonly ISessionCaptureService captureService;
 
-    /// <summary>Creates a type command backed by the automation and capture services.</summary>
+    /// <summary>Initializes a new instance of the <see cref="TypeCommand"/> class. Creates a type command backed by the automation and capture services.</summary>
     /// <param name="automationService">Service used to attach and type into the target.</param>
     /// <param name="captureService">Service used to record the command session.</param>
     public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService)

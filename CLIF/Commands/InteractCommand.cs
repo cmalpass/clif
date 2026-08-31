@@ -15,7 +15,7 @@ public class InteractCommand : Command
 {
     private readonly ISessionCaptureService captureService;
 
-    /// <summary>Creates an interaction command backed by automation and session services.</summary>
+    /// <summary>Initializes a new instance of the <see cref="InteractCommand"/> class. Creates an interaction command backed by automation and session services.</summary>
     /// <param name="automationService">Service used to locate and manipulate controls.</param>
     /// <param name="captureService">Service used to record the interaction session.</param>
     /// <param name="logger">Logger used to report interaction failures.</param>

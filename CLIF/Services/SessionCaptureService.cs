@@ -78,6 +78,7 @@ public class SessionCaptureService : ISessionCaptureService
     public string? CurrentSessionPath => this.currentSessionPath;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="SessionCaptureService"/> class.
     /// Initializes the session capture service.
     /// </summary>
     /// <param name="logger">Logger used for capture diagnostics.</param>
