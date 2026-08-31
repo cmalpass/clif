@@ -36,7 +36,9 @@ public class ProcessService : IProcessService
                     try
                     {
                         if (process.HasExited || process.MainWindowHandle == IntPtr.Zero)
+                        {
                             continue;
+                        }
 
                         // Check if it's a .NET/WPF application by looking at loaded modules
                         if (this.IsWpfProcess(process))
@@ -104,7 +106,9 @@ public class ProcessService : IProcessService
             {
                 var process = Process.GetProcessById(processId);
                 if (process.HasExited || !this.IsWpfProcess(process))
+                {
                     return null;
+                }
 
                 return new ProcessInfo
                 {
