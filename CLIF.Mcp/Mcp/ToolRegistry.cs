@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text;
 using System.Diagnostics;
 using CLIF.Mcp.Diagnostics;
+using CLIF.Mcp.Core;
 using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp;
@@ -17,12 +18,17 @@ public class ToolRegistry
     private readonly Dictionary<string, ITool> _tools = new();
     private readonly McpSafetyPolicy _safetyPolicy;
     private readonly McpDiagnostics _diagnostics;
+    private readonly UiDispatcher _uiDispatcher;
 
     /// <summary>Initializes a registry using the supplied immutable session policy.</summary>
-    public ToolRegistry(McpSafetyPolicy? safetyPolicy = null, McpDiagnostics? diagnostics = null)
+    public ToolRegistry(
+        McpSafetyPolicy? safetyPolicy = null,
+        McpDiagnostics? diagnostics = null,
+        UiDispatcher? uiDispatcher = null)
     {
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
         _diagnostics = diagnostics ?? new McpDiagnostics();
+        _uiDispatcher = uiDispatcher ?? new UiDispatcher();
     }
 
     /// <summary>
@@ -121,7 +127,9 @@ public class ToolRegistry
 
         try
         {
-            var result = await tool.ExecuteAsync(arguments, cancellationToken);
+            var result = await _uiDispatcher.InvokeAsync(
+                token => tool.ExecuteAsync(arguments, token),
+                cancellationToken).ConfigureAwait(false);
             _diagnostics.Log("mcp.tool.completed", fields: new Dictionary<string, object?>
             {
                 ["tool"] = name,
