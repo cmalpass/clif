@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using CLIF.Mcp.Diagnostics;
 
 namespace CLIF.Mcp;
 
@@ -12,15 +13,18 @@ namespace CLIF.Mcp;
 public class McpServer
 {
     private readonly ToolRegistry _toolRegistry;
+    private readonly McpDiagnostics _diagnostics;
     private McpSessionState _sessionState = McpSessionState.Uninitialized;
 
     /// <summary>
     /// Initializes a new MCP server using the supplied tool registry.
     /// </summary>
     /// <param name="toolRegistry">Registry containing the tools exposed by the server.</param>
-    public McpServer(ToolRegistry toolRegistry)
+    /// <param name="diagnostics">Optional structured diagnostics sink.</param>
+    public McpServer(ToolRegistry toolRegistry, McpDiagnostics? diagnostics = null)
     {
         _toolRegistry = toolRegistry;
+        _diagnostics = diagnostics ?? new McpDiagnostics();
     }
 
     /// <summary>
@@ -44,15 +48,27 @@ public class McpServer
             {
                 if (!TryDeserializeRequest(line, out var request, out var errorResponse))
                 {
+                    _diagnostics.Log("mcp.request.invalid");
                     await WriteResponseAsync(writer, errorResponse!, cancellationToken);
                     continue;
                 }
 
+                var correlationId = request!.HasId ? request.Id?.ToString() : null;
+                _diagnostics.Log("mcp.request.received", correlationId, new Dictionary<string, object?>
+                {
+                    ["method"] = request.Method,
+                    ["hasId"] = request.HasId,
+                });
                 var response = await HandleRequestAsync(request!, cancellationToken);
                 if (response != null)
                 {
                     await WriteResponseAsync(writer, response, cancellationToken);
                 }
+                _diagnostics.Log("mcp.request.completed", correlationId, new Dictionary<string, object?>
+                {
+                    ["method"] = request.Method,
+                    ["outcome"] = response?.Error == null ? "success" : "error",
+                });
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -60,6 +76,7 @@ public class McpServer
             }
             catch
             {
+                _diagnostics.Log("mcp.request.internal_error");
                 await WriteResponseAsync(
                     writer,
                     CreateError(null, JsonRpcErrors.InternalError, "Internal error."),
