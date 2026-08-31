@@ -59,6 +59,7 @@ public sealed class McpProcessFixture : IDisposable
         startInfo.Environment["CLIF_MCP_ALLOWED_APPS"] = WpfExecutablePath;
         startInfo.Environment["CLIF_MCP_ALLOW_WINDOW_ENUMERATION"] = "true";
         startInfo.Environment["CLIF_MCP_ALLOW_WINDOW_CLOSE"] = "true";
+        startInfo.Environment["CLIF_MCP_ALLOW_INPUT"] = "true";
 
         _mcpProcess = Process.Start(startInfo)
             ?? throw new InvalidOperationException($"Failed to start MCP executable '{McpExecutablePath}'.");

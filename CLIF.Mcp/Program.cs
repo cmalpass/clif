@@ -13,7 +13,7 @@ var elementRegistry = new ElementRegistry();
 var safetyPolicy = McpSafetyPolicy.FromEnvironment();
 
 // Register all MCP tools
-var toolRegistry = new ToolRegistry();
+var toolRegistry = new ToolRegistry(safetyPolicy);
 toolRegistry.RegisterTool(new LaunchTool(sessionManager, safetyPolicy));
 toolRegistry.RegisterTool(new SnapshotTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ClickTool(elementRegistry));

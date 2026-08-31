@@ -2,6 +2,7 @@
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 using System.Text.Json;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp;
 
@@ -11,6 +12,13 @@ namespace CLIF.Mcp;
 public class ToolRegistry
 {
     private readonly Dictionary<string, ITool> _tools = new();
+    private readonly McpSafetyPolicy _safetyPolicy;
+
+    /// <summary>Initializes a registry using the supplied immutable session policy.</summary>
+    public ToolRegistry(McpSafetyPolicy? safetyPolicy = null)
+    {
+        _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
+    }
 
     /// <summary>
     /// Register an MCP tool implementation.
@@ -53,6 +61,18 @@ public class ToolRegistry
             };
         }
 
+        if (!_safetyPolicy.IsCapabilityAllowed(tool.RequiredCapability))
+        {
+            return new McpToolResult
+            {
+                Content = new List<McpContent>
+                {
+                    new() { Type = "text", Text = $"MCP_PERMISSION_DENIED: capability '{tool.RequiredCapability}' is disabled by policy." },
+                },
+                IsError = true,
+            };
+        }
+
         try
         {
             return await tool.ExecuteAsync(arguments, cancellationToken);
@@ -80,6 +100,8 @@ public class ToolRegistry
 /// </summary>
 public interface ITool
 {
+    /// <summary>Gets the capability required before this tool may execute.</summary>
+    McpCapability RequiredCapability => McpCapability.ReadOnly;
     /// <summary>
     /// Unique tool name (e.g. "clif_click").
     /// </summary>
@@ -112,6 +134,8 @@ public interface ITool
 /// </summary>
 public abstract class ToolBase : ITool
 {
+    /// <inheritdoc />
+    public virtual McpCapability RequiredCapability => McpCapability.ReadOnly;
     /// <inheritdoc />
     public abstract string Name { get; }
 
