@@ -51,7 +51,6 @@ public interface ISessionCaptureService
     /// <summary>Sets the window used for subsequent captures.</summary>
     /// <param name="targetWindow">Window to capture, or <see langword="null"/> for the full screen.</param>
     void SetTargetWindow(AutomationElement? targetWindow);
-
 }
 
 /// <summary>

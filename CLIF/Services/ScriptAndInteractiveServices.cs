@@ -176,7 +176,6 @@ public class ScriptService : IScriptService
                 await this.captureService.LogInteractionAsync($"Script completed with {result.StepsFailed} failed step(s).", LogLevel.Error);
                 Console.WriteLine($"❌ Script completed with {result.StepsFailed} failed step(s).");
             }
-
         }
         catch (Exception ex)
         {
@@ -588,6 +587,4 @@ public class ScriptService : IScriptService
             return false;
         }
     }
-
-
 }
