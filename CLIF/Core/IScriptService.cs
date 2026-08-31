@@ -63,7 +63,7 @@ public class Script
     [JsonPropertyName("targetProcess")]
     public string? LegacyTargetProcess
     {
-        set => Target.ProcessName = value ?? string.Empty;
+        set => this.Target.ProcessName = value ?? string.Empty;
     }
     /// <summary>Gets or sets the ordered script steps.</summary>
     public List<ScriptStep> Steps { get; set; } = new();
@@ -97,7 +97,7 @@ public class ScriptStep
     [JsonPropertyName("selector")]
     public string? LegacySelector
     {
-        set => Element = string.IsNullOrWhiteSpace(value) || value.Contains('=') ? value ?? string.Empty : $"id={value}";
+        set => this.Element = string.IsNullOrWhiteSpace(value) || value.Contains('=') ? value ?? string.Empty : $"id={value}";
     }
     /// <summary>Gets or sets the primary action value.</summary>
     public string Value { get; set; } = string.Empty;
@@ -105,13 +105,13 @@ public class ScriptStep
     [JsonPropertyName("text")]
     public string? LegacyText
     {
-        set => Value = value ?? string.Empty;
+        set => this.Value = value ?? string.Empty;
     }
     /// <summary>Maps the legacy expectedValue field to the primary action value when reading scripts.</summary>
     [JsonPropertyName("expectedValue")]
     public string? LegacyExpectedValue
     {
-        set => Value = value ?? string.Empty;
+        set => this.Value = value ?? string.Empty;
     }
     /// <summary>Gets or sets action-specific parameters.</summary>
     public Dictionary<string, object> Parameters { get; set; } = new();
@@ -123,13 +123,13 @@ public class ScriptStep
     [JsonPropertyName("duration")]
     public int LegacyDuration
     {
-        set => DelayMs = value;
+        set => this.DelayMs = value;
     }
     /// <summary>Maps the legacy waitAfter field to the step delay when reading scripts.</summary>
     [JsonPropertyName("waitAfter")]
     public int LegacyWaitAfter
     {
-        set => DelayMs = value;
+        set => this.DelayMs = value;
     }
     /// <summary>Gets or sets a human-readable step description.</summary>
     public string Description { get; set; } = string.Empty;
@@ -137,7 +137,7 @@ public class ScriptStep
     [JsonPropertyName("message")]
     public string? LegacyMessage
     {
-        set => Description = value ?? string.Empty;
+        set => this.Description = value ?? string.Empty;
     }
     /// <summary>Gets or sets the data-grid row index for a selectCell action.</summary>
     public int Row { get; set; }
@@ -154,7 +154,7 @@ public class ScriptOptions
     [JsonPropertyName("continueOnError")]
     public bool LegacyContinueOnError
     {
-        set => StopOnError = !value;
+        set => this.StopOnError = !value;
     }
     /// <summary>Gets or sets whether individual steps are logged.</summary>
     public bool LogSteps { get; set; } = true;
@@ -166,7 +166,7 @@ public class ScriptOptions
     [JsonPropertyName("timeout")]
     public int LegacyTimeout
     {
-        set => DefaultTimeoutMs = value;
+        set => this.DefaultTimeoutMs = value;
     }
     /// <summary>Gets or sets the delay used between steps when one is not specified on the step.</summary>
     public int DelayBetweenActionsMs { get; set; }
@@ -174,7 +174,7 @@ public class ScriptOptions
     [JsonPropertyName("delayBetweenActions")]
     public int LegacyDelayBetweenActions
     {
-        set => DelayBetweenActionsMs = value;
+        set => this.DelayBetweenActionsMs = value;
     }
     /// <summary>Gets or sets the directory used for execution output.</summary>
     public string OutputPath { get; set; } = string.Empty;

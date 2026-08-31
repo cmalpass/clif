@@ -37,9 +37,9 @@ public class SecurityContext
     /// </summary>
     private SecurityContext()
     {
-        CurrentUser = WindowsIdentity.GetCurrent();
-        IsElevated = IsCurrentUserElevated();
-        IsAdministrator = IsCurrentUserAdministrator();
+        this.CurrentUser = WindowsIdentity.GetCurrent();
+        this.IsElevated = IsCurrentUserElevated();
+        this.IsAdministrator = IsCurrentUserAdministrator();
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class PermissionValidator
     /// <param name="securityContext">The security context to use</param>
     public PermissionValidator(SecurityContext? securityContext = null)
     {
-        _securityContext = securityContext ?? SecurityContext.Current;
+        this._securityContext = securityContext ?? SecurityContext.Current;
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class PermissionValidator
         var result = ValidationResult.Success();
 
         // Check if we have the necessary permissions for UI automation
-        if (!_securityContext.IsElevated)
+        if (!this._securityContext.IsElevated)
         {
             result.AddError("UI Automation may require elevated privileges for some operations. Consider running as administrator if you encounter access issues.");
         }
@@ -234,8 +234,8 @@ public class PermissionValidator
                     break;
 
                 case FileAccess.ReadWrite:
-                    result.Combine(ValidateFilePermissions(filePath, FileAccess.Read));
-                    result.Combine(ValidateFilePermissions(filePath, FileAccess.Write));
+                    result.Combine(this.ValidateFilePermissions(filePath, FileAccess.Read));
+                    result.Combine(this.ValidateFilePermissions(filePath, FileAccess.Write));
                     break;
             }
         }

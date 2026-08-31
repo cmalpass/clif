@@ -13,21 +13,21 @@ public class InteractiveCommand : Command
     public InteractiveCommand(IInteractiveService interactiveService) 
         : base("interactive", "Enter interactive mode for UI automation")
     {
-        _interactiveService = interactiveService;
+        this._interactiveService = interactiveService;
 
         var processIdOption = new Option<int?>(
             "--process-id",
             "The process ID to attach to initially");
         processIdOption.AddAlias("-p");
 
-        AddOption(processIdOption);
+        this.AddOption(processIdOption);
 
         this.SetHandler(async (int? processId) =>
         {
             try
             {
                 Console.WriteLine("Entering interactive mode. Type 'help' for available commands or 'exit' to quit.");
-                await _interactiveService.StartInteractiveSessionAsync(processId);
+                await this._interactiveService.StartInteractiveSessionAsync(processId);
             }
             catch (Exception ex)
             {

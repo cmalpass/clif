@@ -71,8 +71,8 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     /// <param name="maximum">The maximum allowed value</param>
     public RangeRule(T minimum, T maximum)
     {
-        _minimum = minimum;
-        _maximum = maximum;
+        this._minimum = minimum;
+        this._maximum = maximum;
     }
 
     /// <summary>
@@ -87,11 +87,11 @@ public class RangeRule<T> : ValidationRule<T> where T : IComparable<T>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(T input)
     {
-        if (input.CompareTo(_minimum) < 0 || input.CompareTo(_maximum) > 0)
+        if (input.CompareTo(this._minimum) < 0 || input.CompareTo(this._maximum) > 0)
         {
-            return Failure($"Value must be between {_minimum} and {_maximum}");
+            return this.Failure($"Value must be between {this._minimum} and {this._maximum}");
         }
-        return Success();
+        return this.Success();
     }
 }
 
@@ -110,8 +110,8 @@ public class FormatRule : ValidationRule<string>
     /// <param name="formatDescription">A description of the expected format</param>
     public FormatRule(string pattern, string formatDescription)
     {
-        _regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
-        _formatDescription = formatDescription;
+        this._regex = new System.Text.RegularExpressions.Regex(pattern, System.Text.RegularExpressions.RegexOptions.Compiled);
+        this._formatDescription = formatDescription;
     }
 
     /// <summary>
@@ -126,11 +126,11 @@ public class FormatRule : ValidationRule<string>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(string input)
     {
-        if (string.IsNullOrEmpty(input) || !_regex.IsMatch(input))
+        if (string.IsNullOrEmpty(input) || !this._regex.IsMatch(input))
         {
-            return Failure($"Input must match format: {_formatDescription}");
+            return this.Failure($"Input must match format: {this._formatDescription}");
         }
-        return Success();
+        return this.Success();
     }
 }
 
@@ -149,8 +149,8 @@ public class LengthRule : ValidationRule<string>
     /// <param name="maxLength">The maximum allowed length</param>
     public LengthRule(int minLength, int maxLength = int.MaxValue)
     {
-        _minLength = minLength;
-        _maxLength = maxLength;
+        this._minLength = minLength;
+        this._maxLength = maxLength;
     }
 
     /// <summary>
@@ -167,17 +167,17 @@ public class LengthRule : ValidationRule<string>
     {
         var length = input?.Length ?? 0;
 
-        if (length < _minLength)
+        if (length < this._minLength)
         {
-            return Failure($"Input must be at least {_minLength} characters long");
+            return this.Failure($"Input must be at least {this._minLength} characters long");
         }
 
-        if (length > _maxLength)
+        if (length > this._maxLength)
         {
-            return Failure($"Input cannot exceed {_maxLength} characters");
+            return this.Failure($"Input cannot exceed {this._maxLength} characters");
         }
 
-        return Success();
+        return this.Success();
     }
 }
 
@@ -202,18 +202,18 @@ public class PathTraversalRule : ValidationRule<string>
     {
         if (string.IsNullOrEmpty(input))
         {
-            return Success();
+            return this.Success();
         }
 
         foreach (var pattern in DangerousPatterns)
         {
             if (input.Contains(pattern, StringComparison.OrdinalIgnoreCase))
             {
-                return Failure($"Path traversal detected: {pattern}");
+                return this.Failure($"Path traversal detected: {pattern}");
             }
         }
 
-        return Success();
+        return this.Success();
     }
 }
 
@@ -272,7 +272,7 @@ public class InvalidCharactersRule : ValidationRule<string>
     {
         if (string.IsNullOrEmpty(input))
         {
-            return Success();
+            return this.Success();
         }
 
         // Allow drive-letter colon on Windows (e.g., "C:\path\to\file")
@@ -288,11 +288,11 @@ public class InvalidCharactersRule : ValidationRule<string>
 
             if (InvalidChars.Contains(c))
             {
-                return Failure($"Input contains invalid character: '{c}'");
+                return this.Failure($"Input contains invalid character: '{c}'");
             }
         }
 
-        return Success();
+        return this.Success();
     }
 }
 
@@ -329,7 +329,7 @@ public class NoInjectionRule : ValidationRule<string>
     {
         if (string.IsNullOrEmpty(input))
         {
-            return Success();
+            return this.Success();
         }
 
         var lowerInput = input.ToLowerInvariant();
@@ -339,10 +339,10 @@ public class NoInjectionRule : ValidationRule<string>
             if (lowerInput.Contains(pattern))
             {
                 // Provide a consistent, test-friendly message
-                return Failure($"Input contains potentially malicious pattern: {pattern}");
+                return this.Failure($"Input contains potentially malicious pattern: {pattern}");
             }
         }
 
-        return Success();
+        return this.Success();
     }
 }

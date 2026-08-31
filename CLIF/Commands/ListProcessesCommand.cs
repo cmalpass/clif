@@ -35,14 +35,14 @@ public class ListProcessesCommand : Command
                 switch (format.ToLowerInvariant())
                 {
                     case "json":
-                        await OutputJsonAsync(processes, detailed);
+                        await this.OutputJsonAsync(processes, detailed);
                         break;
                     case "csv":
-                        await OutputCsvAsync(processes, detailed);
+                        await this.OutputCsvAsync(processes, detailed);
                         break;
                     case "table":
                     default:
-                        await OutputTableAsync(processes, detailed);
+                        await this.OutputTableAsync(processes, detailed);
                         break;
                 }
             }
@@ -64,7 +64,7 @@ public class ListProcessesCommand : Command
 
                 foreach (var process in processes)
                 {
-                    Console.WriteLine($"{process.Id,-8} {TruncateString(process.Name, 20),-20} {TruncateString(process.WindowTitle, 30),-30} {TruncateString(process.ExecutablePath, 50),-50} {process.StartTime:yyyy-MM-dd HH:mm:ss}");
+                    Console.WriteLine($"{process.Id,-8} {this.TruncateString(process.Name, 20),-20} {this.TruncateString(process.WindowTitle, 30),-30} {this.TruncateString(process.ExecutablePath, 50),-50} {process.StartTime:yyyy-MM-dd HH:mm:ss}");
                 }
             }
             else
@@ -74,7 +74,7 @@ public class ListProcessesCommand : Command
 
                 foreach (var process in processes)
                 {
-                    Console.WriteLine($"{process.Id,-8} {TruncateString(process.Name, 20),-20} {TruncateString(process.WindowTitle, 40),-40}");
+                    Console.WriteLine($"{process.Id,-8} {this.TruncateString(process.Name, 20),-20} {this.TruncateString(process.WindowTitle, 40),-40}");
                 }
             }
         });
@@ -101,7 +101,7 @@ public class ListProcessesCommand : Command
                 Console.WriteLine("PID,ProcessName,WindowTitle,ExecutablePath,StartTime,HasMainWindow");
                 foreach (var process in processes)
                 {
-                    Console.WriteLine($"{process.Id},\"{EscapeCsv(process.Name)}\",\"{EscapeCsv(process.WindowTitle)}\",\"{EscapeCsv(process.ExecutablePath)}\",\"{process.StartTime:yyyy-MM-dd HH:mm:ss}\",{process.HasMainWindow}");
+                    Console.WriteLine($"{process.Id},\"{this.EscapeCsv(process.Name)}\",\"{this.EscapeCsv(process.WindowTitle)}\",\"{this.EscapeCsv(process.ExecutablePath)}\",\"{process.StartTime:yyyy-MM-dd HH:mm:ss}\",{process.HasMainWindow}");
                 }
             }
             else
@@ -109,7 +109,7 @@ public class ListProcessesCommand : Command
                 Console.WriteLine("PID,ProcessName,WindowTitle");
                 foreach (var process in processes)
                 {
-                    Console.WriteLine($"{process.Id},\"{EscapeCsv(process.Name)}\",\"{EscapeCsv(process.WindowTitle)}\"");
+                    Console.WriteLine($"{process.Id},\"{this.EscapeCsv(process.Name)}\",\"{this.EscapeCsv(process.WindowTitle)}\"");
                 }
             }
         });

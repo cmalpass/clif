@@ -13,7 +13,7 @@ public class ScriptCommand : Command
     public ScriptCommand(IScriptService scriptService) 
         : base("script", "Execute an automation script")
     {
-        _scriptService = scriptService;
+        this._scriptService = scriptService;
 
         var scriptFileArgument = new Argument<string>(
             "script-file",
@@ -24,8 +24,8 @@ public class ScriptCommand : Command
             "The process ID to attach to (if not specified in script)");
         processIdOption.AddAlias("-p");
 
-        AddArgument(scriptFileArgument);
-        AddOption(processIdOption);
+        this.AddArgument(scriptFileArgument);
+        this.AddOption(processIdOption);
 
         this.SetHandler(async (string scriptFile, int? processId) =>
         {
@@ -38,7 +38,7 @@ public class ScriptCommand : Command
                 }
 
                 Console.WriteLine($"Executing script: {scriptFile}");
-                var result = await _scriptService.ExecuteScriptAsync(scriptFile, processId);
+                var result = await this._scriptService.ExecuteScriptAsync(scriptFile, processId);
                 if (result.Success)
                 {
                     Console.WriteLine($"Script execution completed successfully in {result.ExecutionTime}");
