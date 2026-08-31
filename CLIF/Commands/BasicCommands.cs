@@ -24,7 +24,11 @@ public class ElementCommand : Command
         this.Add(selectorArgument);
         this.Add(actionOption);
 
-        this.SetHandler(async (string process, string selector, string action) =>
+        this.SetHandler(
+            async (
+                string process,
+                string selector,
+                string action) =>
         {
             Console.WriteLine($"Element operations - implementation coming soon! Process: {process}, Selector: {selector}, Action: {action}");
             await Task.CompletedTask;

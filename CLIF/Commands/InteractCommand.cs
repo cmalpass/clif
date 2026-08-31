@@ -67,7 +67,14 @@ public class InteractCommand : Command
         this.AddOption(indexOption);
         this.AddOption(processIdOption);
 
-        this.SetHandler(async (element, controlType, action, value, index, processId) =>
+        this.SetHandler(
+            async (
+                element,
+                controlType,
+                action,
+                value,
+                index,
+                processId) =>
         {
             // Start a mini-session for individual command
             var sessionId = await this.captureService.StartSessionAsync($"INTERACT_{controlType.ToUpper()}_{DateTime.Now:HHmmss}");
