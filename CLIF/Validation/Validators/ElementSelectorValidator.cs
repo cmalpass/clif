@@ -26,9 +26,9 @@ public class ElementSelectorValidator : ValidatorBase<string>
     /// </summary>
     public ElementSelectorValidator()
     {
-        AddRule(new LengthRule(3, 1000)); // Minimum "id=x", maximum 1000 chars
-        AddRule(new NoInjectionRule());
-        AddRule(new SelectorFormatRule());
+        this.AddRule(new LengthRule(3, 1000)); // Minimum "id=x", maximum 1000 chars
+        this.AddRule(new NoInjectionRule());
+        this.AddRule(new SelectorFormatRule());
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
             return ValidationResult.Failure("Element selector cannot be empty");
         }
 
-        var result = ValidateRules(selector);
+        var result = this.ValidateRules(selector);
 
         // Additional selector-specific validation
         if (result.IsValid)
@@ -144,26 +144,26 @@ public class SelectorFormatRule : ValidationRule<string>
     {
         if (string.IsNullOrWhiteSpace(input))
         {
-            return Failure("Selector cannot be empty");
+            return this.Failure("Selector cannot be empty");
         }
 
         var parts = input.Split('=', 2);
         if (parts.Length != 2)
         {
-            return Failure("Invalid selector format");
+            return this.Failure("Invalid selector format");
         }
 
         if (string.IsNullOrWhiteSpace(parts[0]))
         {
-            return Failure("Invalid selector format");
+            return this.Failure("Invalid selector format");
         }
 
         if (string.IsNullOrWhiteSpace(parts[1]))
         {
-            return Failure("Selector value cannot be empty");
+            return this.Failure("Selector value cannot be empty");
         }
 
-        return Success();
+        return this.Success();
     }
 }
 
@@ -192,12 +192,12 @@ public class TextInputValidator : ValidatorBase<string>
             throw new ArgumentException("Minimum length cannot be greater than maximum length.", nameof(minLength));
         }
 
-        _minLength = minLength;
-        _maxLength = maxLength;
-        _allowEmpty = allowEmpty;
+        this._minLength = minLength;
+        this._maxLength = maxLength;
+        this._allowEmpty = allowEmpty;
 
-        AddRule(new NoInjectionRule());
-        AddRule(new SafeCharactersRule());
+        this.AddRule(new NoInjectionRule());
+        this.AddRule(new SafeCharactersRule());
     }
 
     /// <summary>
@@ -214,31 +214,31 @@ public class TextInputValidator : ValidatorBase<string>
         }
 
         // Handle empty or whitespace-only input (unless allowEmpty is true)
-        if (!_allowEmpty && string.IsNullOrWhiteSpace(text))
+        if (!this._allowEmpty && string.IsNullOrWhiteSpace(text))
         {
             return ValidationResult.Failure("Text input cannot be empty");
         }
 
         // When allowEmpty is true and the text is empty, skip length checks
-        if (_allowEmpty && text.Length == 0)
+        if (this._allowEmpty && text.Length == 0)
         {
-            return ValidateRules(text);
+            return this.ValidateRules(text);
         }
 
         // Check minimum length
-        if (text.Length < _minLength)
+        if (text.Length < this._minLength)
         {
-            return ValidationResult.Failure($"Text input does not meet the minimum length of {_minLength} characters");
+            return ValidationResult.Failure($"Text input does not meet the minimum length of {this._minLength} characters");
         }
 
         // Check maximum length
-        if (text.Length > _maxLength)
+        if (text.Length > this._maxLength)
         {
-            return ValidationResult.Failure($"Text input exceeds the maximum length of {_maxLength} characters");
+            return ValidationResult.Failure($"Text input exceeds the maximum length of {this._maxLength} characters");
         }
 
         // Now validate using rules (including malicious content detection)
-        var result = ValidateRules(text);
+        var result = this.ValidateRules(text);
 
         // Additional text-specific validation
         if (result.IsValid)
@@ -294,7 +294,7 @@ public class SafeCharactersRule : ValidationRule<string>
     {
         if (string.IsNullOrEmpty(input))
         {
-            return Success();
+            return this.Success();
         }
 
         // Check for dangerous Unicode categories or specific characters
@@ -305,16 +305,16 @@ public class SafeCharactersRule : ValidationRule<string>
             // Block format characters that could be used for attacks
             if (category == System.Globalization.UnicodeCategory.Format && c != '\u200C' && c != '\u200D')
             {
-                return Failure($"Input contains unsafe format character: U+{((int)c):X4}");
+                return this.Failure($"Input contains unsafe format character: U+{((int)c):X4}");
             }
 
             // Block private use characters
             if (category == System.Globalization.UnicodeCategory.PrivateUse)
             {
-                return Failure($"Input contains private use character: U+{((int)c):X4}");
+                return this.Failure($"Input contains private use character: U+{((int)c):X4}");
             }
         }
 
-        return Success();
+        return this.Success();
     }
 }

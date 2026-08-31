@@ -18,8 +18,8 @@ public class ProcessIdValidator : ValidatorBase<int>
     /// </summary>
     public ProcessIdValidator()
     {
-        AddRule(new RangeRule<int>(MIN_PROCESS_ID, MAX_PROCESS_ID));
-        AddRule(new ProcessExistenceRule());
+        this.AddRule(new RangeRule<int>(MIN_PROCESS_ID, MAX_PROCESS_ID));
+        this.AddRule(new ProcessExistenceRule());
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public class ProcessIdValidator : ValidatorBase<int>
     /// <returns>A validation result</returns>
     public override ValidationResult Validate(int processId)
     {
-        var result = ValidateRules(processId);
+        var result = this.ValidateRules(processId);
         
         // Additional process-specific validation
         if (result.IsValid)
@@ -81,15 +81,15 @@ public class ProcessExistenceRule : ValidationRule<int>
         try
         {
             using var process = Process.GetProcessById(processId);
-            return Success();
+            return this.Success();
         }
         catch (ArgumentException)
         {
-            return Failure($"Process with ID {processId} does not exist");
+            return this.Failure($"Process with ID {processId} does not exist");
         }
         catch (Exception ex)
         {
-            return Failure($"Error accessing process {processId}: {ex.Message}");
+            return this.Failure($"Error accessing process {processId}: {ex.Message}");
         }
     }
 }
@@ -106,9 +106,9 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
     /// </summary>
     public ProcessIdentifierValidator()
     {
-        _processIdValidator = new ProcessIdValidator();
-        AddRule(new LengthRule(1, 255));
-        AddRule(new InvalidCharactersRule());
+        this._processIdValidator = new ProcessIdValidator();
+        this.AddRule(new LengthRule(1, 255));
+        this.AddRule(new InvalidCharactersRule());
     }
 
     /// <summary>
@@ -123,18 +123,18 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
             return ValidationResult.Failure("Process identifier cannot be empty");
         }
 
-        var result = ValidateRules(processIdentifier);
+        var result = this.ValidateRules(processIdentifier);
         
         // If it's a numeric ID, validate as process ID
         if (int.TryParse(processIdentifier, out var processId))
         {
-            var idResult = _processIdValidator.Validate(processId);
+            var idResult = this._processIdValidator.Validate(processId);
             result.Combine(idResult);
         }
         else
         {
             // Validate as process name
-            result.Combine(ValidateProcessName(processIdentifier));
+            result.Combine(this.ValidateProcessName(processIdentifier));
         }
 
         return result;

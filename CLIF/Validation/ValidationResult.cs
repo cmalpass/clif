@@ -14,17 +14,17 @@ public class ValidationResult
     /// <summary>
     /// Gets a value indicating whether the validation was successful
     /// </summary>
-    public bool IsValid => !_errors.Any();
+    public bool IsValid => !this._errors.Any();
 
     /// <summary>
     /// Gets the collection of validation errors
     /// </summary>
-    public IReadOnlyList<ValidationError> Errors => _errors.AsReadOnly();
+    public IReadOnlyList<ValidationError> Errors => this._errors.AsReadOnly();
 
     /// <summary>
     /// Gets a combined error message from all validation errors
     /// </summary>
-    public string ErrorMessage => string.Join("; ", _errors.Select(e => e.Message));
+    public string ErrorMessage => string.Join("; ", this._errors.Select(e => e.Message));
 
     /// <summary>
     /// Creates a successful validation result
@@ -60,7 +60,7 @@ public class ValidationResult
     /// <returns>This validation result for method chaining</returns>
     public ValidationResult AddError(string message, string? field = null)
     {
-        _errors.Add(new ValidationError(message ?? string.Empty, field));
+        this._errors.Add(new ValidationError(message ?? string.Empty, field));
         return this;
     }
 
@@ -72,7 +72,7 @@ public class ValidationResult
     public ValidationResult AddError(ValidationError error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        _errors.Add(error);
+        this._errors.Add(error);
         return this;
     }
 
@@ -83,7 +83,7 @@ public class ValidationResult
     /// <returns>This validation result for method chaining</returns>
     public ValidationResult AddErrors(IEnumerable<ValidationError> errors)
     {
-        _errors.AddRange(errors);
+        this._errors.AddRange(errors);
         return this;
     }
 
@@ -96,14 +96,14 @@ public class ValidationResult
     {
         if (other != null && !other.IsValid)
         {
-            _errors.AddRange(other.Errors);
+            this._errors.AddRange(other.Errors);
         }
         return this;
     }
 
     public override string ToString()
     {
-        return IsValid ? "Success" : ErrorMessage;
+        return this.IsValid ? "Success" : this.ErrorMessage;
     }
 }
 
@@ -119,8 +119,8 @@ public class ValidationError
     /// <param name="field">The optional field name that failed validation</param>
     public ValidationError(string message, string? field = null)
     {
-        Message = message ?? throw new ArgumentNullException(nameof(message));
-        Field = field;
+        this.Message = message ?? throw new ArgumentNullException(nameof(message));
+        this.Field = field;
     }
 
     /// <summary>
@@ -139,6 +139,6 @@ public class ValidationError
     /// <returns>A string representation of the error</returns>
     public override string ToString()
     {
-        return Field != null ? $"{Field}: {Message}" : Message;
+        return this.Field != null ? $"{this.Field}: {this.Message}" : this.Message;
     }
 }

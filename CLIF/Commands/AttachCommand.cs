@@ -66,7 +66,7 @@ public class AttachCommand : Command
                 // Execute single action if provided
                 if (!string.IsNullOrEmpty(action) && !string.IsNullOrEmpty(element))
                 {
-                    await ExecuteAction(automationService, action, element, value);
+                    await this.ExecuteAction(automationService, action, element, value);
                 }
 
                 // Start interactive mode if requested
