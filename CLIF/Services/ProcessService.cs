@@ -1,3 +1,8 @@
+// <copyright file="ProcessService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.Versioning;
@@ -187,3 +192,5 @@ public class ProcessService : IProcessService
         }
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

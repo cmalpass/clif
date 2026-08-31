@@ -1,3 +1,8 @@
+// <copyright file="TreeCommand.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using CLIF.Core;
@@ -129,3 +134,5 @@ public class TreeCommand : Command
         return criteria;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

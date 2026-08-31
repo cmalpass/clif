@@ -1,3 +1,8 @@
+// <copyright file="IValidator.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -122,3 +127,5 @@ public abstract class ValidatorBase<T> : IValidator<T>
         return ValidationResult.Success();
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.
