@@ -27,7 +27,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
     };
 
     /// <summary>
-    /// Initializes a new instance of the ElementSelectorValidator class.
+    /// Initializes a new instance of the <see cref="ElementSelectorValidator"/> class.
     /// </summary>
     public ElementSelectorValidator()
     {
@@ -185,7 +185,7 @@ public class TextInputValidator : ValidatorBase<string>
     private readonly bool allowEmpty;
 
     /// <summary>
-    /// Initializes a new instance of the TextInputValidator class.
+    /// Initializes a new instance of the <see cref="TextInputValidator"/> class.
     /// </summary>
     /// <param name="minLength">Minimum allowed text length.</param>
     /// <param name="maxLength">Maximum allowed text length.</param>

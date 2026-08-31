@@ -19,7 +19,7 @@ public class ProcessIdValidator : ValidatorBase<int>
     private const int MAX_PROCESS_ID = 65535;
 
     /// <summary>
-    /// Initializes a new instance of the ProcessIdValidator class.
+    /// Initializes a new instance of the <see cref="ProcessIdValidator"/> class.
     /// </summary>
     public ProcessIdValidator()
     {
@@ -108,7 +108,7 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
     private readonly ProcessIdValidator processIdValidator;
 
     /// <summary>
-    /// Initializes a new instance of the ProcessIdentifierValidator class.
+    /// Initializes a new instance of the <see cref="ProcessIdentifierValidator"/> class.
     /// </summary>
     public ProcessIdentifierValidator()
     {
