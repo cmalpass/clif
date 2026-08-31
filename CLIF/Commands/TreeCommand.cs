@@ -86,7 +86,7 @@ public class TreeCommand : Command
                     ShowOnlyEnabled = enabledOnly,
                     ShowOnlyVisible = visibleOnly,
                     ShowSelector = true,
-                    MaxDepth = depth
+                    MaxDepth = depth,
                 };
 
                 string treeOutput = await treeService.PrintTreeAsync(tree, printOptions);

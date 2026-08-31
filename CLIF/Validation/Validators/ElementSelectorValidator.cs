@@ -18,7 +18,7 @@ public class ElementSelectorValidator : ValidatorBase<string>
         { "class", @"^class=[\w\-_\.]+$" },
         { "type", @"^type=\w+$" },
         { "xpath", @"^xpath=\/\/.+$" },
-        { "automationid", @"^automationid=[\w\-_]+$" }
+        { "automationid", @"^automationid=[\w\-_]+$" },
     };
 
     /// <summary>

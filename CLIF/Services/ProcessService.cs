@@ -50,7 +50,7 @@ public class ProcessService : IProcessService
                                 WindowTitle = process.MainWindowTitle,
                                 ExecutablePath = this.GetExecutablePath(process),
                                 StartTime = process.StartTime,
-                                HasMainWindow = process.MainWindowHandle != IntPtr.Zero
+                                HasMainWindow = process.MainWindowHandle != IntPtr.Zero,
                             });
                         }
                     }
@@ -117,7 +117,7 @@ public class ProcessService : IProcessService
                     WindowTitle = process.MainWindowTitle,
                     ExecutablePath = this.GetExecutablePath(process),
                     StartTime = process.StartTime,
-                    HasMainWindow = process.MainWindowHandle != IntPtr.Zero
+                    HasMainWindow = process.MainWindowHandle != IntPtr.Zero,
                 };
             }
             catch (Exception ex)
