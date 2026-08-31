@@ -73,7 +73,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     /// <returns>A task representing the validation operation</returns>
     public virtual async Task<ValidationResult> ValidateAsync(T input)
     {
-        return await Task.FromResult(Validate(input));
+        return await Task.FromResult(this.Validate(input));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     /// <param name="rule">The validation rule to add</param>
     protected void AddRule(IValidationRule<T> rule)
     {
-        Rules.Add(rule);
+        this.Rules.Add(rule);
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public abstract class ValidatorBase<T> : IValidator<T>
     {
         var result = ValidationResult.Success();
 
-        foreach (var rule in Rules)
+        foreach (var rule in this.Rules)
         {
             var ruleResult = rule.Validate(input);
             if (!ruleResult.IsValid)

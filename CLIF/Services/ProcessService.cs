@@ -16,7 +16,7 @@ public class ProcessService : IProcessService
     /// <param name="logger">Logger used to record process discovery failures.</param>
     public ProcessService(ILogger<ProcessService> logger)
     {
-        _logger = logger;
+        this._logger = logger;
     }
 
     /// <summary>Gets the currently running processes that appear to host WPF windows.</summary>
@@ -39,14 +39,14 @@ public class ProcessService : IProcessService
                             continue;
 
                         // Check if it's a .NET/WPF application by looking at loaded modules
-                        if (IsWpfProcess(process))
+                        if (this.IsWpfProcess(process))
                         {
                             wpfProcesses.Add(new ProcessInfo
                             {
                                 Id = process.Id,
                                 Name = process.ProcessName,
                                 WindowTitle = process.MainWindowTitle,
-                                ExecutablePath = GetExecutablePath(process),
+                                ExecutablePath = this.GetExecutablePath(process),
                                 StartTime = process.StartTime,
                                 HasMainWindow = process.MainWindowHandle != IntPtr.Zero
                             });
@@ -54,13 +54,13 @@ public class ProcessService : IProcessService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning($"Failed to process {process.ProcessName}: {ex.Message}");
+                        this._logger.LogWarning($"Failed to process {process.ProcessName}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get WPF processes");
+                this._logger.LogError(ex, "Failed to get WPF processes");
             }
             
             return wpfProcesses.OrderBy(p => p.Name).ToList();
@@ -72,7 +72,7 @@ public class ProcessService : IProcessService
     /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByNameAsync(string processName)
     {
-        var processes = await GetWpfProcessesAsync();
+        var processes = await this.GetWpfProcessesAsync();
         return processes.FirstOrDefault(p => 
             string.Equals(p.Name, processName, StringComparison.OrdinalIgnoreCase));
     }
@@ -88,7 +88,7 @@ public class ProcessService : IProcessService
             return null;
         }
 
-        var processes = await GetWpfProcessesAsync();
+        var processes = await this.GetWpfProcessesAsync();
         return processes.FirstOrDefault(p => 
             p.WindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase));
     }
@@ -103,7 +103,7 @@ public class ProcessService : IProcessService
             try
             {
                 var process = Process.GetProcessById(processId);
-                if (process.HasExited || !IsWpfProcess(process))
+                if (process.HasExited || !this.IsWpfProcess(process))
                     return null;
 
                 return new ProcessInfo
@@ -111,14 +111,14 @@ public class ProcessService : IProcessService
                     Id = process.Id,
                     Name = process.ProcessName,
                     WindowTitle = process.MainWindowTitle,
-                    ExecutablePath = GetExecutablePath(process),
+                    ExecutablePath = this.GetExecutablePath(process),
                     StartTime = process.StartTime,
                     HasMainWindow = process.MainWindowHandle != IntPtr.Zero
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Process {processId} not found: {ex.Message}");
+                this._logger.LogWarning($"Process {processId} not found: {ex.Message}");
                 return null;
             }
         });
