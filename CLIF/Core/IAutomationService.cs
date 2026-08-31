@@ -17,6 +17,7 @@ public interface IAutomationService
     Task<bool> AttachToProcessAsync(int processId);
 
     /// <summary>Detaches from the currently attached process.</summary>
+    /// <returns>A task that completes when detachment has finished.</returns>
     Task DetachAsync();
 
     /// <summary>Gets a value indicating whether gets whether an automation session is currently attached.</summary>

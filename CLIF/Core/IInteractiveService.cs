@@ -12,6 +12,7 @@ public interface IInteractiveService
 {
     /// <summary>Starts an interactive session.</summary>
     /// <param name="processId">Optional process to attach to initially.</param>
+    /// <returns>A task that completes when the interactive session starts.</returns>
     Task StartInteractiveSessionAsync(int? processId = null);
 
     /// <summary>Executes one interactive command.</summary>
@@ -20,6 +21,7 @@ public interface IInteractiveService
     Task<bool> ExecuteCommandAsync(string command);
 
     /// <summary>Displays interactive command help.</summary>
+    /// <returns>A task that completes after help is displayed.</returns>
     Task ShowHelpAsync();
 
     /// <summary>Gets the current interactive prompt.</summary>

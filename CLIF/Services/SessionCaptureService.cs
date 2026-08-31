@@ -29,14 +29,17 @@ public interface ISessionCaptureService
     /// <param name="elementInfo">Description of the target element.</param>
     /// <param name="success">Whether the interaction succeeded.</param>
     /// <param name="validationResult">Optional validation detail.</param>
+    /// <returns>A task that completes after the interaction has been captured.</returns>
     Task CaptureAfterInteractionAsync(string actionType, string elementInfo, bool success, string? validationResult = null);
 
     /// <summary>Writes an interaction message to the current session log.</summary>
     /// <param name="message">Message to record.</param>
     /// <param name="level">Severity assigned to the message.</param>
+    /// <returns>A task that completes after the message has been logged.</returns>
     Task LogInteractionAsync(string message, LogLevel level = LogLevel.Information);
 
     /// <summary>Ends the current capture session.</summary>
+    /// <returns>A task that completes when the capture session has ended.</returns>
     Task EndSessionAsync();
 
     /// <summary>Sets the window used for subsequent captures.</summary>
