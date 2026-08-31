@@ -192,5 +192,6 @@ public class ProcessService : IProcessService
         }
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

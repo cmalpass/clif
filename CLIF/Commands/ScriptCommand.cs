@@ -61,5 +61,6 @@ public class ScriptCommand : Command
         }, scriptFileArgument, processIdOption);
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

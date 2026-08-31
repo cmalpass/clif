@@ -127,5 +127,6 @@ public abstract class ValidatorBase<T> : IValidator<T>
         return ValidationResult.Success();
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

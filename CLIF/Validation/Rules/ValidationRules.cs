@@ -314,10 +314,13 @@ public class NoInjectionRule : ValidationRule<string>
         "onload=", "onerror=", "onclick=", "onmouseover=",
         "eval(", "setTimeout(", "setInterval(",
         "document.", "window.", "alert(", "confirm(",
+
         // Common modern injection patterns
         "${jndi", "${env:",
+
         // File traversal and path patterns
         "..\\", "../",
+
         // SQL-ish patterns (simple heuristic to catch obvious SQL injection strings)
         "drop table", "';",
     };
@@ -353,5 +356,6 @@ public class NoInjectionRule : ValidationRule<string>
         return this.Success();
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

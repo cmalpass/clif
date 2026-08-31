@@ -494,6 +494,7 @@ public class ScriptService : IScriptService
                         var expectedValue = step.Parameters.ContainsKey("expectedValue") ?
                             step.Parameters["expectedValue"].ToString() : step.Value;
                         Console.WriteLine($"✅ Validating '{expectedValue}' in: {step.Element}");
+
                         // UIA value updates can lag briefly behind a preceding keyboard input.
                         // Poll for a bounded interval so a script validates the settled value
                         // instead of racing the WPF dispatcher.
@@ -1031,5 +1032,6 @@ public class InteractiveService : IInteractiveService
         return await Task.FromResult("CLIF> ");
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

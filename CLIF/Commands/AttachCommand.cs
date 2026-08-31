@@ -167,5 +167,6 @@ public class AttachCommand : Command
         }
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

@@ -134,5 +134,6 @@ public class TreeCommand : Command
         return criteria;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.
