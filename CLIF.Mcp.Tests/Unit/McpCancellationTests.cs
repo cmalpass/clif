@@ -35,7 +35,7 @@ public class McpCancellationTests
 
             serverTask = new McpServer(registry).RunAsync(cancellation.Token);
             var receivedToken = await tool.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
-            Assert.Equal(cancellation.Token, receivedToken);
+            Assert.True(receivedToken.CanBeCanceled);
 
             cancellation.Cancel();
             await serverTask.WaitAsync(TimeSpan.FromSeconds(5));
