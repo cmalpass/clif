@@ -140,5 +140,6 @@ public class ElementSearchCriteria
     /// <summary>Gets or sets a value indicating whether gets or sets whether text filters are interpreted as regular expressions.</summary>
     public bool UseRegex { get; set; } = false;
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.
