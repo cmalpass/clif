@@ -39,12 +39,13 @@ public class TreeCommand : Command
         this.Add(controlTypeOption);
         this.Add(outputFileOption);
 
-        this.SetHandler(async (
-            string process,
-            int depth,
-            bool enabledOnly,
-            bool visibleOnly,
-            bool showProperties) =>
+        this.SetHandler(
+            async (
+                string process,
+                int depth,
+                bool enabledOnly,
+                bool visibleOnly,
+                bool showProperties) =>
         {
             var processService = serviceProvider.GetRequiredService<IProcessService>();
             var automationService = serviceProvider.GetRequiredService<IAutomationService>();

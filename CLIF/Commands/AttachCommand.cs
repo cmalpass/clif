@@ -29,7 +29,13 @@ public class AttachCommand : Command
         this.Add(valueOption);
         this.Add(interactiveOption);
 
-        this.SetHandler(async (string process, string? action, string? element, string? value, bool interactive) =>
+        this.SetHandler(
+            async (
+                string process,
+                string? action,
+                string? element,
+                string? value,
+                bool interactive) =>
         {
             var logger = serviceProvider.GetRequiredService<ILogger<AttachCommand>>();
             var processService = serviceProvider.GetRequiredService<IProcessService>();
