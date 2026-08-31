@@ -23,7 +23,7 @@ A powerful .NET CLI tool and MCP server for automating Windows desktop applicati
 ## Installation
 
 ### Prerequisites
-- .NET 8.0 or later
+- .NET SDK 8.0.424 (selected by [`global.json`](global.json))
 - Windows OS (UI Automation is Windows-specific)
 
 For supported Windows environments, release archives, PowerShell setup, MCP

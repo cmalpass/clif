@@ -14,7 +14,8 @@ automation service.
 | `TestWpfApp` | Windows | WPF integration fixture |
 | `TestCrossPlatformApp` | Windows, macOS, Linux | Portable contract-test fixture only |
 
-Source builds require the .NET 8 SDK and the Windows Desktop workload. Published
+Source builds require the pinned .NET SDK 8.0.424 and the Windows Desktop
+workload. Published
 release archives are self-contained and do not require a separate .NET runtime.
 The first release target is `win-x64`; `win-arm64` is available but should be
 validated on the deployment hardware before relying on it.
