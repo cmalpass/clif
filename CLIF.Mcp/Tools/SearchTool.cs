@@ -18,19 +18,27 @@ public class SearchTool : ToolBase
     private readonly WindowSessionManager _sessionManager;
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the element search tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
+    /// <param name="elementRegistry">Registry used to store discovered elements.</param>
     public SearchTool(WindowSessionManager sessionManager, ElementRegistry elementRegistry)
     {
         _sessionManager = sessionManager;
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_search_elements";
 
+    /// <inheritdoc />
     public override string Description =>
         "Search for UI elements in a window matching specified criteria. " +
         "Returns matching elements with their refs, names, and control types. " +
         "Useful for finding elements without browsing the full snapshot tree.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -64,6 +72,7 @@ public class SearchTool : ToolBase
         },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");

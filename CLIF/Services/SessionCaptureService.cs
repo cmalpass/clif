@@ -8,17 +8,46 @@ using System.Runtime.InteropServices;
 
 namespace CLIF.Services;
 
+/// <summary>
+/// Captures screenshots and interaction logs for an automation session.
+/// </summary>
 public interface ISessionCaptureService
 {
+    /// <summary>Starts a new capture session.</summary>
+    /// <param name="sessionName">Optional session identifier.</param>
+    /// <param name="targetWindow">Optional window to capture.</param>
+    /// <returns>The new session identifier.</returns>
     Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null);
+
+    /// <summary>Captures a screenshot and log entry after an interaction.</summary>
+    /// <param name="actionType">Action that was performed.</param>
+    /// <param name="elementInfo">Description of the target element.</param>
+    /// <param name="success">Whether the interaction succeeded.</param>
+    /// <param name="validationResult">Optional validation detail.</param>
     Task CaptureAfterInteractionAsync(string actionType, string elementInfo, bool success, string? validationResult = null);
+
+    /// <summary>Writes an interaction message to the current session log.</summary>
+    /// <param name="message">Message to record.</param>
+    /// <param name="level">Severity assigned to the message.</param>
     Task LogInteractionAsync(string message, LogLevel level = LogLevel.Information);
+
+    /// <summary>Ends the current capture session.</summary>
     Task EndSessionAsync();
+
+    /// <summary>Sets the window used for subsequent captures.</summary>
+    /// <param name="targetWindow">Window to capture, or <see langword="null"/> for the full screen.</param>
     void SetTargetWindow(AutomationElement? targetWindow);
+
+    /// <summary>Gets the current session identifier, if a session is active.</summary>
     string? CurrentSessionId { get; }
+
+    /// <summary>Gets the path of the current session, if a session is active.</summary>
     string? CurrentSessionPath { get; }
 }
 
+/// <summary>
+/// Persists screenshots and interaction logs for an automation session.
+/// </summary>
 public class SessionCaptureService : ISessionCaptureService
 {
     // Windows API for bringing window to foreground
@@ -38,14 +67,21 @@ public class SessionCaptureService : ISessionCaptureService
     private readonly object _lockObject = new();
     private AutomationElement? _targetWindow;
 
+    /// <inheritdoc />
     public string? CurrentSessionId => this._currentSessionId;
+    /// <inheritdoc />
     public string? CurrentSessionPath => this._currentSessionPath;
 
+    /// <summary>
+    /// Initializes the session capture service.
+    /// </summary>
+    /// <param name="logger">Logger used for capture diagnostics.</param>
     public SessionCaptureService(ILogger<SessionCaptureService> logger)
     {
         this._logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
     {
         return await Task.Run(() =>
@@ -90,6 +126,7 @@ public class SessionCaptureService : ISessionCaptureService
         });
     }
 
+    /// <inheritdoc />
     public async Task CaptureAfterInteractionAsync(string actionType, string elementInfo, bool success, string? validationResult = null)
     {
         if (this._currentSessionPath == null || this._logFilePath == null)
@@ -135,6 +172,7 @@ public class SessionCaptureService : ISessionCaptureService
         });
     }
 
+    /// <inheritdoc />
     public async Task LogInteractionAsync(string message, LogLevel level = LogLevel.Information)
     {
         if (this._logFilePath == null)
@@ -156,11 +194,13 @@ public class SessionCaptureService : ISessionCaptureService
         });
     }
 
+    /// <inheritdoc />
     public void SetTargetWindow(AutomationElement? targetWindow)
     {
         this._targetWindow = targetWindow;
     }
 
+    /// <inheritdoc />
     public async Task EndSessionAsync()
     {
         if (this._currentSessionPath == null || this._logFilePath == null)

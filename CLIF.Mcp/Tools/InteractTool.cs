@@ -16,18 +16,25 @@ public class InteractTool : ToolBase
 {
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the advanced interaction tool.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public InteractTool(ElementRegistry elementRegistry)
     {
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_interact";
 
+    /// <inheritdoc />
     public override string Description =>
         "Perform advanced interactions with WPF controls. Supports ComboBox, DataGrid, TreeView, " +
         "TabControl, Slider, Menu, ToggleButton, CheckBox, RadioButton, Expander, ListBox, and DatePicker. " +
         "Use controlType and action to specify the interaction.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -79,6 +86,7 @@ public class InteractTool : ToolBase
         required = new[] { "ref", "controlType", "action" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var refId = GetStringArgument(arguments, "ref");

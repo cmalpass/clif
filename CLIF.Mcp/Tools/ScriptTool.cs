@@ -9,11 +9,14 @@ namespace CLIF.Mcp.Tools;
 /// </summary>
 public class ScriptTool : ToolBase
 {
+    /// <inheritdoc />
     public override string Name => "clif_validate_script";
 
+    /// <inheritdoc />
     public override string Description =>
         "Validate inline CLIF JSON automation script content. This tool does not execute scripts.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -27,6 +30,7 @@ public class ScriptTool : ToolBase
         },
     };
 
+    /// <inheritdoc />
     public override async Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var content = GetStringArgument(arguments, "content");

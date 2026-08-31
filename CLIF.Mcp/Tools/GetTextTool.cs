@@ -12,17 +12,24 @@ public class GetTextTool : ToolBase
 {
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the text extraction tool.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public GetTextTool(ElementRegistry elementRegistry)
     {
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_get_text";
 
+    /// <inheritdoc />
     public override string Description =>
         "Get the text content of an element. " +
         "Tries Value pattern first, then Name property, then Text pattern.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -37,6 +44,7 @@ public class GetTextTool : ToolBase
         required = new[] { "ref" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var refId = GetStringArgument(arguments, "ref");

@@ -14,18 +14,25 @@ public class TypeTool : ToolBase
 {
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the text-entry tool.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public TypeTool(ElementRegistry elementRegistry)
     {
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_type";
 
+    /// <inheritdoc />
     public override string Description =>
         "Type text into a snapshotted element (appends to existing content). " +
         "A ref is required so CLIF never types into an implicit focused element. " +
         "Optionally press Enter after typing with submit=true.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -50,6 +57,7 @@ public class TypeTool : ToolBase
         required = new[] { "ref", "text" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var text = GetStringArgument(arguments, "text");
@@ -113,17 +121,24 @@ public class FillTool : ToolBase
 {
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the field-fill tool.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public FillTool(ElementRegistry elementRegistry)
     {
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_fill";
 
+    /// <inheritdoc />
     public override string Description =>
         "Clear and fill an element's value (replaces existing content). " +
         "Uses the Value pattern when available, otherwise falls back to Ctrl+A and typing.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -143,6 +158,7 @@ public class FillTool : ToolBase
         required = new[] { "ref", "value" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var refId = GetStringArgument(arguments, "ref");

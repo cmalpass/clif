@@ -18,6 +18,12 @@ public class ScreenshotTool : ToolBase
     private readonly ElementRegistry _elementRegistry;
     private readonly McpSafetyPolicy _safetyPolicy;
 
+    /// <summary>
+    /// Initializes the screenshot tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
+    /// <param name="safetyPolicy">Optional policy restricting screenshot operations.</param>
     public ScreenshotTool(
         WindowSessionManager sessionManager,
         ElementRegistry elementRegistry,
@@ -28,12 +34,15 @@ public class ScreenshotTool : ToolBase
         _safetyPolicy = safetyPolicy ?? McpSafetyPolicy.FromEnvironment();
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_screenshot";
 
+    /// <inheritdoc />
     public override string Description =>
         "Capture a screenshot and return it as a base64-encoded PNG image. " +
         "Captures a specific element or registered window. Full-screen capture requires explicit host policy.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -57,6 +66,7 @@ public class ScreenshotTool : ToolBase
         },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");
