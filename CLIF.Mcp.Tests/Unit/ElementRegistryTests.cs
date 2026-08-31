@@ -75,6 +75,15 @@ public class ElementRegistryTests
     }
 
     [Fact]
+    public void Lookup_RejectsMalformedReferences()
+    {
+        var registry = new ElementRegistry();
+
+        registry.GetElement("../../w1e1").Should().BeNull();
+        registry.HasElement("w0e1").Should().BeFalse();
+    }
+
+    [Fact]
     public void GetElement_ReturnsRegisteredElement()
     {
         var registry = new ElementRegistry();
