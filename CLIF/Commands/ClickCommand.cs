@@ -9,8 +9,8 @@ namespace CLIF.Commands;
 /// <summary>Provides the command-line entry point for clicking an automation element.</summary>
 public class ClickCommand : Command
 {
-    private readonly IAutomationService _automationService;
-    private readonly ISessionCaptureService _captureService;
+    private readonly IAutomationService automationService;
+    private readonly ISessionCaptureService captureService;
 
     /// <summary>Creates a click command backed by the automation and capture services.</summary>
     /// <param name="automationService">Service used to attach and click the target element.</param>
@@ -18,8 +18,8 @@ public class ClickCommand : Command
     public ClickCommand(IAutomationService automationService, ISessionCaptureService captureService)
         : base("click", "Click on a UI element")
     {
-        this._automationService = automationService;
-        this._captureService = captureService;
+        this.automationService = automationService;
+        this.captureService = captureService;
 
         var processIdOption = new Option<int>(
             "--process-id",
@@ -42,55 +42,55 @@ public class ClickCommand : Command
             var elementPath = context.ParseResult.GetValueForOption(elementPathOption)!;
 
             // Start a mini-session for individual command
-            var sessionId = await this._captureService.StartSessionAsync($"CLICK_Command_{DateTime.Now:HHmmss}");
+            var sessionId = await this.captureService.StartSessionAsync($"CLICK_Command_{DateTime.Now:HHmmss}");
 
             try
             {
-                await this._captureService.LogInteractionAsync($"CLICK command started: {elementPath} (Process: {processId})");
+                await this.captureService.LogInteractionAsync($"CLICK command started: {elementPath} (Process: {processId})");
 
                 Console.WriteLine($"Attaching to process {processId}...");
-                var success = await this._automationService.AttachToProcessAsync(processId);
+                var success = await this.automationService.AttachToProcessAsync(processId);
 
                 if (!success)
                 {
                     Console.WriteLine("Failed to attach to process.");
-                    await this._captureService.LogInteractionAsync("ERROR: Failed to attach to process", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync("ERROR: Failed to attach to process", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine($"Finding element: {elementPath}");
-                var element = await this._automationService.FindElementAsync(elementPath);
+                var element = await this.automationService.FindElementAsync(elementPath);
                 if (element == null)
                 {
                     Console.WriteLine($"Element '{elementPath}' not found.");
-                    await this._captureService.LogInteractionAsync($"ERROR: Element '{elementPath}' not found", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync($"ERROR: Element '{elementPath}' not found", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine($"Clicking element: {elementPath}");
-                if (!await this._automationService.ClickAsync(element))
+                if (!await this.automationService.ClickAsync(element))
                 {
                     Console.WriteLine("Click failed.");
-                    await this._captureService.LogInteractionAsync("ERROR: Click failed", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync("ERROR: Click failed", LogLevel.Error);
                     context.ExitCode = 1;
                     return;
                 }
 
                 Console.WriteLine("Click completed successfully.");
-                await this._captureService.LogInteractionAsync("CLICK command completed successfully");
+                await this.captureService.LogInteractionAsync("CLICK command completed successfully");
                 context.ExitCode = 0;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error clicking element: {ex.Message}");
-                await this._captureService.LogInteractionAsync($"ERROR: {ex.Message}", LogLevel.Error);
+                await this.captureService.LogInteractionAsync($"ERROR: {ex.Message}", LogLevel.Error);
                 context.ExitCode = 1;
             }
             finally
             {
-                await this._captureService.EndSessionAsync();
+                await this.captureService.EndSessionAsync();
             }
         });
     }

@@ -6,14 +6,14 @@ namespace CLIF.Commands;
 /// <summary>Provides the command-line entry point for executing or validating scripts.</summary>
 public class ScriptCommand : Command
 {
-    private readonly IScriptService _scriptService;
+    private readonly IScriptService scriptService;
 
     /// <summary>Creates a script command backed by the script service.</summary>
     /// <param name="scriptService">Service used to load, validate, and execute scripts.</param>
     public ScriptCommand(IScriptService scriptService)
         : base("script", "Execute an automation script")
     {
-        this._scriptService = scriptService;
+        this.scriptService = scriptService;
 
         var scriptFileArgument = new Argument<string>(
             "script-file",
@@ -38,7 +38,7 @@ public class ScriptCommand : Command
                 }
 
                 Console.WriteLine($"Executing script: {scriptFile}");
-                var result = await this._scriptService.ExecuteScriptAsync(scriptFile, processId);
+                var result = await this.scriptService.ExecuteScriptAsync(scriptFile, processId);
                 if (result.Success)
                 {
                     Console.WriteLine($"Script execution completed successfully in {result.ExecutionTime}");

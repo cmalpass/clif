@@ -59,18 +59,18 @@ public class SessionCaptureService : ISessionCaptureService
 
     private const int SW_RESTORE = 9;
 
-    private readonly ILogger<SessionCaptureService> _logger;
-    private string? _currentSessionId;
-    private string? _currentSessionPath;
-    private string? _logFilePath;
-    private int _captureCounter = 0;
-    private readonly object _lockObject = new();
-    private AutomationElement? _targetWindow;
+    private readonly ILogger<SessionCaptureService> logger;
+    private string? currentSessionId;
+    private string? currentSessionPath;
+    private string? logFilePath;
+    private int captureCounter = 0;
+    private readonly object lockObject = new();
+    private AutomationElement? targetWindow;
 
     /// <inheritdoc />
-    public string? CurrentSessionId => this._currentSessionId;
+    public string? CurrentSessionId => this.currentSessionId;
     /// <inheritdoc />
-    public string? CurrentSessionPath => this._currentSessionPath;
+    public string? CurrentSessionPath => this.currentSessionPath;
 
     /// <summary>
     /// Initializes the session capture service.
@@ -78,7 +78,7 @@ public class SessionCaptureService : ISessionCaptureService
     /// <param name="logger">Logger used for capture diagnostics.</param>
     public SessionCaptureService(ILogger<SessionCaptureService> logger)
     {
-        this._logger = logger;
+        this.logger = logger;
     }
 
     /// <inheritdoc />
@@ -86,42 +86,42 @@ public class SessionCaptureService : ISessionCaptureService
     {
         return await Task.Run(() =>
         {
-            lock (this._lockObject)
+            lock (this.lockObject)
             {
                 var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                this._currentSessionId = sessionName ?? $"CLIF_Session_{timestamp}";
-                this._targetWindow = targetWindow;
+                this.currentSessionId = sessionName ?? $"CLIF_Session_{timestamp}";
+                this.targetWindow = targetWindow;
 
                 // Create session directory in the workspace root
                 var workspaceRoot = this.FindWorkspaceRoot();
                 var sessionsDir = Path.Combine(workspaceRoot, "sessions");
-                this._currentSessionPath = Path.Combine(sessionsDir, this._currentSessionId);
+                this.currentSessionPath = Path.Combine(sessionsDir, this.currentSessionId);
 
-                Directory.CreateDirectory(this._currentSessionPath);
-                Directory.CreateDirectory(Path.Combine(this._currentSessionPath, "screenshots"));
+                Directory.CreateDirectory(this.currentSessionPath);
+                Directory.CreateDirectory(Path.Combine(this.currentSessionPath, "screenshots"));
 
                 // Create log file
-                this._logFilePath = Path.Combine(this._currentSessionPath, "session.log");
-                this._captureCounter = 0;
+                this.logFilePath = Path.Combine(this.currentSessionPath, "session.log");
+                this.captureCounter = 0;
 
                 // Write session header
                 var sessionInfo = new[]
                 {
                     $"=== CLIF Automation Session ===",
-                    $"Session ID: {this._currentSessionId}",
+                    $"Session ID: {this.currentSessionId}",
                     $"Start Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                    $"Session Path: {this._currentSessionPath}",
+                    $"Session Path: {this.currentSessionPath}",
                     $"Target Window: {(targetWindow?.Name ?? "Full Screen")}",
                     "=" + new string('=', 50),
                     ""
                 };
 
-                File.WriteAllLines(this._logFilePath, sessionInfo);
+                File.WriteAllLines(this.logFilePath, sessionInfo);
 
-                this._logger.LogInformation($"📁 Started capture session: {this._currentSessionId}");
-                this._logger.LogInformation($"📂 Session path: {this._currentSessionPath}");
+                this.logger.LogInformation($"📁 Started capture session: {this.currentSessionId}");
+                this.logger.LogInformation($"📂 Session path: {this.currentSessionPath}");
 
-                return this._currentSessionId;
+                return this.currentSessionId;
             }
         });
     }
@@ -129,9 +129,9 @@ public class SessionCaptureService : ISessionCaptureService
     /// <inheritdoc />
     public async Task CaptureAfterInteractionAsync(string actionType, string elementInfo, bool success, string? validationResult = null)
     {
-        if (this._currentSessionPath == null || this._logFilePath == null)
+        if (this.currentSessionPath == null || this.logFilePath == null)
         {
-            this._logger.LogWarning("No active session for capturing");
+            this.logger.LogWarning("No active session for capturing");
             return;
         }
 
@@ -139,12 +139,12 @@ public class SessionCaptureService : ISessionCaptureService
         {
             try
             {
-                lock (this._lockObject)
+                lock (this.lockObject)
                 {
-                    this._captureCounter++;
+                    this.captureCounter++;
                     var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
-                    var screenshotName = $"{this._captureCounter:D3}_{actionType}_{timestamp.Replace(":", "")}.png";
-                    var screenshotPath = Path.Combine(this._currentSessionPath, "screenshots", screenshotName);
+                    var screenshotName = $"{this.captureCounter:D3}_{actionType}_{timestamp.Replace(":", "")}.png";
+                    var screenshotPath = Path.Combine(this.currentSessionPath, "screenshots", screenshotName);
 
                     // Capture screenshot
                     this.CaptureScreenshot(screenshotPath);
@@ -152,7 +152,7 @@ public class SessionCaptureService : ISessionCaptureService
                     // Log the interaction
                     var logEntry = new[]
                     {
-                        $"[{DateTime.Now:HH:mm:ss.fff}] Step {this._captureCounter}: {actionType}",
+                        $"[{DateTime.Now:HH:mm:ss.fff}] Step {this.captureCounter}: {actionType}",
                         $"  Element: {elementInfo}",
                         $"  Success: {success}",
                         $"  Validation: {validationResult ?? "N/A"}",
@@ -160,14 +160,14 @@ public class SessionCaptureService : ISessionCaptureService
                         ""
                     };
 
-                    File.AppendAllLines(this._logFilePath, logEntry);
+                    File.AppendAllLines(this.logFilePath, logEntry);
 
-                    this._logger.LogInformation($"📸 Captured step {this._captureCounter}: {actionType} → {screenshotName}");
+                    this.logger.LogInformation($"📸 Captured step {this.captureCounter}: {actionType} → {screenshotName}");
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Failed to capture interaction: {actionType}");
+                this.logger.LogError(ex, $"Failed to capture interaction: {actionType}");
             }
         });
     }
@@ -175,7 +175,7 @@ public class SessionCaptureService : ISessionCaptureService
     /// <inheritdoc />
     public async Task LogInteractionAsync(string message, LogLevel level = LogLevel.Information)
     {
-        if (this._logFilePath == null)
+        if (this.logFilePath == null)
         {
             return;
         }
@@ -185,11 +185,11 @@ public class SessionCaptureService : ISessionCaptureService
             try
             {
                 var logEntry = $"[{DateTime.Now:HH:mm:ss.fff}] {level}: {message}";
-                File.AppendAllText(this._logFilePath, logEntry + Environment.NewLine);
+                File.AppendAllText(this.logFilePath, logEntry + Environment.NewLine);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Failed to write to session log");
+                this.logger.LogError(ex, "Failed to write to session log");
             }
         });
     }
@@ -197,13 +197,13 @@ public class SessionCaptureService : ISessionCaptureService
     /// <inheritdoc />
     public void SetTargetWindow(AutomationElement? targetWindow)
     {
-        this._targetWindow = targetWindow;
+        this.targetWindow = targetWindow;
     }
 
     /// <inheritdoc />
     public async Task EndSessionAsync()
     {
-        if (this._currentSessionPath == null || this._logFilePath == null)
+        if (this.currentSessionPath == null || this.logFilePath == null)
         {
             return;
         }
@@ -212,7 +212,7 @@ public class SessionCaptureService : ISessionCaptureService
         {
             try
             {
-                lock (this._lockObject)
+                lock (this.lockObject)
                 {
                     // Write session footer
                     var sessionFooter = new[]
@@ -220,27 +220,27 @@ public class SessionCaptureService : ISessionCaptureService
                         "",
                         "=" + new string('=', 50),
                         $"Session ended: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                        $"Total captures: {this._captureCounter}",
-                        $"Screenshots saved in: {Path.Combine(this._currentSessionPath, "screenshots")}",
+                        $"Total captures: {this.captureCounter}",
+                        $"Screenshots saved in: {Path.Combine(this.currentSessionPath, "screenshots")}",
                         "=== End of Session ==="
                     };
 
-                    File.AppendAllLines(this._logFilePath, sessionFooter);
+                    File.AppendAllLines(this.logFilePath, sessionFooter);
 
-                    this._logger.LogInformation($"📋 Session completed: {this._currentSessionId}");
-                    this._logger.LogInformation($"📊 Total captures: {this._captureCounter}");
-                    this._logger.LogInformation($"📁 Session saved: {this._currentSessionPath}");
+                    this.logger.LogInformation($"📋 Session completed: {this.currentSessionId}");
+                    this.logger.LogInformation($"📊 Total captures: {this.captureCounter}");
+                    this.logger.LogInformation($"📁 Session saved: {this.currentSessionPath}");
 
                     // Reset session state
-                    this._currentSessionId = null;
-                    this._currentSessionPath = null;
-                    this._logFilePath = null;
-                    this._captureCounter = 0;
+                    this.currentSessionId = null;
+                    this.currentSessionPath = null;
+                    this.logFilePath = null;
+                    this.captureCounter = 0;
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Failed to end session properly");
+                this.logger.LogError(ex, "Failed to end session properly");
             }
         });
     }
@@ -250,20 +250,20 @@ public class SessionCaptureService : ISessionCaptureService
         try
         {
             // If we have a target window, bring it to foreground and capture it specifically
-            if (this._targetWindow != null)
+            if (this.targetWindow != null)
             {
-                this._logger.LogDebug("Bringing target window to foreground for screenshot");
-                this.BringWindowToForeground(this._targetWindow);
+                this.logger.LogDebug("Bringing target window to foreground for screenshot");
+                this.BringWindowToForeground(this.targetWindow);
                 Thread.Sleep(500); // Longer delay to ensure window is in focus and UI changes are rendered
 
-                this._logger.LogDebug($"Capturing window: {this._targetWindow.Name} (Size: {this._targetWindow.BoundingRectangle})");
+                this.logger.LogDebug($"Capturing window: {this.targetWindow.Name} (Size: {this.targetWindow.BoundingRectangle})");
 
                 // Capture the specific window
-                using var capture = FlaUI.Core.Capturing.Capture.Element(this._targetWindow);
+                using var capture = FlaUI.Core.Capturing.Capture.Element(this.targetWindow);
                 using var bitmap = capture.Bitmap;
                 bitmap.Save(filePath, ImageFormat.Png);
 
-                this._logger.LogDebug($"Screenshot saved: {filePath} (Size: {bitmap.Width}x{bitmap.Height})");
+                this.logger.LogDebug($"Screenshot saved: {filePath} (Size: {bitmap.Width}x{bitmap.Height})");
             }
             else
             {
@@ -275,7 +275,7 @@ public class SessionCaptureService : ISessionCaptureService
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning($"Failed to capture screenshot using FlaUI, trying fallback: {ex.Message}");
+            this.logger.LogWarning($"Failed to capture screenshot using FlaUI, trying fallback: {ex.Message}");
 
             try
             {
@@ -284,7 +284,7 @@ public class SessionCaptureService : ISessionCaptureService
             }
             catch (Exception fallbackEx)
             {
-                this._logger.LogError(fallbackEx, "All screenshot capture methods failed");
+                this.logger.LogError(fallbackEx, "All screenshot capture methods failed");
             }
         }
     }
@@ -303,7 +303,7 @@ public class SessionCaptureService : ISessionCaptureService
         }
         catch (Exception ex)
         {
-            this._logger.LogWarning($"Failed to bring window to foreground: {ex.Message}");
+            this.logger.LogWarning($"Failed to bring window to foreground: {ex.Message}");
         }
     }
 

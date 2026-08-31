@@ -9,11 +9,11 @@ namespace CLIF.Services;
 /// </summary>
 public class ScriptService : IScriptService
 {
-    private readonly ILogger<ScriptService> _logger;
-    private readonly IProcessService _processService;
-    private readonly IAutomationService _automationService;
-    private readonly ISessionCaptureService _captureService;
-    private int? _attachedProcessId;
+    private readonly ILogger<ScriptService> logger;
+    private readonly IProcessService processService;
+    private readonly IAutomationService automationService;
+    private readonly ISessionCaptureService captureService;
+    private int? attachedProcessId;
 
     /// <summary>
     /// Initializes the script service.
@@ -24,10 +24,10 @@ public class ScriptService : IScriptService
     /// <param name="captureService">Service used to record execution sessions.</param>
     public ScriptService(ILogger<ScriptService> logger, IProcessService processService, IAutomationService automationService, ISessionCaptureService captureService)
     {
-        this._logger = logger;
-        this._processService = processService;
-        this._automationService = automationService;
-        this._captureService = captureService;
+        this.logger = logger;
+        this.processService = processService;
+        this.automationService = automationService;
+        this.captureService = captureService;
     }
 
     /// <inheritdoc />
@@ -35,16 +35,16 @@ public class ScriptService : IScriptService
     {
         // Start capture session
         var scriptName = Path.GetFileNameWithoutExtension(scriptPath);
-        var sessionId = await this._captureService.StartSessionAsync($"{scriptName}_{DateTime.Now:HHmmss}");
+        var sessionId = await this.captureService.StartSessionAsync($"{scriptName}_{DateTime.Now:HHmmss}");
 
         try
         {
-            await this._captureService.LogInteractionAsync($"Starting script execution: {scriptPath}");
+            await this.captureService.LogInteractionAsync($"Starting script execution: {scriptPath}");
 
             if (!File.Exists(scriptPath))
             {
-                await this._captureService.LogInteractionAsync($"ERROR: Script file not found: {scriptPath}", LogLevel.Error);
-                await this._captureService.EndSessionAsync();
+                await this.captureService.LogInteractionAsync($"ERROR: Script file not found: {scriptPath}", LogLevel.Error);
+                await this.captureService.EndSessionAsync();
                 return new ScriptExecutionResult
                 {
                     Success = false,
@@ -57,9 +57,9 @@ public class ScriptService : IScriptService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error executing script file: {scriptPath}");
-            await this._captureService.LogInteractionAsync($"ERROR: Error reading script file: {ex.Message}", LogLevel.Error);
-            await this._captureService.EndSessionAsync();
+            this.logger.LogError(ex, $"Error executing script file: {scriptPath}");
+            await this.captureService.LogInteractionAsync($"ERROR: Error reading script file: {ex.Message}", LogLevel.Error);
+            await this.captureService.EndSessionAsync();
             return new ScriptExecutionResult
             {
                 Success = false,
@@ -158,7 +158,7 @@ public class ScriptService : IScriptService
             {
                 result.Success = true;
                 result.Message = "Script execution completed successfully";
-                await this._captureService.LogInteractionAsync($"Script completed successfully! Executed {result.StepsExecuted} steps.");
+                await this.captureService.LogInteractionAsync($"Script completed successfully! Executed {result.StepsExecuted} steps.");
                 Console.WriteLine($"✅ Script completed successfully! Executed {result.StepsExecuted} steps.");
             }
             else
@@ -167,15 +167,15 @@ public class ScriptService : IScriptService
                 result.Message = string.IsNullOrEmpty(result.Message)
                     ? $"Script execution completed with {result.StepsFailed} failed step(s)"
                     : result.Message;
-                await this._captureService.LogInteractionAsync($"Script completed with {result.StepsFailed} failed step(s).", LogLevel.Error);
+                await this.captureService.LogInteractionAsync($"Script completed with {result.StepsFailed} failed step(s).", LogLevel.Error);
                 Console.WriteLine($"❌ Script completed with {result.StepsFailed} failed step(s).");
             }
 
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error executing script content");
-            await this._captureService.LogInteractionAsync($"ERROR: Script execution failed: {ex.Message}", LogLevel.Error);
+            this.logger.LogError(ex, "Error executing script content");
+            await this.captureService.LogInteractionAsync($"ERROR: Script execution failed: {ex.Message}", LogLevel.Error);
             result.Success = false;
             result.Message = $"Script execution failed: {ex.Message}";
             Console.WriteLine($"❌ Script execution failed: {ex.Message}");
@@ -186,8 +186,8 @@ public class ScriptService : IScriptService
             result.ExecutionTime = stopwatch.Elapsed;
 
             // End capture session
-            await this._captureService.LogInteractionAsync($"Script execution completed in {result.ExecutionTime.TotalSeconds:F2} seconds");
-            await this._captureService.EndSessionAsync();
+            await this.captureService.LogInteractionAsync($"Script execution completed in {result.ExecutionTime.TotalSeconds:F2} seconds");
+            await this.captureService.EndSessionAsync();
         }
 
         return result;
@@ -208,7 +208,7 @@ public class ScriptService : IScriptService
                 return false;
             }
 
-            var processes = await this._processService.GetWpfProcessesAsync();
+            var processes = await this.processService.GetWpfProcessesAsync();
             var targetProcess = processes.FirstOrDefault(p =>
                 (processIdOverride.HasValue && p.Id == processIdOverride.Value) ||
                 (!processIdOverride.HasValue && (
@@ -220,14 +220,14 @@ public class ScriptService : IScriptService
 
             if (targetProcess != null)
             {
-                var attached = await this._automationService.AttachToProcessAsync(targetProcess.Id);
+                var attached = await this.automationService.AttachToProcessAsync(targetProcess.Id);
                 if (!attached)
                 {
                     Console.WriteLine($"❌ Could not attach to process: {targetProcess.Name} (PID: {targetProcess.Id})");
                     return false;
                 }
 
-                this._attachedProcessId = targetProcess.Id;
+                this.attachedProcessId = targetProcess.Id;
                 Console.WriteLine($"🔗 Attached to process: {targetProcess.Name} (PID: {targetProcess.Id})");
                 return true;
             }
@@ -239,7 +239,7 @@ public class ScriptService : IScriptService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error attaching to process");
+            this.logger.LogError(ex, "Error attaching to process");
             Console.WriteLine($"❌ Error attaching to process: {ex.Message}");
             return false;
         }
@@ -253,14 +253,14 @@ public class ScriptService : IScriptService
             {
                 case "log":
                     Console.WriteLine($"📝 Log: {step.Description}");
-                    await this._captureService.LogInteractionAsync($"Log: {step.Description}");
+                    await this.captureService.LogInteractionAsync($"Log: {step.Description}");
                     return true;
 
                 case "wait":
                     if (step.DelayMs > 0)
                     {
                         Console.WriteLine($"⏱️  Waiting {step.DelayMs}ms...");
-                        await this._captureService.LogInteractionAsync($"Waiting {step.DelayMs}ms");
+                        await this.captureService.LogInteractionAsync($"Waiting {step.DelayMs}ms");
                         await Task.Delay(step.DelayMs);
                     }
 
@@ -268,7 +268,7 @@ public class ScriptService : IScriptService
 
                 case "screenshot":
                     Console.WriteLine($"📸 Taking screenshot");
-                    await this._captureService.CaptureAfterInteractionAsync("SCREENSHOT", step.Description ?? "Manual screenshot capture", true);
+                    await this.captureService.CaptureAfterInteractionAsync("SCREENSHOT", step.Description ?? "Manual screenshot capture", true);
                     return true;
 
                 case "clear":
@@ -277,11 +277,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var clearElement = await this._automationService.FindElementAsync(step.Element);
+                    var clearElement = await this.automationService.FindElementAsync(step.Element);
                     if (clearElement != null)
                     {
                         Console.WriteLine($"🧹 Clearing element: {step.Element}");
-                        return await this._automationService.SetValueAsync(clearElement, "");
+                        return await this.automationService.SetValueAsync(clearElement, "");
                     }
 
                     return false;
@@ -292,11 +292,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var typeElement = await this._automationService.FindElementAsync(step.Element);
+                    var typeElement = await this.automationService.FindElementAsync(step.Element);
                     if (typeElement != null)
                     {
                         Console.WriteLine($"⌨️  Typing '{step.Value}' into: {step.Element}");
-                        return await this._automationService.TypeTextAsync(typeElement, step.Value);
+                        return await this.automationService.TypeTextAsync(typeElement, step.Value);
                     }
 
                     return false;
@@ -307,11 +307,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var clickElement = await this._automationService.FindElementAsync(step.Element);
+                    var clickElement = await this.automationService.FindElementAsync(step.Element);
                     if (clickElement != null)
                     {
                         Console.WriteLine($"🖱️  Clicking: {step.Element}");
-                        return await this._automationService.ClickAsync(clickElement);
+                        return await this.automationService.ClickAsync(clickElement);
                     }
 
                     return false;
@@ -322,8 +322,8 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var focusElement = await this._automationService.FindElementAsync(step.Element);
-                    return focusElement != null && await this._automationService.FocusAsync(focusElement);
+                    var focusElement = await this.automationService.FindElementAsync(step.Element);
+                    return focusElement != null && await this.automationService.FocusAsync(focusElement);
 
                 case "select":
                     if (string.IsNullOrEmpty(step.Element))
@@ -331,11 +331,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var selectElement = await this._automationService.FindElementAsync(step.Element);
+                    var selectElement = await this.automationService.FindElementAsync(step.Element);
                     if (selectElement != null)
                     {
                         Console.WriteLine($"📋 Selecting '{step.Value}' in: {step.Element}");
-                        return await this._automationService.SelectComboBoxItemAsync(selectElement, step.Value);
+                        return await this.automationService.SelectComboBoxItemAsync(selectElement, step.Value);
                     }
 
                     return false;
@@ -347,17 +347,17 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var valueElement = await this._automationService.FindElementAsync(step.Element);
+                    var valueElement = await this.automationService.FindElementAsync(step.Element);
                     if (valueElement != null)
                     {
                         Console.WriteLine($"🎚️  Setting value '{step.Value}' on: {step.Element}");
                         if (double.TryParse(step.Value, out double numValue))
                         {
-                            return await this._automationService.SetSliderValueAsync(valueElement, numValue);
+                            return await this.automationService.SetSliderValueAsync(valueElement, numValue);
                         }
                         else
                         {
-                            return await this._automationService.SetValueAsync(valueElement, step.Value);
+                            return await this.automationService.SetValueAsync(valueElement, step.Value);
                         }
                     }
 
@@ -369,11 +369,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var tabElement = await this._automationService.FindElementAsync(step.Element);
+                    var tabElement = await this.automationService.FindElementAsync(step.Element);
                     if (tabElement != null)
                     {
                         Console.WriteLine($"📑 Switching to tab '{step.Value}' in: {step.Element}");
-                        return await this._automationService.SelectTabAsync(tabElement, step.Value);
+                        return await this.automationService.SelectTabAsync(tabElement, step.Value);
                     }
 
                     return false;
@@ -384,12 +384,12 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var gridElement = await this._automationService.FindElementAsync(step.Element);
+                    var gridElement = await this.automationService.FindElementAsync(step.Element);
                     if (gridElement != null)
                     {
                         var index = step.Parameters.ContainsKey("index") ? Convert.ToInt32(step.Parameters["index"]) : 0;
                         Console.WriteLine($"📊 Selecting row {index} in: {step.Element}");
-                        return await this._automationService.SelectDataGridRowAsync(gridElement, index);
+                        return await this.automationService.SelectDataGridRowAsync(gridElement, index);
                     }
 
                     return false;
@@ -400,13 +400,13 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var cellGridElement = await this._automationService.FindElementAsync(step.Element);
+                    var cellGridElement = await this.automationService.FindElementAsync(step.Element);
                     if (cellGridElement != null)
                     {
                         var row = step.Parameters.ContainsKey("row") ? Convert.ToInt32(step.Parameters["row"]) : step.Row;
                         var column = step.Parameters.ContainsKey("column") ? Convert.ToInt32(step.Parameters["column"]) : step.Column;
                         Console.WriteLine($"📊 Selecting cell ({row}, {column}) in: {step.Element}");
-                        return await this._automationService.SelectDataGridCellAsync(cellGridElement, row, column);
+                        return await this.automationService.SelectDataGridCellAsync(cellGridElement, row, column);
                     }
 
                     return false;
@@ -417,11 +417,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var expandElement = await this._automationService.FindElementAsync(step.Element);
+                    var expandElement = await this.automationService.FindElementAsync(step.Element);
                     if (expandElement != null)
                     {
                         Console.WriteLine($"📂 Expanding: {step.Element}");
-                        return await this._automationService.ToggleExpanderAsync(expandElement);
+                        return await this.automationService.ToggleExpanderAsync(expandElement);
                     }
 
                     return false;
@@ -432,11 +432,11 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var collapseElement = await this._automationService.FindElementAsync(step.Element);
+                    var collapseElement = await this.automationService.FindElementAsync(step.Element);
                     if (collapseElement != null)
                     {
-                        return !await this._automationService.GetExpanderStateAsync(collapseElement)
-                            || await this._automationService.ToggleExpanderAsync(collapseElement);
+                        return !await this.automationService.GetExpanderStateAsync(collapseElement)
+                            || await this.automationService.ToggleExpanderAsync(collapseElement);
                     }
 
                     return false;
@@ -448,12 +448,12 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var valueReadElement = await this._automationService.FindElementAsync(step.Element);
+                    var valueReadElement = await this.automationService.FindElementAsync(step.Element);
                     if (valueReadElement != null)
                     {
-                        var currentValue = await this._automationService.GetValueAsync(valueReadElement);
+                        var currentValue = await this.automationService.GetValueAsync(valueReadElement);
                         Console.WriteLine($"ℹ️  Current value for {step.Element}: {currentValue}");
-                        await this._captureService.LogInteractionAsync($"Current value for {step.Element}: {currentValue}");
+                        await this.captureService.LogInteractionAsync($"Current value for {step.Element}: {currentValue}");
                         return true;
                     }
 
@@ -465,12 +465,12 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var stateReadElement = await this._automationService.FindElementAsync(step.Element);
+                    var stateReadElement = await this.automationService.FindElementAsync(step.Element);
                     if (stateReadElement != null)
                     {
-                        var currentState = await this._automationService.GetValueAsync(stateReadElement);
+                        var currentState = await this.automationService.GetValueAsync(stateReadElement);
                         Console.WriteLine($"ℹ️  Current state for {step.Element}: {currentState}");
-                        await this._captureService.LogInteractionAsync($"Current state for {step.Element}: {currentState}");
+                        await this.captureService.LogInteractionAsync($"Current state for {step.Element}: {currentState}");
                         return true;
                     }
 
@@ -482,7 +482,7 @@ public class ScriptService : IScriptService
                         return false;
                     }
 
-                    var validateElement = await this._automationService.FindElementAsync(step.Element);
+                    var validateElement = await this.automationService.FindElementAsync(step.Element);
                     if (validateElement != null)
                     {
                         var expectedValue = step.Parameters.ContainsKey("expectedValue") ?
@@ -495,7 +495,7 @@ public class ScriptService : IScriptService
                         var isValid = false;
                         for (var attempt = 0; attempt < 10; attempt++)
                         {
-                            actualValue = await this._automationService.GetValueAsync(validateElement);
+                            actualValue = await this.automationService.GetValueAsync(validateElement);
                             isValid = actualValue == expectedValue;
                             if (isValid)
                             {
@@ -505,7 +505,7 @@ public class ScriptService : IScriptService
                             await Task.Delay(100);
                         }
 
-                        await this._captureService.LogInteractionAsync($"Validation {(isValid ? "PASSED" : "FAILED")}: Expected '{expectedValue}', got '{actualValue}'");
+                        await this.captureService.LogInteractionAsync($"Validation {(isValid ? "PASSED" : "FAILED")}: Expected '{expectedValue}', got '{actualValue}'");
                         return isValid;
                     }
 
@@ -513,15 +513,15 @@ public class ScriptService : IScriptService
 
                 default:
                     Console.WriteLine($"⚠️  Unknown action: {step.Action}");
-                    await this._captureService.LogInteractionAsync($"ERROR: Unknown action: {step.Action}", LogLevel.Error);
+                    await this.captureService.LogInteractionAsync($"ERROR: Unknown action: {step.Action}", LogLevel.Error);
                     return false;
             }
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error executing step: {step.Action}");
+            this.logger.LogError(ex, $"Error executing step: {step.Action}");
             Console.WriteLine($"❌ Error executing {step.Action}: {ex.Message}");
-            await this._captureService.LogInteractionAsync($"ERROR executing {step.Action}: {ex.Message}", LogLevel.Error);
+            await this.captureService.LogInteractionAsync($"ERROR executing {step.Action}: {ex.Message}", LogLevel.Error);
             return false;
         }
     }
@@ -536,7 +536,7 @@ public class ScriptService : IScriptService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error validating script: {scriptPath}");
+            this.logger.LogError(ex, $"Error validating script: {scriptPath}");
             return false;
         }
     }
@@ -559,7 +559,7 @@ public class ScriptService : IScriptService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error loading script: {scriptPath}");
+            this.logger.LogError(ex, $"Error loading script: {scriptPath}");
             return null;
         }
     }
@@ -577,7 +577,7 @@ public class ScriptService : IScriptService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error saving script: {scriptPath}");
+            this.logger.LogError(ex, $"Error saving script: {scriptPath}");
             throw;
         }
     }
@@ -588,10 +588,10 @@ public class ScriptService : IScriptService
 /// </summary>
 public class InteractiveService : IInteractiveService
 {
-    private readonly ILogger<InteractiveService> _logger;
-    private readonly IAutomationService _automationService;
-    private readonly IElementTreeService _elementTreeService;
-    private readonly ISessionCaptureService _captureService;
+    private readonly ILogger<InteractiveService> logger;
+    private readonly IAutomationService automationService;
+    private readonly IElementTreeService elementTreeService;
+    private readonly ISessionCaptureService captureService;
 
     /// <inheritdoc />
     public bool IsSessionActive { get; private set; }
@@ -609,10 +609,10 @@ public class InteractiveService : IInteractiveService
         IElementTreeService elementTreeService,
         ISessionCaptureService captureService)
     {
-        this._logger = logger;
-        this._automationService = automationService;
-        this._elementTreeService = elementTreeService;
-        this._captureService = captureService;
+        this.logger = logger;
+        this.automationService = automationService;
+        this.elementTreeService = elementTreeService;
+        this.captureService = captureService;
     }
 
     /// <summary>
@@ -634,7 +634,7 @@ public class InteractiveService : IInteractiveService
 
         if (processId.HasValue)
         {
-            var attached = await this._automationService.AttachToProcessAsync(processId.Value);
+            var attached = await this.automationService.AttachToProcessAsync(processId.Value);
             if (attached)
             {
                 Console.WriteLine($"✓ Attached to process: {processId}");
@@ -665,9 +665,9 @@ public class InteractiveService : IInteractiveService
             await this.ExecuteCommandAsync(input.Trim());
         }
 
-        if (this._automationService.IsAttached)
+        if (this.automationService.IsAttached)
         {
-            await this._automationService.DetachAsync();
+            await this.automationService.DetachAsync();
         }
 
         Console.WriteLine("Interactive session ended.");
@@ -773,7 +773,7 @@ public class InteractiveService : IInteractiveService
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, $"Error executing interactive command: {command}");
+            this.logger.LogError(ex, $"Error executing interactive command: {command}");
             Console.WriteLine($"Error: {ex.Message}");
             return false;
         }
@@ -817,121 +817,121 @@ public class InteractiveService : IInteractiveService
 
     private async Task<bool> ExecuteClickAsync(string selector)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var element = await this._automationService.FindElementAsync(selector);
+        var element = await this.automationService.FindElementAsync(selector);
         if (element == null)
         {
             Console.WriteLine($"Element not found: {selector}");
             return false;
         }
 
-        var success = await this._automationService.ClickAsync(element);
+        var success = await this.automationService.ClickAsync(element);
         Console.WriteLine(success ? $"✓ Clicked: {selector}" : $"✗ Failed to click: {selector}");
         return success;
     }
 
     private async Task<bool> ExecuteTypeAsync(string selector, string text)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var element = await this._automationService.FindElementAsync(selector);
+        var element = await this.automationService.FindElementAsync(selector);
         if (element == null)
         {
             Console.WriteLine($"Element not found: {selector}");
             return false;
         }
 
-        var success = await this._automationService.TypeTextAsync(element, text);
+        var success = await this.automationService.TypeTextAsync(element, text);
         Console.WriteLine(success ? $"✓ Typed text into: {selector}" : $"✗ Failed to type into: {selector}");
         return success;
     }
 
     private async Task<bool> ExecuteGetTextAsync(string selector)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var element = await this._automationService.FindElementAsync(selector);
+        var element = await this.automationService.FindElementAsync(selector);
         if (element == null)
         {
             Console.WriteLine($"Element not found: {selector}");
             return false;
         }
 
-        var text = await this._automationService.GetTextAsync(element);
+        var text = await this.automationService.GetTextAsync(element);
         Console.WriteLine($"Text: {text ?? "(empty)"}");
         return true;
     }
 
     private async Task<bool> ExecuteGetValueAsync(string selector)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var element = await this._automationService.FindElementAsync(selector);
+        var element = await this.automationService.FindElementAsync(selector);
         if (element == null)
         {
             Console.WriteLine($"Element not found: {selector}");
             return false;
         }
 
-        var value = await this._automationService.GetValueAsync(element);
+        var value = await this.automationService.GetValueAsync(element);
         Console.WriteLine($"Value: {value ?? "(empty)"}");
         return true;
     }
 
     private async Task<bool> ExecuteTreeAsync(int depth)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var window = await this._automationService.GetMainWindowAsync();
+        var window = await this.automationService.GetMainWindowAsync();
         if (window == null)
         {
             Console.WriteLine("Could not get main window");
             return false;
         }
 
-        var tree = await this._elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: depth);
-        var output = await this._elementTreeService.PrintTreeAsync(tree);
+        var tree = await this.elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: depth);
+        var output = await this.elementTreeService.PrintTreeAsync(tree);
         Console.WriteLine(output);
         return true;
     }
 
     private async Task<bool> ExecuteSearchAsync(string criteria)
     {
-        if (!this._automationService.IsAttached)
+        if (!this.automationService.IsAttached)
         {
             Console.WriteLine("Not attached to any process. Use 'attach <process-id>' first.");
             return false;
         }
 
-        var window = await this._automationService.GetMainWindowAsync();
+        var window = await this.automationService.GetMainWindowAsync();
         if (window == null)
         {
             Console.WriteLine("Could not get main window");
             return false;
         }
 
-        var tree = await this._elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: 10);
+        var tree = await this.elementTreeService.BuildTreeAsync(window, includeChildren: true, maxDepth: 10);
 
         // Parse criteria (e.g., "name:Button" or "id:TestButton")
         var searchCriteria = new ElementSearchCriteria();
@@ -959,7 +959,7 @@ public class InteractiveService : IInteractiveService
             searchCriteria.Name = criteria;
         }
 
-        var results = await this._elementTreeService.SearchTreeAsync(tree, searchCriteria);
+        var results = await this.elementTreeService.SearchTreeAsync(tree, searchCriteria);
         Console.WriteLine($"Found {results.Count} element(s):");
         foreach (var result in results)
         {
@@ -972,19 +972,19 @@ public class InteractiveService : IInteractiveService
     private async Task<bool> ExecuteScreenshotAsync(string? filename)
     {
         filename ??= $"screenshot_{DateTime.Now:yyyyMMdd_HHmmss}.png";
-        await this._captureService.CaptureAfterInteractionAsync("SCREENSHOT", filename, success: true);
+        await this.captureService.CaptureAfterInteractionAsync("SCREENSHOT", filename, success: true);
         Console.WriteLine($"✓ Screenshot saved: {filename}");
         return true;
     }
 
     private async Task<bool> ExecuteAttachAsync(int processId)
     {
-        if (this._automationService.IsAttached)
+        if (this.automationService.IsAttached)
         {
-            await this._automationService.DetachAsync();
+            await this.automationService.DetachAsync();
         }
 
-        var success = await this._automationService.AttachToProcessAsync(processId);
+        var success = await this.automationService.AttachToProcessAsync(processId);
         if (success)
         {
             Console.WriteLine($"✓ Attached to process: {processId}");

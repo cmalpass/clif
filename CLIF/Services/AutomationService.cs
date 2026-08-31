@@ -20,11 +20,11 @@ namespace CLIF.Services;
 [SupportedOSPlatform("windows7.0")]
 public class AutomationService : IAutomationService, IDisposable
 {
-    private readonly ILogger<AutomationService> _logger;
-    private readonly ISessionCaptureService _captureService;
-    private UIA3Automation? _automation;
-    private FlaUI.Core.Application? _application;
-    private AutomationElement? _rootElement;
+    private readonly ILogger<AutomationService> logger;
+    private readonly ISessionCaptureService captureService;
+    private UIA3Automation? automation;
+    private FlaUI.Core.Application? application;
+    private AutomationElement? rootElement;
 
     /// <summary>Gets a value indicating whether a target process is attached.</summary>
     public bool IsAttached { get; private set; }
@@ -54,8 +54,8 @@ public class AutomationService : IAutomationService, IDisposable
     /// <param name="captureService">Service used to capture interaction evidence.</param>
     public AutomationService(ILogger<AutomationService> logger, ISessionCaptureService captureService)
     {
-        this._logger = logger;
-        this._captureService = captureService;
+        this.logger = logger;
+        this.captureService = captureService;
     }
 
     /// <summary>Attaches to a running Windows process.</summary>
@@ -72,27 +72,27 @@ public class AutomationService : IAutomationService, IDisposable
                     this.DetachAsync().Wait();
                 }
 
-                this._automation = new UIA3Automation();
-                this._application = FlaUI.Core.Application.Attach(processId);
-                this._rootElement = this._application.GetMainWindow(this._automation);
+                this.automation = new UIA3Automation();
+                this.application = FlaUI.Core.Application.Attach(processId);
+                this.rootElement = this.application.GetMainWindow(this.automation);
 
-                if (this._rootElement == null)
+                if (this.rootElement == null)
                 {
-                    this._logger.LogWarning($"Could not get main window for process {processId}");
+                    this.logger.LogWarning($"Could not get main window for process {processId}");
                     return false;
                 }
 
                 // Set the target window for focused screenshot capture
-                this._captureService.SetTargetWindow(this._rootElement);
+                this.captureService.SetTargetWindow(this.rootElement);
 
                 this.IsAttached = true;
                 this.AttachedProcessId = processId;
-                this._logger.LogInformation($"Successfully attached to process {processId}");
+                this.logger.LogInformation($"Successfully attached to process {processId}");
                 return true;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Failed to attach to process {processId}");
+                this.logger.LogError(ex, $"Failed to attach to process {processId}");
                 return false;
             }
         });
@@ -105,17 +105,17 @@ public class AutomationService : IAutomationService, IDisposable
         {
             try
             {
-                this._rootElement = null;
-                this._application?.Dispose();
-                this._automation?.Dispose();
+                this.rootElement = null;
+                this.application?.Dispose();
+                this.automation?.Dispose();
 
                 this.IsAttached = false;
                 this.AttachedProcessId = null;
-                this._logger.LogInformation("Successfully detached from process");
+                this.logger.LogInformation("Successfully detached from process");
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error during detach");
+                this.logger.LogError(ex, "Error during detach");
             }
         });
     }
@@ -129,17 +129,17 @@ public class AutomationService : IAutomationService, IDisposable
         {
             try
             {
-                if (!this.IsAttached || this._rootElement == null)
+                if (!this.IsAttached || this.rootElement == null)
                 {
-                    this._logger.LogWarning("Not attached to any process");
+                    this.logger.LogWarning("Not attached to any process");
                     return null;
                 }
 
-                return this.FindElementBySelector(this._rootElement, selector);
+                return this.FindElementBySelector(this.rootElement, selector);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error finding element with selector: {selector}");
+                this.logger.LogError(ex, $"Error finding element with selector: {selector}");
                 return null;
             }
         });
@@ -154,17 +154,17 @@ public class AutomationService : IAutomationService, IDisposable
         {
             try
             {
-                if (!this.IsAttached || this._rootElement == null)
+                if (!this.IsAttached || this.rootElement == null)
                 {
-                    this._logger.LogWarning("Not attached to any process");
+                    this.logger.LogWarning("Not attached to any process");
                     return Array.Empty<AutomationElement>();
                 }
 
-                return this.FindElementsBySelector(this._rootElement, selector);
+                return this.FindElementsBySelector(this.rootElement, selector);
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error finding elements with selector: {selector}");
+                this.logger.LogError(ex, $"Error finding elements with selector: {selector}");
                 return Array.Empty<AutomationElement>();
             }
         });
@@ -192,7 +192,7 @@ public class AutomationService : IAutomationService, IDisposable
                     element.Click();
                 }
 
-                this._logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
+                this.logger.LogInformation($"Clicked element: {element.Name ?? element.AutomationId}");
 
                 // Wait for potential state changes
                 await Task.Delay(300);
@@ -205,12 +205,12 @@ public class AutomationService : IAutomationService, IDisposable
                 if (stateChanged)
                 {
                     validationResult = "✅ Element state changed as expected";
-                    this._logger.LogInformation(validationResult);
+                    this.logger.LogInformation(validationResult);
                 }
                 else
                 {
                     validationResult = "ℹ️ No detectable state change (normal for buttons)";
-                    this._logger.LogInformation($"ℹ️ Click completed: {validationResult}");
+                    this.logger.LogInformation($"ℹ️ Click completed: {validationResult}");
                 }
 
                 // Check for and handle any modal dialogs that may have appeared
@@ -218,7 +218,7 @@ public class AutomationService : IAutomationService, IDisposable
                 await this.HandleModalDialogsAsync();
 
                 // Capture screenshot after interaction
-                await this._captureService.CaptureAfterInteractionAsync(
+                await this.captureService.CaptureAfterInteractionAsync(
                     "CLICK",
                     element.AutomationId ?? element.Name ?? "Unknown",
                     true,
@@ -229,7 +229,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error clicking element");
+                this.logger.LogError(ex, "Error clicking element");
                 return false;
             }
         });
@@ -249,7 +249,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error double-clicking element");
+                this.logger.LogError(ex, "Error double-clicking element");
                 return false;
             }
         });
@@ -269,7 +269,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error right-clicking element");
+                this.logger.LogError(ex, "Error right-clicking element");
                 return false;
             }
         });
@@ -289,14 +289,14 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     var currentValue = valuePattern.Value ?? string.Empty;
                     valuePattern.SetValue(currentValue + text);
-                    this._logger.LogInformation($"Typed text '{text}' using ValuePattern");
+                    this.logger.LogInformation($"Typed text '{text}' using ValuePattern");
                 }
                 else
                 {
                     element.Focus();
                     await Task.Delay(100); // Small delay to ensure focus
                     Keyboard.Type(text);
-                    this._logger.LogInformation($"Typed text '{text}' using keyboard input");
+                    this.logger.LogInformation($"Typed text '{text}' using keyboard input");
                 }
 
                 // Validate text was actually entered
@@ -309,17 +309,17 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     validationResult = $"✅ Text validated: Found '{text}' in element";
                     success = true;
-                    this._logger.LogInformation($"✅ Text input validated: Found '{text}' in element (current: '{actualText}')");
+                    this.logger.LogInformation($"✅ Text input validated: Found '{text}' in element (current: '{actualText}')");
                 }
                 else
                 {
                     validationResult = $"⚠️ Validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'";
                     success = false;
-                    this._logger.LogWarning($"⚠️ Text input validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'");
+                    this.logger.LogWarning($"⚠️ Text input validation inconclusive: Expected '{text}', found '{actualText ?? "null"}'");
                 }
 
                 // Capture screenshot after interaction
-                await this._captureService.CaptureAfterInteractionAsync(
+                await this.captureService.CaptureAfterInteractionAsync(
                     "TYPE",
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{text}'",
                     success,
@@ -330,7 +330,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error typing text");
+                this.logger.LogError(ex, "Error typing text");
                 return false;
             }
         });
@@ -351,7 +351,7 @@ public class AutomationService : IAutomationService, IDisposable
                 if (element.Patterns.Value.TryGetPattern(out var valuePattern))
                 {
                     valuePattern.SetValue(value);
-                    this._logger.LogInformation($"Set value '{value}' using ValuePattern");
+                    this.logger.LogInformation($"Set value '{value}' using ValuePattern");
                 }
                 else
                 {
@@ -375,7 +375,7 @@ public class AutomationService : IAutomationService, IDisposable
                         Keyboard.Type(value);
                     }
 
-                    this._logger.LogInformation($"Set value '{value}' using keyboard input");
+                    this.logger.LogInformation($"Set value '{value}' using keyboard input");
                 }
 
                 // Validate the value was set
@@ -388,17 +388,17 @@ public class AutomationService : IAutomationService, IDisposable
                 {
                     validationResult = $"✅ Value validated: '{beforeText}' → '{afterText}'";
                     success = true;
-                    this._logger.LogInformation($"✅ Value setting validated: '{beforeText}' → '{afterText}'");
+                    this.logger.LogInformation($"✅ Value setting validated: '{beforeText}' → '{afterText}'");
                 }
                 else
                 {
                     validationResult = $"⚠️ Validation failed: Expected '{value}', found '{afterText}'";
                     success = false;
-                    this._logger.LogWarning($"⚠️ Value setting validation failed: Expected '{value}', found '{afterText}'");
+                    this.logger.LogWarning($"⚠️ Value setting validation failed: Expected '{value}', found '{afterText}'");
                 }
 
                 // Capture screenshot after interaction
-                await this._captureService.CaptureAfterInteractionAsync(
+                await this.captureService.CaptureAfterInteractionAsync(
                     string.IsNullOrEmpty(value) ? "CLEAR" : "SET_VALUE",
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{value}'",
                     success,
@@ -409,7 +409,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error setting value");
+                this.logger.LogError(ex, "Error setting value");
                 return false;
             }
         });
@@ -428,7 +428,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting text");
+                this.logger.LogError(ex, "Error getting text");
                 return string.Empty;
             }
         });
@@ -452,7 +452,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting value");
+                this.logger.LogError(ex, "Error getting value");
                 return string.Empty;
             }
         });
@@ -486,7 +486,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting properties");
+                this.logger.LogError(ex, "Error getting properties");
             }
 
             return properties;
@@ -507,7 +507,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error focusing element");
+                this.logger.LogError(ex, "Error focusing element");
                 return false;
             }
         });
@@ -532,7 +532,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error scrolling to element");
+                this.logger.LogError(ex, "Error scrolling to element");
                 return false;
             }
         });
@@ -546,19 +546,19 @@ public class AutomationService : IAutomationService, IDisposable
         {
             try
             {
-                if (!this.IsAttached || this._rootElement == null)
+                if (!this.IsAttached || this.rootElement == null)
                 {
                     return Array.Empty<byte>();
                 }
 
-                var capture = this._rootElement.Capture();
+                var capture = this.rootElement.Capture();
                 using var stream = new MemoryStream();
                 capture.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
                 return stream.ToArray();
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error taking screenshot");
+                this.logger.LogError(ex, "Error taking screenshot");
                 return Array.Empty<byte>();
             }
         });
@@ -580,7 +580,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error taking element screenshot");
+                this.logger.LogError(ex, "Error taking element screenshot");
                 return Array.Empty<byte>();
             }
         });
@@ -590,7 +590,7 @@ public class AutomationService : IAutomationService, IDisposable
     /// <returns>The root element, or <see langword="null"/> when no application is attached.</returns>
     public async Task<AutomationElement?> GetRootElementAsync()
     {
-        return await Task.Run(() => this._rootElement);
+        return await Task.Run(() => this.rootElement);
     }
 
     /// <summary>Gets the main window of the attached application.</summary>
@@ -666,7 +666,7 @@ public class AutomationService : IAutomationService, IDisposable
                 if (comboBox != null)
                 {
                     comboBox.Select(itemText);
-                    this._logger.LogInformation($"Selected '{itemText}' from combo box");
+                    this.logger.LogInformation($"Selected '{itemText}' from combo box");
 
                     await Task.Delay(200); // Allow selection to register
 
@@ -679,17 +679,17 @@ public class AutomationService : IAutomationService, IDisposable
                     {
                         validationResult = $"✅ Selection validated: '{itemText}' is now selected";
                         success = true;
-                        this._logger.LogInformation($"✅ ComboBox selection validated: '{itemText}' is now selected");
+                        this.logger.LogInformation($"✅ ComboBox selection validated: '{itemText}' is now selected");
                     }
                     else
                     {
                         validationResult = $"⚠️ Validation failed: Expected '{itemText}', found '{afterSelection ?? "null"}'";
                         success = false;
-                        this._logger.LogWarning($"⚠️ ComboBox selection validation failed: Expected '{itemText}', found '{afterSelection ?? "null"}'");
+                        this.logger.LogWarning($"⚠️ ComboBox selection validation failed: Expected '{itemText}', found '{afterSelection ?? "null"}'");
                     }
 
                     // Capture screenshot after interaction
-                    await this._captureService.CaptureAfterInteractionAsync(
+                    await this.captureService.CaptureAfterInteractionAsync(
                         "SELECT",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{itemText}'",
                         success,
@@ -703,7 +703,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting ComboBox item: {itemText}");
+                this.logger.LogError(ex, $"Error selecting ComboBox item: {itemText}");
                 return false;
             }
         });
@@ -730,7 +730,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting ComboBox item by index: {index}");
+                this.logger.LogError(ex, $"Error selecting ComboBox item by index: {index}");
                 return false;
             }
         });
@@ -761,7 +761,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting ListBox item: {itemText}");
+                this.logger.LogError(ex, $"Error selecting ListBox item: {itemText}");
                 return false;
             }
         });
@@ -788,7 +788,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting ListBox item by index: {index}");
+                this.logger.LogError(ex, $"Error selecting ListBox item by index: {index}");
                 return false;
             }
         });
@@ -810,7 +810,7 @@ public class AutomationService : IAutomationService, IDisposable
                 if (checkBox != null)
                 {
                     checkBox.IsChecked = isChecked;
-                    this._logger.LogInformation($"Set CheckBox state to: {isChecked}");
+                    this.logger.LogInformation($"Set CheckBox state to: {isChecked}");
 
                     await Task.Delay(200); // Allow state change to register
 
@@ -823,17 +823,17 @@ public class AutomationService : IAutomationService, IDisposable
                     {
                         validationResult = $"✅ CheckBox state validated: {(isChecked ? "Checked" : "Unchecked")}";
                         success = true;
-                        this._logger.LogInformation($"✅ CheckBox state validated: {(isChecked ? "Checked" : "Unchecked")}");
+                        this.logger.LogInformation($"✅ CheckBox state validated: {(isChecked ? "Checked" : "Unchecked")}");
                     }
                     else
                     {
                         validationResult = $"⚠️ Validation failed: Expected {isChecked}, found {afterState}";
                         success = false;
-                        this._logger.LogWarning($"⚠️ CheckBox state validation failed: Expected {isChecked}, found {afterState}");
+                        this.logger.LogWarning($"⚠️ CheckBox state validation failed: Expected {isChecked}, found {afterState}");
                     }
 
                     // Capture screenshot after interaction
-                    await this._captureService.CaptureAfterInteractionAsync(
+                    await this.captureService.CaptureAfterInteractionAsync(
                         "SET_CHECKBOX",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isChecked ? "Checked" : "Unchecked")}",
                         success,
@@ -847,7 +847,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting CheckBox state: {isChecked}");
+                this.logger.LogError(ex, $"Error setting CheckBox state: {isChecked}");
                 return false;
             }
         });
@@ -871,7 +871,7 @@ public class AutomationService : IAutomationService, IDisposable
                     if (isSelected)
                     {
                         radioButton.Click();
-                        this._logger.LogInformation($"Clicked RadioButton to select");
+                        this.logger.LogInformation($"Clicked RadioButton to select");
                     }
 
                     await Task.Delay(200); // Allow state change to register
@@ -885,17 +885,17 @@ public class AutomationService : IAutomationService, IDisposable
                     {
                         validationResult = $"✅ RadioButton state validated: {(isSelected ? "Selected" : "Not Selected")}";
                         success = true;
-                        this._logger.LogInformation($"✅ RadioButton state validated: {(isSelected ? "Selected" : "Not Selected")}");
+                        this.logger.LogInformation($"✅ RadioButton state validated: {(isSelected ? "Selected" : "Not Selected")}");
                     }
                     else
                     {
                         validationResult = $"⚠️ Validation failed: Expected {isSelected}, found {afterState}";
                         success = false;
-                        this._logger.LogWarning($"⚠️ RadioButton state validation failed: Expected {isSelected}, found {afterState}");
+                        this.logger.LogWarning($"⚠️ RadioButton state validation failed: Expected {isSelected}, found {afterState}");
                     }
 
                     // Capture screenshot after interaction
-                    await this._captureService.CaptureAfterInteractionAsync(
+                    await this.captureService.CaptureAfterInteractionAsync(
                         "SET_RADIOBUTTON",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isSelected ? "Selected" : "Not Selected")}",
                         success,
@@ -909,7 +909,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting RadioButton state: {isSelected}");
+                this.logger.LogError(ex, $"Error setting RadioButton state: {isSelected}");
                 return false;
             }
         });
@@ -936,7 +936,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting Slider value: {value}");
+                this.logger.LogError(ex, $"Error setting Slider value: {value}");
                 return false;
             }
         });
@@ -967,7 +967,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting Tab: {tabName}");
+                this.logger.LogError(ex, $"Error selecting Tab: {tabName}");
                 return false;
             }
         });
@@ -994,7 +994,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting Tab by index: {tabIndex}");
+                this.logger.LogError(ex, $"Error selecting Tab by index: {tabIndex}");
                 return false;
             }
         });
@@ -1020,7 +1020,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error expanding TreeNode");
+                this.logger.LogError(ex, "Error expanding TreeNode");
                 return false;
             }
         });
@@ -1046,7 +1046,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error collapsing TreeNode");
+                this.logger.LogError(ex, "Error collapsing TreeNode");
                 return false;
             }
         });
@@ -1075,7 +1075,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting TreeNode: {nodePath}");
+                this.logger.LogError(ex, $"Error selecting TreeNode: {nodePath}");
                 return false;
             }
         });
@@ -1101,7 +1101,7 @@ public class AutomationService : IAutomationService, IDisposable
                     }
                     catch (Exception ex)
                     {
-                        this._logger.LogDebug(
+                        this.logger.LogDebug(
                             ex,
                             "Native DateTimePicker setter was rejected; trying standard Value-pattern fallbacks.");
                     }
@@ -1126,7 +1126,7 @@ public class AutomationService : IAutomationService, IDisposable
                     return true;
                 }
 
-                this._logger.LogWarning(
+                this.logger.LogWarning(
                     "Date picker does not expose a DateTimePicker or Value UI Automation pattern. Control type: {ControlType}; class: {ClassName}",
                     element.ControlType,
                     element.ClassName);
@@ -1134,7 +1134,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting DatePicker value: {date}");
+                this.logger.LogError(ex, $"Error setting DatePicker value: {date}");
                 return false;
             }
         });
@@ -1166,17 +1166,17 @@ public class AutomationService : IAutomationService, IDisposable
                     if (!string.IsNullOrEmpty(buttonName) && buttonName.Contains(date.ToString("MMMM d, yyyy")))
                     {
                         dayButton.AsButton()?.Invoke();
-                        this._logger.LogInformation($"Selected calendar date: {date:yyyy-MM-dd}");
+                        this.logger.LogInformation($"Selected calendar date: {date:yyyy-MM-dd}");
                         return true;
                     }
                 }
 
-                this._logger.LogWarning($"Calendar date not found: {date:yyyy-MM-dd}");
+                this.logger.LogWarning($"Calendar date not found: {date:yyyy-MM-dd}");
                 return false;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting Calendar date: {date}");
+                this.logger.LogError(ex, $"Error setting Calendar date: {date}");
                 return false;
             }
         });
@@ -1210,7 +1210,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error toggling Expander");
+                this.logger.LogError(ex, "Error toggling Expander");
                 return false;
             }
         });
@@ -1237,7 +1237,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
+                this.logger.LogError(ex, $"Error selecting DataGrid row: {rowIndex}");
                 return false;
             }
         });
@@ -1269,7 +1269,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
+                this.logger.LogError(ex, $"Error selecting DataGrid cell: {rowIndex}, {columnIndex}");
                 return false;
             }
         });
@@ -1295,7 +1295,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error invoking MenuItem");
+                this.logger.LogError(ex, "Error invoking MenuItem");
                 return false;
             }
         });
@@ -1322,7 +1322,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Error setting ToggleButton state: {isToggled}");
+                this.logger.LogError(ex, $"Error setting ToggleButton state: {isToggled}");
                 return false;
             }
         });
@@ -1349,7 +1349,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting ComboBox items");
+                this.logger.LogError(ex, "Error getting ComboBox items");
                 return Array.Empty<string>();
             }
         });
@@ -1374,7 +1374,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting ListBox items");
+                this.logger.LogError(ex, "Error getting ListBox items");
                 return Array.Empty<string>();
             }
         });
@@ -1394,7 +1394,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting CheckBox state");
+                this.logger.LogError(ex, "Error getting CheckBox state");
                 return false;
             }
         });
@@ -1414,7 +1414,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting RadioButton state");
+                this.logger.LogError(ex, "Error getting RadioButton state");
                 return false;
             }
         });
@@ -1434,7 +1434,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting Slider value");
+                this.logger.LogError(ex, "Error getting Slider value");
                 return 0.0;
             }
         });
@@ -1455,7 +1455,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting selected Tab");
+                this.logger.LogError(ex, "Error getting selected Tab");
                 return string.Empty;
             }
         });
@@ -1477,7 +1477,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting TreeNode path");
+                this.logger.LogError(ex, "Error getting TreeNode path");
                 return Array.Empty<string>();
             }
         });
@@ -1497,7 +1497,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting DatePicker value");
+                this.logger.LogError(ex, "Error getting DatePicker value");
                 return null;
             }
         });
@@ -1513,7 +1513,7 @@ public class AutomationService : IAutomationService, IDisposable
             try
             {
                 // For Calendar controls, find the status element to get selected date
-                var rootElement = this._automation?.GetDesktop();
+                var rootElement = this.automation?.GetDesktop();
                 if (rootElement != null)
                 {
                     var statusElement = rootElement.FindFirstDescendant(cf => cf.ByAutomationId("StatusTextBlock"));
@@ -1531,12 +1531,12 @@ public class AutomationService : IAutomationService, IDisposable
                     }
                 }
 
-                this._logger.LogWarning("Could not determine selected calendar date");
+                this.logger.LogWarning("Could not determine selected calendar date");
                 return (DateTime?)null;
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting Calendar date");
+                this.logger.LogError(ex, "Error getting Calendar date");
                 return (DateTime?)null;
             }
         });
@@ -1556,7 +1556,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting Expander state");
+                this.logger.LogError(ex, "Error getting Expander state");
                 return false;
             }
         });
@@ -1594,7 +1594,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting DataGrid data");
+                this.logger.LogError(ex, "Error getting DataGrid data");
                 return Array.Empty<Dictionary<string, object>>();
             }
         });
@@ -1614,7 +1614,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Error getting ToggleButton state");
+                this.logger.LogError(ex, "Error getting ToggleButton state");
                 return false;
             }
         });
@@ -1644,7 +1644,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogDebug($"Could not get text from element: {ex.Message}");
+                this.logger.LogDebug($"Could not get text from element: {ex.Message}");
                 return element.Name;
             }
         });
@@ -1691,7 +1691,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogDebug($"Could not capture all state for element: {ex.Message}");
+                this.logger.LogDebug($"Could not capture all state for element: {ex.Message}");
             }
 
             return state;
@@ -1710,7 +1710,7 @@ public class AutomationService : IAutomationService, IDisposable
                 bool changed = !Equals(beforeChecked, afterChecked);
                 if (changed)
                 {
-                    this._logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
+                    this.logger.LogInformation($"CheckBox state changed: {beforeChecked} → {afterChecked}");
                 }
 
                 return changed;
@@ -1722,7 +1722,7 @@ public class AutomationService : IAutomationService, IDisposable
                 bool changed = !Equals(beforeSelected, afterSelected);
                 if (changed)
                 {
-                    this._logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
+                    this.logger.LogInformation($"RadioButton state changed: {beforeSelected} → {afterSelected}");
                 }
 
                 return changed;
@@ -1739,7 +1739,7 @@ public class AutomationService : IAutomationService, IDisposable
                         bool changed = !Equals(beforeToggle, afterToggle);
                         if (changed)
                         {
-                            this._logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
+                            this.logger.LogInformation($"ToggleButton state changed: {beforeToggle} → {afterToggle}");
                         }
 
                         return changed;
@@ -1761,7 +1761,7 @@ public class AutomationService : IAutomationService, IDisposable
         }
         catch (Exception ex)
         {
-            this._logger.LogDebug($"Error validating state change: {ex.Message}");
+            this.logger.LogDebug($"Error validating state change: {ex.Message}");
         }
 
         return false; // Default to no change detected
@@ -1778,7 +1778,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogDebug($"Could not get ComboBox selection: {ex.Message}");
+                this.logger.LogDebug($"Could not get ComboBox selection: {ex.Message}");
                 return null;
             }
         });
@@ -1806,7 +1806,7 @@ public class AutomationService : IAutomationService, IDisposable
                     IntPtr dialogHandle = FindWindow(pattern.ClassName, pattern.Title);
                     if (dialogHandle != IntPtr.Zero)
                     {
-                        this._logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
+                        this.logger.LogInformation($"Found modal dialog: {pattern.ClassName ?? "Unknown"} - {pattern.Title ?? "Unknown title"}");
 
                         // Bring dialog to foreground
                         SetForegroundWindow(dialogHandle);
@@ -1817,13 +1817,13 @@ public class AutomationService : IAutomationService, IDisposable
                         if (okButton != IntPtr.Zero)
                         {
                             PostMessage(okButton, 0x00F5, IntPtr.Zero, IntPtr.Zero); // BM_CLICK
-                            this._logger.LogInformation("Clicked OK button on dialog");
+                            this.logger.LogInformation("Clicked OK button on dialog");
                         }
                         else
                         {
                             // Fallback: Send Enter key to dismiss dialog
                             PostMessage(dialogHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
-                            this._logger.LogInformation("Sent Enter key to dismiss dialog");
+                            this.logger.LogInformation("Sent Enter key to dismiss dialog");
                         }
 
                         Thread.Sleep(200); // Allow time for dialog to close
@@ -1832,9 +1832,9 @@ public class AutomationService : IAutomationService, IDisposable
                 }
 
                 // Also try FlaUI approach for more complex dialogs
-                if (this._automation != null)
+                if (this.automation != null)
                 {
-                    var desktop = this._automation.GetDesktop();
+                    var desktop = this.automation.GetDesktop();
                     var dialogs = desktop.FindAllChildren(cf => cf.ByControlType(ControlType.Window))
                         .Where(w => w.IsOffscreen == false)
                         .ToArray();
@@ -1847,7 +1847,7 @@ public class AutomationService : IAutomationService, IDisposable
                             if (dialog.Name.Contains("Information") || dialog.Name.Contains("Button Click") ||
                                 dialog.Name.Contains("Warning") || dialog.Name.Contains("Error"))
                             {
-                                this._logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
+                                this.logger.LogInformation($"Found FlaUI modal dialog: {dialog.Name}");
 
                                 // Look for OK, Yes, or Close buttons
                                 var buttons = dialog.FindAllChildren(cf => cf.ByControlType(ControlType.Button));
@@ -1859,7 +1859,7 @@ public class AutomationService : IAutomationService, IDisposable
                                 if (dismissButton != null)
                                 {
                                     dismissButton.Click();
-                                    this._logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
+                                    this.logger.LogInformation($"Clicked '{dismissButton.Name}' button to dismiss dialog");
                                     await Task.Delay(200);
                                     break;
                                 }
@@ -1867,7 +1867,7 @@ public class AutomationService : IAutomationService, IDisposable
                                 {
                                     // Send Escape to close dialog
                                     Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ESCAPE);
-                                    this._logger.LogInformation("Sent Escape key to dismiss dialog");
+                                    this.logger.LogInformation("Sent Escape key to dismiss dialog");
                                     await Task.Delay(200);
                                     break;
                                 }
@@ -1875,14 +1875,14 @@ public class AutomationService : IAutomationService, IDisposable
                         }
                         catch (Exception ex)
                         {
-                            this._logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
+                            this.logger.LogDebug($"Error handling FlaUI dialog: {ex.Message}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogDebug($"Error in dialog handling: {ex.Message}");
+                this.logger.LogDebug($"Error in dialog handling: {ex.Message}");
             }
         });
     }
@@ -1903,7 +1903,7 @@ public class AutomationService : IAutomationService, IDisposable
                 var dataGrid = this.FindElementAsync(dataGridSelector).Result;
                 if (dataGrid == null)
                 {
-                    this._logger.LogWarning($"DataGrid not found: {dataGridSelector}");
+                    this.logger.LogWarning($"DataGrid not found: {dataGridSelector}");
                     return false;
                 }
 
@@ -1914,7 +1914,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                 if (rowIndex >= dataRows.Length)
                 {
-                    this._logger.LogWarning($"Row index {rowIndex} out of range. Found {dataRows.Length} rows.");
+                    this.logger.LogWarning($"Row index {rowIndex} out of range. Found {dataRows.Length} rows.");
                     return false;
                 }
 
@@ -1936,7 +1936,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                 if (checkboxCell == null)
                 {
-                    this._logger.LogWarning($"Checkbox cell not found in row {rowIndex}");
+                    this.logger.LogWarning($"Checkbox cell not found in row {rowIndex}");
                     return false;
                 }
 
@@ -1947,35 +1947,35 @@ public class AutomationService : IAutomationService, IDisposable
                     var checkboxElement = checkbox.AsCheckBox();
                     var currentState = checkboxElement.IsChecked ?? false;
 
-                    this._logger.LogInformation($"Row {rowIndex} checkbox current state: {currentState}, target state: {isChecked}");
+                    this.logger.LogInformation($"Row {rowIndex} checkbox current state: {currentState}, target state: {isChecked}");
 
                     if (currentState != isChecked)
                     {
                         checkboxElement.Toggle();
-                        this._logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {isChecked}");
+                        this.logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {isChecked}");
 
                         // Verify the change - remove await from lambda
                         Task.Delay(100).Wait();
                         var newState = checkboxElement.IsChecked ?? false;
-                        this._logger.LogInformation($"Verified checkbox state in row {rowIndex}: {newState}");
+                        this.logger.LogInformation($"Verified checkbox state in row {rowIndex}: {newState}");
 
                         return newState == isChecked;
                     }
                     else
                     {
-                        this._logger.LogInformation($"Checkbox in row {rowIndex} already in desired state: {isChecked}");
+                        this.logger.LogInformation($"Checkbox in row {rowIndex} already in desired state: {isChecked}");
                         return true;
                     }
                 }
                 else
                 {
-                    this._logger.LogWarning($"Checkbox not found in row {rowIndex} cell");
+                    this.logger.LogWarning($"Checkbox not found in row {rowIndex} cell");
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Failed to set DataGrid checkbox at row {rowIndex}");
+                this.logger.LogError(ex, $"Failed to set DataGrid checkbox at row {rowIndex}");
                 return false;
             }
         });
@@ -2005,7 +2005,7 @@ public class AutomationService : IAutomationService, IDisposable
 
                 if (nameCell == null)
                 {
-                    this._logger.LogWarning($"Row with name '{rowName}' not found");
+                    this.logger.LogWarning($"Row with name '{rowName}' not found");
                     return false;
                 }
 
@@ -2044,7 +2044,7 @@ public class AutomationService : IAutomationService, IDisposable
                     if (currentState != isChecked)
                     {
                         checkboxElement.Toggle();
-                        this._logger.LogInformation($"Toggled checkbox for row '{rowName}' to {isChecked}");
+                        this.logger.LogInformation($"Toggled checkbox for row '{rowName}' to {isChecked}");
                     }
 
                     return true;
@@ -2054,7 +2054,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Failed to set DataGrid checkbox for row '{rowName}'");
+                this.logger.LogError(ex, $"Failed to set DataGrid checkbox for row '{rowName}'");
                 return false;
             }
         });
@@ -2113,7 +2113,7 @@ public class AutomationService : IAutomationService, IDisposable
                     var checkboxElement = checkbox.AsCheckBox();
                     var currentState = checkboxElement.IsChecked ?? false;
                     checkboxElement.Toggle();
-                    this._logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {!currentState}");
+                    this.logger.LogInformation($"Toggled checkbox in row {rowIndex} from {currentState} to {!currentState}");
                     return true;
                 }
 
@@ -2121,7 +2121,7 @@ public class AutomationService : IAutomationService, IDisposable
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, $"Failed to toggle DataGrid checkbox at row {rowIndex}");
+                this.logger.LogError(ex, $"Failed to toggle DataGrid checkbox at row {rowIndex}");
                 return false;
             }
         });
@@ -2139,20 +2139,20 @@ public class AutomationService : IAutomationService, IDisposable
                 var dataGrid = this.FindElementAsync(dataGridSelector).Result;
                 if (dataGrid == null)
                 {
-                    this._logger.LogWarning($"DataGrid not found with selector: {dataGridSelector}");
+                    this.logger.LogWarning($"DataGrid not found with selector: {dataGridSelector}");
                     return new bool[0];
                 }
 
-                this._logger.LogInformation($"DataGrid found: {dataGrid.Name}, ControlType: {dataGrid.ControlType}");
+                this.logger.LogInformation($"DataGrid found: {dataGrid.Name}, ControlType: {dataGrid.ControlType}");
 
                 // Try to find all DataItem descendants without the name filter first
                 var allDataItems = dataGrid.FindAllDescendants(cf => cf.ByControlType(ControlType.DataItem));
-                this._logger.LogInformation($"Found {allDataItems.Length} DataItem descendants");
+                this.logger.LogInformation($"Found {allDataItems.Length} DataItem descendants");
 
                 // Log the names of all DataItems
                 for (int i = 0; i < allDataItems.Length; i++)
                 {
-                    this._logger.LogInformation($"DataItem {i}: Name='{allDataItems[i].Name}', ClassName='{allDataItems[i].ClassName}'");
+                    this.logger.LogInformation($"DataItem {i}: Name='{allDataItems[i].Name}', ClassName='{allDataItems[i].ClassName}'");
                 }
 
                 // Now try the original filter
@@ -2160,33 +2160,33 @@ public class AutomationService : IAutomationService, IDisposable
                     cf.ByControlType(ControlType.DataItem)
                     .And(cf.ByName("TestWpfApp.SampleData")));
 
-                this._logger.LogInformation($"Found {dataRows.Length} filtered DataRows with name 'TestWpfApp.SampleData'");
+                this.logger.LogInformation($"Found {dataRows.Length} filtered DataRows with name 'TestWpfApp.SampleData'");
 
                 // If the filtered search didn't work, try excluding the NewItemPlaceholder
                 if (dataRows.Length == 0 && allDataItems.Length > 0)
                 {
                     dataRows = allDataItems.Where(item => !item.Name.Contains("NewItemPlaceholder")).ToArray();
-                    this._logger.LogInformation($"Using fallback: Found {dataRows.Length} DataRows excluding NewItemPlaceholder");
+                    this.logger.LogInformation($"Using fallback: Found {dataRows.Length} DataRows excluding NewItemPlaceholder");
                 }
 
                 var states = new List<bool>();
 
                 foreach (var row in dataRows)
                 {
-                    this._logger.LogInformation($"Processing row: {row.Name}");
+                    this.logger.LogInformation($"Processing row: {row.Name}");
 
                     // Find the checkbox cell by looking for cells that contain checkboxes
                     AutomationElement? checkboxCell = null;
                     var cells = row.FindAllDescendants(cf => cf.ByControlType(ControlType.Custom));
-                    this._logger.LogInformation($"Found {cells.Length} custom cells in row: {row.Name}");
+                    this.logger.LogInformation($"Found {cells.Length} custom cells in row: {row.Name}");
 
                     foreach (var cell in cells)
                     {
-                        this._logger.LogInformation($"Checking cell: '{cell.Name}' for checkbox");
+                        this.logger.LogInformation($"Checking cell: '{cell.Name}' for checkbox");
                         var checkbox = cell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
                         if (checkbox != null)
                         {
-                            this._logger.LogInformation($"Found checkbox in cell: '{cell.Name}'");
+                            this.logger.LogInformation($"Found checkbox in cell: '{cell.Name}'");
                             checkboxCell = cell;
                             break;
                         }
@@ -2194,34 +2194,34 @@ public class AutomationService : IAutomationService, IDisposable
 
                     if (checkboxCell != null)
                     {
-                        this._logger.LogInformation($"Found checkbox cell in row: {row.Name}");
+                        this.logger.LogInformation($"Found checkbox cell in row: {row.Name}");
 
                         var checkbox = checkboxCell.FindFirstDescendant(cf => cf.ByControlType(ControlType.CheckBox));
                         if (checkbox != null)
                         {
                             var isChecked = checkbox.AsCheckBox().IsChecked ?? false;
-                            this._logger.LogInformation($"Checkbox in row '{row.Name}' is {isChecked}");
+                            this.logger.LogInformation($"Checkbox in row '{row.Name}' is {isChecked}");
                             states.Add(isChecked);
                         }
                         else
                         {
-                            this._logger.LogWarning($"Checkbox not found in cell for row: {row.Name}");
+                            this.logger.LogWarning($"Checkbox not found in cell for row: {row.Name}");
                             states.Add(false);
                         }
                     }
                     else
                     {
-                        this._logger.LogWarning($"Checkbox cell not found for row: {row.Name}");
+                        this.logger.LogWarning($"Checkbox cell not found for row: {row.Name}");
                         states.Add(false);
                     }
                 }
 
-                this._logger.LogInformation($"Returning {states.Count} checkbox states");
+                this.logger.LogInformation($"Returning {states.Count} checkbox states");
                 return states.ToArray();
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Failed to get DataGrid checkbox states");
+                this.logger.LogError(ex, "Failed to get DataGrid checkbox states");
                 return new bool[0];
             }
         });

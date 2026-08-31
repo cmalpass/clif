@@ -10,13 +10,13 @@ namespace CLIF.Services;
 [SupportedOSPlatform("windows7.0")]
 public class ProcessService : IProcessService
 {
-    private readonly ILogger<ProcessService> _logger;
+    private readonly ILogger<ProcessService> logger;
 
     /// <summary>Initializes a new instance of the <see cref="ProcessService"/> class.</summary>
     /// <param name="logger">Logger used to record process discovery failures.</param>
     public ProcessService(ILogger<ProcessService> logger)
     {
-        this._logger = logger;
+        this.logger = logger;
     }
 
     /// <summary>Gets the currently running processes that appear to host WPF windows.</summary>
@@ -56,13 +56,13 @@ public class ProcessService : IProcessService
                     }
                     catch (Exception ex)
                     {
-                        this._logger.LogWarning($"Failed to process {process.ProcessName}: {ex.Message}");
+                        this.logger.LogWarning($"Failed to process {process.ProcessName}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Failed to get WPF processes");
+                this.logger.LogError(ex, "Failed to get WPF processes");
             }
 
             return wpfProcesses.OrderBy(p => p.Name).ToList();
@@ -122,7 +122,7 @@ public class ProcessService : IProcessService
             }
             catch (Exception ex)
             {
-                this._logger.LogWarning($"Process {processId} not found: {ex.Message}");
+                this.logger.LogWarning($"Process {processId} not found: {ex.Message}");
                 return null;
             }
         });
