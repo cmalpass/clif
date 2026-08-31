@@ -214,8 +214,7 @@ public class AutomationService : IAutomationService, IDisposable
                     "CLICK",
                     element.AutomationId ?? element.Name ?? "Unknown",
                     true,
-                    validationResult
-                );
+                    validationResult);
 
                 return true;
             }
@@ -315,8 +314,7 @@ public class AutomationService : IAutomationService, IDisposable
                     "TYPE",
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{text}'",
                     success,
-                    validationResult
-                );
+                    validationResult);
 
                 return success;
             }
@@ -394,8 +392,7 @@ public class AutomationService : IAutomationService, IDisposable
                     string.IsNullOrEmpty(value) ? "CLEAR" : "SET_VALUE",
                     $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{value}'",
                     success,
-                    validationResult
-                );
+                    validationResult);
 
                 return success;
             }
@@ -639,8 +636,7 @@ public class AutomationService : IAutomationService, IDisposable
                         "SELECT",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = '{itemText}'",
                         success,
-                        validationResult
-                    );
+                        validationResult);
 
                     return success;
                 }
@@ -783,8 +779,7 @@ public class AutomationService : IAutomationService, IDisposable
                         "SET_CHECKBOX",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isChecked ? "Checked" : "Unchecked")}",
                         success,
-                        validationResult
-                    );
+                        validationResult);
 
                     return success;
                 }
@@ -845,8 +840,7 @@ public class AutomationService : IAutomationService, IDisposable
                         "SET_RADIOBUTTON",
                         $"{element.AutomationId ?? element.Name ?? "Unknown"} = {(isSelected ? "Selected" : "Not Selected")}",
                         success,
-                        validationResult
-                    );
+                        validationResult);
 
                     return success;
                 }
