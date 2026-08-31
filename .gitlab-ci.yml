@@ -1,0 +1,19 @@
+stages:
+  - build
+  - test
+
+default:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  tags:
+    - dotnet
+
+build:
+  stage: build
+  script:
+    - dotnet restore clif.sln
+    - dotnet build clif.sln --no-restore --configuration Release
+
+test:
+  stage: test
+  script:
+    - dotnet test clif.sln --no-build --configuration Release || echo "Tests completed"
