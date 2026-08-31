@@ -17,7 +17,7 @@ public class ElementTreeService : IElementTreeService
     /// <param name="logger">Logger used to record UI Automation traversal failures.</param>
     public ElementTreeService(ILogger<ElementTreeService> logger)
     {
-        _logger = logger;
+        this._logger = logger;
     }
 
     /// <summary>Builds an element tree rooted at the specified automation element.</summary>
@@ -31,11 +31,11 @@ public class ElementTreeService : IElementTreeService
         {
             try
             {
-                return BuildTreeNode(rootElement, 0, maxDepth, includeChildren);
+                return this.BuildTreeNode(rootElement, 0, maxDepth, includeChildren);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error building element tree");
+                this._logger.LogError(ex, "Error building element tree");
                 return new ElementTreeNode();
             }
         });
@@ -51,7 +51,7 @@ public class ElementTreeService : IElementTreeService
         {
             options ??= new TreePrintOptions();
             var sb = new StringBuilder();
-            PrintTreeNode(root, sb, "", true, options, 0);
+            this.PrintTreeNode(root, sb, "", true, options, 0);
             return sb.ToString();
         });
     }
@@ -65,7 +65,7 @@ public class ElementTreeService : IElementTreeService
         return await Task.Run(() =>
         {
             var results = new List<ElementTreeNode>();
-            SearchTreeNode(root, criteria, results);
+            this.SearchTreeNode(root, criteria, results);
             return results;
         });
     }
@@ -78,7 +78,7 @@ public class ElementTreeService : IElementTreeService
     {
         return await Task.Run(() =>
         {
-            return FindElementInTreeNode(root, selector);
+            return this.FindElementInTreeNode(root, selector);
         });
     }
 
@@ -97,7 +97,7 @@ public class ElementTreeService : IElementTreeService
             IsVisible = !element.IsOffscreen,
             BoundingRectangle = element.BoundingRectangle.ToString(),
             ProcessId = element.Properties.ProcessId.ValueOrDefault,
-            Selector = GenerateSelector(element)
+            Selector = this.GenerateSelector(element)
         };
 
         // Get value if available
@@ -120,18 +120,18 @@ public class ElementTreeService : IElementTreeService
                 {
                     try
                     {
-                        var childNode = BuildTreeNode(child, currentDepth + 1, maxDepth, includeChildren);
+                        var childNode = this.BuildTreeNode(child, currentDepth + 1, maxDepth, includeChildren);
                         node.Children.Add(childNode);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning($"Error processing child element: {ex.Message}");
+                        this._logger.LogWarning($"Error processing child element: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error getting children for element: {ex.Message}");
+                this._logger.LogWarning($"Error getting children for element: {ex.Message}");
             }
         }
 
@@ -186,20 +186,20 @@ public class ElementTreeService : IElementTreeService
         for (int i = 0; i < node.Children.Count; i++)
         {
             var isLastChild = i == node.Children.Count - 1;
-            PrintTreeNode(node.Children[i], sb, childPrefix, isLastChild, options, currentDepth + 1);
+            this.PrintTreeNode(node.Children[i], sb, childPrefix, isLastChild, options, currentDepth + 1);
         }
     }
 
     private void SearchTreeNode(ElementTreeNode node, ElementSearchCriteria criteria, List<ElementTreeNode> results)
     {
-        if (MatchesCriteria(node, criteria))
+        if (this.MatchesCriteria(node, criteria))
         {
             results.Add(node);
         }
 
         foreach (var child in node.Children)
         {
-            SearchTreeNode(child, criteria, results);
+            this.SearchTreeNode(child, criteria, results);
         }
     }
 
@@ -212,7 +212,7 @@ public class ElementTreeService : IElementTreeService
 
         foreach (var child in node.Children)
         {
-            var result = FindElementInTreeNode(child, selector);
+            var result = this.FindElementInTreeNode(child, selector);
             if (result != null) return result;
         }
 
