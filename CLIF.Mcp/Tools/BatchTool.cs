@@ -18,18 +18,26 @@ public class BatchTool : ToolBase
     private readonly WindowSessionManager _sessionManager;
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the batch tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public BatchTool(WindowSessionManager sessionManager, ElementRegistry elementRegistry)
     {
         _sessionManager = sessionManager;
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_batch";
 
+    /// <inheritdoc />
     public override string Description =>
         "Execute multiple actions in a single call. Much faster than individual calls. " +
         "Supports click, type, fill, wait, and snapshot actions. Returns results for each action.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -93,6 +101,7 @@ public class BatchTool : ToolBase
         required = new[] { "actions" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         if (arguments == null || !arguments.Value.TryGetProperty("actions", out var actionsElement))

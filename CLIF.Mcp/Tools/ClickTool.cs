@@ -13,17 +13,24 @@ public class ClickTool : ToolBase
 {
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the click tool.
+    /// </summary>
+    /// <param name="elementRegistry">Registry used to resolve element references.</param>
     public ClickTool(ElementRegistry elementRegistry)
     {
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_click";
 
+    /// <inheritdoc />
     public override string Description =>
         "Click an element by its ref (from clif_snapshot). Prefers Invoke pattern for reliability, " +
         "falls back to mouse click if needed. Supports right-click, middle-click, and double-click.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -49,6 +56,7 @@ public class ClickTool : ToolBase
         required = new[] { "ref" },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var refId = GetStringArgument(arguments, "ref");

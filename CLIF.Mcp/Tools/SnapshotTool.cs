@@ -15,19 +15,27 @@ public class SnapshotTool : ToolBase
     private readonly WindowSessionManager _sessionManager;
     private readonly ElementRegistry _elementRegistry;
 
+    /// <summary>
+    /// Initializes the snapshot tool.
+    /// </summary>
+    /// <param name="sessionManager">Manager used to resolve target windows.</param>
+    /// <param name="elementRegistry">Registry used to register snapshot elements.</param>
     public SnapshotTool(WindowSessionManager sessionManager, ElementRegistry elementRegistry)
     {
         _sessionManager = sessionManager;
         _elementRegistry = elementRegistry;
     }
 
+    /// <inheritdoc />
     public override string Name => "clif_snapshot";
 
+    /// <inheritdoc />
     public override string Description =>
         "Get an accessibility snapshot of a window's UI tree with semantic element references. " +
         "Returns a structured tree showing roles, names, refs, and states. " +
         "Use the returned refs with other tools to interact with elements.";
 
+    /// <inheritdoc />
     public override object InputSchema => new
     {
         type = "object",
@@ -41,6 +49,7 @@ public class SnapshotTool : ToolBase
         },
     };
 
+    /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
     {
         var handle = GetStringArgument(arguments, "handle");
