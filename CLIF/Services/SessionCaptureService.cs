@@ -21,11 +21,11 @@ public class SessionCaptureService : ISessionCaptureService
     private const int SwRestore = 9;
 
     private readonly ILogger<SessionCaptureService> logger;
+    private readonly object lockObject = new();
     private string? currentSessionId;
     private string? currentSessionPath;
     private string? logFilePath;
     private int captureCounter = 0;
-    private readonly object lockObject = new();
     private AutomationElement? targetWindow;
 
     /// <summary>
