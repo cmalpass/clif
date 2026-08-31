@@ -32,7 +32,10 @@ public class ScriptCommand : Command
         this.AddArgument(scriptFileArgument);
         this.AddOption(processIdOption);
 
-        this.SetHandler(async (string scriptFile, int? processId) =>
+        this.SetHandler(
+            async (
+                string scriptFile,
+                int? processId) =>
         {
             try
             {

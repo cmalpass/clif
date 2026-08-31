@@ -23,7 +23,10 @@ public class ListProcessesCommand : Command
         this.Add(detailedOption);
         this.Add(formatOption);
 
-        this.SetHandler(async (bool detailed, string format) =>
+        this.SetHandler(
+            async (
+                bool detailed,
+                string format) =>
         {
             var processService = serviceProvider.GetRequiredService<IProcessService>();
 
