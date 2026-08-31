@@ -52,7 +52,7 @@ public interface IInteractiveService
     /// <returns>The prompt text.</returns>
     Task<string> GetPromptAsync();
 
-    /// <summary>Gets whether an interactive session is active.</summary>
+    /// <summary>Gets a value indicating whether gets whether an interactive session is active.</summary>
     bool IsSessionActive { get; }
 }
 
@@ -71,7 +71,7 @@ public class Script
     /// <summary>Gets or sets the process targeting settings.</summary>
     public ScriptTarget Target { get; set; } = new();
 
-    /// <summary>Maps the legacy targetProcess field to the current target.processName field when reading scripts.</summary>
+    /// <summary>Sets maps the legacy targetProcess field to the current target.processName field when reading scripts.</summary>
     [JsonPropertyName("targetProcess")]
     public string? LegacyTargetProcess
     {
@@ -113,7 +113,7 @@ public class ScriptStep
     /// <summary>Gets or sets the target element selector.</summary>
     public string Element { get; set; } = string.Empty;
 
-    /// <summary>Maps the legacy selector field to an automation-id selector when reading scripts.</summary>
+    /// <summary>Sets maps the legacy selector field to an automation-id selector when reading scripts.</summary>
     [JsonPropertyName("selector")]
     public string? LegacySelector
     {
@@ -123,14 +123,14 @@ public class ScriptStep
     /// <summary>Gets or sets the primary action value.</summary>
     public string Value { get; set; } = string.Empty;
 
-    /// <summary>Maps the legacy text field to the primary action value when reading scripts.</summary>
+    /// <summary>Sets maps the legacy text field to the primary action value when reading scripts.</summary>
     [JsonPropertyName("text")]
     public string? LegacyText
     {
         set => this.Value = value ?? string.Empty;
     }
 
-    /// <summary>Maps the legacy expectedValue field to the primary action value when reading scripts.</summary>
+    /// <summary>Sets maps the legacy expectedValue field to the primary action value when reading scripts.</summary>
     [JsonPropertyName("expectedValue")]
     public string? LegacyExpectedValue
     {
@@ -140,20 +140,20 @@ public class ScriptStep
     /// <summary>Gets or sets action-specific parameters.</summary>
     public Dictionary<string, object> Parameters { get; set; } = new();
 
-    /// <summary>Gets or sets whether errors for this step are ignored.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether errors for this step are ignored.</summary>
     public bool IgnoreErrors { get; set; } = false;
 
     /// <summary>Gets or sets the delay after the step, in milliseconds.</summary>
     public int DelayMs { get; set; } = 0;
 
-    /// <summary>Maps the legacy duration field to the step delay when reading scripts.</summary>
+    /// <summary>Sets maps the legacy duration field to the step delay when reading scripts.</summary>
     [JsonPropertyName("duration")]
     public int LegacyDuration
     {
         set => this.DelayMs = value;
     }
 
-    /// <summary>Maps the legacy waitAfter field to the step delay when reading scripts.</summary>
+    /// <summary>Sets maps the legacy waitAfter field to the step delay when reading scripts.</summary>
     [JsonPropertyName("waitAfter")]
     public int LegacyWaitAfter
     {
@@ -163,7 +163,7 @@ public class ScriptStep
     /// <summary>Gets or sets a human-readable step description.</summary>
     public string Description { get; set; } = string.Empty;
 
-    /// <summary>Maps the legacy message field to the step description when reading scripts.</summary>
+    /// <summary>Sets maps the legacy message field to the step description when reading scripts.</summary>
     [JsonPropertyName("message")]
     public string? LegacyMessage
     {
@@ -180,26 +180,26 @@ public class ScriptStep
 /// <summary>Controls script execution behavior.</summary>
 public class ScriptOptions
 {
-    /// <summary>Gets or sets whether execution stops after an error.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether execution stops after an error.</summary>
     public bool StopOnError { get; set; } = true;
 
-    /// <summary>Maps the legacy continueOnError option to stopOnError when reading scripts.</summary>
+    /// <summary>Sets a value indicating whether maps the legacy continueOnError option to stopOnError when reading scripts.</summary>
     [JsonPropertyName("continueOnError")]
     public bool LegacyContinueOnError
     {
         set => this.StopOnError = !value;
     }
 
-    /// <summary>Gets or sets whether individual steps are logged.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether individual steps are logged.</summary>
     public bool LogSteps { get; set; } = true;
 
-    /// <summary>Gets or sets whether screenshots are captured during execution.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether screenshots are captured during execution.</summary>
     public bool TakeScreenshots { get; set; } = false;
 
     /// <summary>Gets or sets the default step timeout in milliseconds.</summary>
     public int DefaultTimeoutMs { get; set; } = 5000;
 
-    /// <summary>Maps the legacy timeout option to defaultTimeoutMs when reading scripts.</summary>
+    /// <summary>Sets maps the legacy timeout option to defaultTimeoutMs when reading scripts.</summary>
     [JsonPropertyName("timeout")]
     public int LegacyTimeout
     {
@@ -209,7 +209,7 @@ public class ScriptOptions
     /// <summary>Gets or sets the delay used between steps when one is not specified on the step.</summary>
     public int DelayBetweenActionsMs { get; set; }
 
-    /// <summary>Maps the legacy delayBetweenActions option to the current delay property when reading scripts.</summary>
+    /// <summary>Sets maps the legacy delayBetweenActions option to the current delay property when reading scripts.</summary>
     [JsonPropertyName("delayBetweenActions")]
     public int LegacyDelayBetweenActions
     {
@@ -223,7 +223,7 @@ public class ScriptOptions
 /// <summary>Reports the outcome of script execution.</summary>
 public class ScriptExecutionResult
 {
-    /// <summary>Gets or sets whether the script completed successfully.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether the script completed successfully.</summary>
     public bool Success { get; set; }
 
     /// <summary>Gets or sets the result message.</summary>
