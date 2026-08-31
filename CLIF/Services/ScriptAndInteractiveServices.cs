@@ -251,6 +251,7 @@ public class ScriptService : IScriptService
                         await this._captureService.LogInteractionAsync($"Waiting {step.DelayMs}ms");
                         await Task.Delay(step.DelayMs);
                     }
+
                     return true;
 
                 case "screenshot":
@@ -266,6 +267,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"🧹 Clearing element: {step.Element}");
                         return await this._automationService.SetValueAsync(clearElement, "");
                     }
+
                     return false;
 
                 case "type":
@@ -276,6 +278,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"⌨️  Typing '{step.Value}' into: {step.Element}");
                         return await this._automationService.TypeTextAsync(typeElement, step.Value);
                     }
+
                     return false;
 
                 case "click":
@@ -286,6 +289,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"🖱️  Clicking: {step.Element}");
                         return await this._automationService.ClickAsync(clickElement);
                     }
+
                     return false;
 
                 case "focus":
@@ -301,6 +305,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"📋 Selecting '{step.Value}' in: {step.Element}");
                         return await this._automationService.SelectComboBoxItemAsync(selectElement, step.Value);
                     }
+
                     return false;
 
                 case "setvalue":
@@ -319,6 +324,7 @@ public class ScriptService : IScriptService
                             return await this._automationService.SetValueAsync(valueElement, step.Value);
                         }
                     }
+
                     return false;
 
                 case "selecttab":
@@ -329,6 +335,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"📑 Switching to tab '{step.Value}' in: {step.Element}");
                         return await this._automationService.SelectTabAsync(tabElement, step.Value);
                     }
+
                     return false;
 
                 case "selectrow":
@@ -340,6 +347,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"📊 Selecting row {index} in: {step.Element}");
                         return await this._automationService.SelectDataGridRowAsync(gridElement, index);
                     }
+
                     return false;
 
                 case "selectcell":
@@ -352,6 +360,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"📊 Selecting cell ({row}, {column}) in: {step.Element}");
                         return await this._automationService.SelectDataGridCellAsync(cellGridElement, row, column);
                     }
+
                     return false;
 
                 case "expand":
@@ -362,6 +371,7 @@ public class ScriptService : IScriptService
                         Console.WriteLine($"📂 Expanding: {step.Element}");
                         return await this._automationService.ToggleExpanderAsync(expandElement);
                     }
+
                     return false;
 
                 case "collapse":
@@ -372,6 +382,7 @@ public class ScriptService : IScriptService
                         return !await this._automationService.GetExpanderStateAsync(collapseElement)
                             || await this._automationService.ToggleExpanderAsync(collapseElement);
                     }
+
                     return false;
 
                 case "getvalue":
@@ -385,6 +396,7 @@ public class ScriptService : IScriptService
                         await this._captureService.LogInteractionAsync($"Current value for {step.Element}: {currentValue}");
                         return true;
                     }
+
                     return false;
 
                 case "getstate":
@@ -397,6 +409,7 @@ public class ScriptService : IScriptService
                         await this._captureService.LogInteractionAsync($"Current state for {step.Element}: {currentState}");
                         return true;
                     }
+
                     return false;
 
                 case "validate":
@@ -427,6 +440,7 @@ public class ScriptService : IScriptService
                         await this._captureService.LogInteractionAsync($"Validation {(isValid ? "PASSED" : "FAILED")}: Expected '{expectedValue}', got '{actualValue}'");
                         return isValid;
                     }
+
                     return false;
 
                 default:
@@ -590,6 +604,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: click <selector>");
                         return false;
                     }
+
                     return await this.ExecuteClickAsync(parts[1]);
 
                 case "type":
@@ -598,6 +613,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: type <selector> <text>");
                         return false;
                     }
+
                     var text = string.Join(" ", parts.Skip(2));
                     return await this.ExecuteTypeAsync(parts[1], text);
 
@@ -607,6 +623,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: get-text <selector>");
                         return false;
                     }
+
                     return await this.ExecuteGetTextAsync(parts[1]);
 
                 case "get-value":
@@ -615,6 +632,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: get-value <selector>");
                         return false;
                     }
+
                     return await this.ExecuteGetValueAsync(parts[1]);
 
                 case "tree":
@@ -629,6 +647,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: search <criteria>");
                         return false;
                     }
+
                     return await this.ExecuteSearchAsync(parts[1]);
 
                 case "screenshot":
@@ -641,6 +660,7 @@ public class InteractiveService : IInteractiveService
                         Console.WriteLine("Usage: attach <process-id>");
                         return false;
                     }
+
                     if (int.TryParse(parts[1], out var pid))
                         return await this.ExecuteAttachAsync(pid);
                     Console.WriteLine("Invalid process ID");
@@ -843,6 +863,7 @@ public class InteractiveService : IInteractiveService
         {
             Console.WriteLine($"  - {result.Name} ({result.ControlType}) [{result.Selector}]");
         }
+
         return true;
     }
 
@@ -870,6 +891,7 @@ public class InteractiveService : IInteractiveService
         {
             Console.WriteLine($"✗ Failed to attach to process: {processId}");
         }
+
         return success;
     }
 
