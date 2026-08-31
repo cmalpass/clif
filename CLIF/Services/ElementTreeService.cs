@@ -51,7 +51,7 @@ public class ElementTreeService : IElementTreeService
         {
             options ??= new TreePrintOptions();
             var sb = new StringBuilder();
-            this.PrintTreeNode(root, sb, "", true, options, 0);
+            this.PrintTreeNode(root, sb, string.Empty, true, options, 0);
             return sb.ToString();
         });
     }

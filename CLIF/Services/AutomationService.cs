@@ -1522,7 +1522,7 @@ public class AutomationService : IAutomationService, IDisposable
                         var statusText = statusElement.Properties.Name.ValueOrDefault;
                         if (!string.IsNullOrEmpty(statusText) && statusText.Contains("Calendar date:"))
                         {
-                            var dateStr = statusText.Replace("Calendar date:", "").Trim();
+                            var dateStr = statusText.Replace("Calendar date:", string.Empty).Trim();
                             if (DateTime.TryParse(dateStr, out DateTime parsedDate))
                             {
                                 return (DateTime?)parsedDate;
