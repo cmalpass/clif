@@ -113,7 +113,7 @@ public class SessionCaptureService : ISessionCaptureService
                     $"Session ID: {this.currentSessionId}",
                     $"Start Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                     $"Session Path: {this.currentSessionPath}",
-                    $"Target Window: {(targetWindow?.Name ?? "Full Screen")}",
+                    $"Target Window: {targetWindow?.Name ?? "Full Screen"}",
                     "=" + new string('=', 50),
                     string.Empty,
                 };
