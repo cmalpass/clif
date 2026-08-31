@@ -113,7 +113,7 @@ public class SessionCaptureService : ISessionCaptureService
                     $"Session Path: {this.currentSessionPath}",
                     $"Target Window: {(targetWindow?.Name ?? "Full Screen")}",
                     "=" + new string('=', 50),
-                    ""
+                    "",
                 };
 
                 File.WriteAllLines(this.logFilePath, sessionInfo);
@@ -157,7 +157,7 @@ public class SessionCaptureService : ISessionCaptureService
                         $"  Success: {success}",
                         $"  Validation: {validationResult ?? "N/A"}",
                         $"  Screenshot: {screenshotName}",
-                        ""
+                        "",
                     };
 
                     File.AppendAllLines(this.logFilePath, logEntry);
@@ -222,7 +222,7 @@ public class SessionCaptureService : ISessionCaptureService
                         $"Session ended: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                         $"Total captures: {this.captureCounter}",
                         $"Screenshots saved in: {Path.Combine(this.currentSessionPath, "screenshots")}",
-                        "=== End of Session ==="
+                        "=== End of Session ===",
                     };
 
                     File.AppendAllLines(this.logFilePath, sessionFooter);

@@ -86,7 +86,7 @@ public class ListProcessesCommand : Command
         {
             var json = System.Text.Json.JsonSerializer.Serialize(processes, new System.Text.Json.JsonSerializerOptions
             {
-                WriteIndented = true
+                WriteIndented = true,
             });
             Console.WriteLine(json);
         });
