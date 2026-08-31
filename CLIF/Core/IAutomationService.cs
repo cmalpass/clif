@@ -14,7 +14,7 @@ public interface IAutomationService
     /// <summary>Detaches from the currently attached process.</summary>
     Task DetachAsync();
 
-    /// <summary>Gets whether an automation session is currently attached.</summary>
+    /// <summary>Gets a value indicating whether gets whether an automation session is currently attached.</summary>
     bool IsAttached { get; }
 
     /// <summary>Gets the attached process identifier, if any.</summary>

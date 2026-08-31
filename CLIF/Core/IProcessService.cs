@@ -48,6 +48,6 @@ public class ProcessInfo
     /// <summary>Gets or sets the process start time.</summary>
     public DateTime StartTime { get; set; }
 
-    /// <summary>Gets or sets whether the process has a main window.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether the process has a main window.</summary>
     public bool HasMainWindow { get; set; }
 }

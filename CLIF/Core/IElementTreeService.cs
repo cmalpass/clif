@@ -49,10 +49,10 @@ public class ElementTreeNode
     /// <summary>Gets or sets the localized control type.</summary>
     public string LocalizedControlType { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets whether the element is enabled.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether the element is enabled.</summary>
     public bool IsEnabled { get; set; }
 
-    /// <summary>Gets or sets whether the element is visible.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether the element is visible.</summary>
     public bool IsVisible { get; set; }
 
     /// <summary>Gets or sets the element bounds as formatted text.</summary>
@@ -80,22 +80,22 @@ public class ElementTreeNode
 /// <summary>Controls how an automation tree is printed.</summary>
 public class TreePrintOptions
 {
-    /// <summary>Gets or sets whether element properties are printed.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether element properties are printed.</summary>
     public bool ShowProperties { get; set; } = true;
 
-    /// <summary>Gets or sets whether disabled elements are omitted.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether disabled elements are omitted.</summary>
     public bool ShowOnlyEnabled { get; set; } = false;
 
-    /// <summary>Gets or sets whether invisible elements are omitted.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether invisible elements are omitted.</summary>
     public bool ShowOnlyVisible { get; set; } = false;
 
-    /// <summary>Gets or sets whether bounds are printed.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether bounds are printed.</summary>
     public bool ShowBoundingRectangle { get; set; } = false;
 
-    /// <summary>Gets or sets whether process identifiers are printed.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether process identifiers are printed.</summary>
     public bool ShowProcessId { get; set; } = false;
 
-    /// <summary>Gets or sets whether selectors are printed.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether selectors are printed.</summary>
     public bool ShowSelector { get; set; } = true;
 
     /// <summary>Gets or sets the maximum printed depth.</summary>
@@ -132,6 +132,6 @@ public class ElementSearchCriteria
     /// <summary>Gets or sets a substring filter for element values.</summary>
     public string? ValueContains { get; set; }
 
-    /// <summary>Gets or sets whether text filters are interpreted as regular expressions.</summary>
+    /// <summary>Gets or sets a value indicating whether gets or sets whether text filters are interpreted as regular expressions.</summary>
     public bool UseRegex { get; set; } = false;
 }
