@@ -249,5 +249,6 @@ public class ScriptExecutionResult
     /// <summary>Gets or sets the number of failed steps.</summary>
     public int StepsFailed { get; set; }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

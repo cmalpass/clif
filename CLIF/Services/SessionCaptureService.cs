@@ -348,5 +348,6 @@ public class SessionCaptureService : ISessionCaptureService
         return currentDir;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

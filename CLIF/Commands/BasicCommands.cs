@@ -31,5 +31,6 @@ public class ElementCommand : Command
         }, processArgument, selectorArgument, actionOption);
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

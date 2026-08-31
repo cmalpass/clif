@@ -152,5 +152,6 @@ public class ValidationError
         return this.Field != null ? $"{this.Field}: {this.Message}" : this.Message;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

@@ -6,5 +6,6 @@
 using System.Runtime.Versioning;
 
 [assembly: SupportedOSPlatform("windows")]
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

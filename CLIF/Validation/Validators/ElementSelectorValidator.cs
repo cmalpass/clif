@@ -326,5 +326,6 @@ public class SafeCharactersRule : ValidationRule<string>
         return this.Success();
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

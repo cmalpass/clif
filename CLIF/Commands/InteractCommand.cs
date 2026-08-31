@@ -23,6 +23,7 @@ public class InteractCommand : Command
         : base("interact", "Advanced interactions with various WPF controls")
     {
         this.captureService = captureService;
+
         // Element selector options
         var elementOption = new Option<string>(
             "--element",
@@ -476,5 +477,6 @@ public class InteractCommand : Command
         return allSuccessful;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.

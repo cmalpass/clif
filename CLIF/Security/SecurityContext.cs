@@ -258,5 +258,6 @@ public class PermissionValidator
         return result;
     }
 }
+
 // Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
 // Licensed under the MIT License.
