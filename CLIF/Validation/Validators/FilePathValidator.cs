@@ -6,7 +6,7 @@ using CLIF.Validation.Rules;
 namespace CLIF.Validation.Validators;
 
 /// <summary>
-/// Validator for file paths with security and existence checking
+/// Validator for file paths with security and existence checking.
 /// </summary>
 public class FilePathValidator : ValidatorBase<string>
 {
@@ -15,11 +15,11 @@ public class FilePathValidator : ValidatorBase<string>
     private readonly long _maxFileSize;
 
     /// <summary>
-    /// Initializes a new instance of the FilePathValidator class
+    /// Initializes a new instance of the FilePathValidator class.
     /// </summary>
-    /// <param name="mustExist">Whether the file must exist</param>
-    /// <param name="allowedExtensions">Array of allowed file extensions (e.g., ".json", ".txt")</param>
-    /// <param name="maxFileSize">Maximum allowed file size in bytes (default: 10MB)</param>
+    /// <param name="mustExist">Whether the file must exist.</param>
+    /// <param name="allowedExtensions">Array of allowed file extensions (e.g., ".json", ".txt").</param>
+    /// <param name="maxFileSize">Maximum allowed file size in bytes (default: 10MB).</param>
     public FilePathValidator(bool mustExist = false, string[]? allowedExtensions = null, long maxFileSize = 10 * 1024 * 1024)
     {
         this._mustExist = mustExist;
@@ -32,10 +32,10 @@ public class FilePathValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the specified file path
+    /// Validates the specified file path.
     /// </summary>
-    /// <param name="filePath">The file path to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="filePath">The file path to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string filePath)
     {
         if (filePath == null)
@@ -120,10 +120,10 @@ public class FilePathValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates that the file path is in a secure location
+    /// Validates that the file path is in a secure location.
     /// </summary>
-    /// <param name="filePath">The file path to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="filePath">The file path to validate.</param>
+    /// <returns>A validation result.</returns>
     private static ValidationResult ValidateSecurePath(string filePath)
     {
         var result = ValidationResult.Success();
@@ -169,7 +169,7 @@ public class FilePathValidator : ValidatorBase<string>
 }
 
 /// <summary>
-/// Validator for directory paths
+/// Validator for directory paths.
 /// </summary>
 public class DirectoryPathValidator : ValidatorBase<string>
 {
@@ -177,10 +177,10 @@ public class DirectoryPathValidator : ValidatorBase<string>
     private readonly bool _createIfNotExists;
 
     /// <summary>
-    /// Initializes a new instance of the DirectoryPathValidator class
+    /// Initializes a new instance of the DirectoryPathValidator class.
     /// </summary>
-    /// <param name="mustExist">Whether the directory must exist</param>
-    /// <param name="createIfNotExists">Whether to create the directory if it doesn't exist</param>
+    /// <param name="mustExist">Whether the directory must exist.</param>
+    /// <param name="createIfNotExists">Whether to create the directory if it doesn't exist.</param>
     public DirectoryPathValidator(bool mustExist = true, bool createIfNotExists = false)
     {
         this._mustExist = mustExist;
@@ -192,10 +192,10 @@ public class DirectoryPathValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the specified directory path
+    /// Validates the specified directory path.
     /// </summary>
-    /// <param name="directoryPath">The directory path to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="directoryPath">The directory path to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string directoryPath)
     {
         if (string.IsNullOrWhiteSpace(directoryPath))

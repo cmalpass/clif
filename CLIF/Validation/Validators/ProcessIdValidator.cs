@@ -6,7 +6,7 @@ using CLIF.Validation.Rules;
 namespace CLIF.Validation.Validators;
 
 /// <summary>
-/// Validator for process IDs
+/// Validator for process IDs.
 /// </summary>
 public class ProcessIdValidator : ValidatorBase<int>
 {
@@ -14,7 +14,7 @@ public class ProcessIdValidator : ValidatorBase<int>
     private const int MAX_PROCESS_ID = 65535;
 
     /// <summary>
-    /// Initializes a new instance of the ProcessIdValidator class
+    /// Initializes a new instance of the ProcessIdValidator class.
     /// </summary>
     public ProcessIdValidator()
     {
@@ -23,10 +23,10 @@ public class ProcessIdValidator : ValidatorBase<int>
     }
 
     /// <summary>
-    /// Validates the specified process ID
+    /// Validates the specified process ID.
     /// </summary>
-    /// <param name="processId">The process ID to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="processId">The process ID to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(int processId)
     {
         var result = this.ValidateRules(processId);
@@ -62,20 +62,20 @@ public class ProcessIdValidator : ValidatorBase<int>
 }
 
 /// <summary>
-/// Validation rule to check if a process exists
+/// Validation rule to check if a process exists.
 /// </summary>
 public class ProcessExistenceRule : ValidationRule<int>
 {
     /// <summary>
-    /// Gets the name of this validation rule
+    /// Gets the name of this validation rule.
     /// </summary>
     public override string RuleName => "ProcessExistence";
 
     /// <summary>
-    /// Validates that a process with the specified ID exists
+    /// Validates that a process with the specified ID exists.
     /// </summary>
-    /// <param name="processId">The process ID to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="processId">The process ID to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(int processId)
     {
         try
@@ -95,14 +95,14 @@ public class ProcessExistenceRule : ValidationRule<int>
 }
 
 /// <summary>
-/// Validator for validating process names or process ID strings
+/// Validator for validating process names or process ID strings.
 /// </summary>
 public class ProcessIdentifierValidator : ValidatorBase<string>
 {
     private readonly ProcessIdValidator _processIdValidator;
 
     /// <summary>
-    /// Initializes a new instance of the ProcessIdentifierValidator class
+    /// Initializes a new instance of the ProcessIdentifierValidator class.
     /// </summary>
     public ProcessIdentifierValidator()
     {
@@ -112,10 +112,10 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates the specified process identifier (name or ID)
+    /// Validates the specified process identifier (name or ID).
     /// </summary>
-    /// <param name="processIdentifier">The process identifier to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="processIdentifier">The process identifier to validate.</param>
+    /// <returns>A validation result.</returns>
     public override ValidationResult Validate(string processIdentifier)
     {
         if (string.IsNullOrWhiteSpace(processIdentifier))
@@ -141,10 +141,10 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
     }
 
     /// <summary>
-    /// Validates a process name
+    /// Validates a process name.
     /// </summary>
-    /// <param name="processName">The process name to validate</param>
-    /// <returns>A validation result</returns>
+    /// <param name="processName">The process name to validate.</param>
+    /// <returns>A validation result.</returns>
     private ValidationResult ValidateProcessName(string processName)
     {
         var result = ValidationResult.Success();
