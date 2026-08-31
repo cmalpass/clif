@@ -25,14 +25,14 @@ namespace CLIF.Services;
 [SupportedOSPlatform("windows7.0")]
 public class AutomationService : IAutomationService, IDisposable
 {
+    private const uint WmKeyDown = 0x0100;
+    private const int VkReturn = 0x0D;
+    private const int VkEscape = 0x1B;
     private readonly ILogger<AutomationService> logger;
     private readonly ISessionCaptureService captureService;
     private UIA3Automation? automation;
     private FlaUI.Core.Application? application;
     private AutomationElement? rootElement;
-    private const uint WmKeyDown = 0x0100;
-    private const int VkReturn = 0x0D;
-    private const int VkEscape = 0x1B;
 
     /// <summary>Initializes a new instance of the <see cref="AutomationService"/> class. Initializes the automation service.</summary>
     /// <param name="logger">Logger used to record automation operations.</param>
