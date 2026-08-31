@@ -228,7 +228,7 @@ public class PermissionValidator
                     else
                     {
                         // Check if we can create the file
-                        var tempFile = Path.Combine(Path.GetDirectoryName(filePath) ?? "", Path.GetRandomFileName());
+                        var tempFile = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, Path.GetRandomFileName());
                         File.WriteAllText(tempFile, "test");
                         File.Delete(tempFile);
                     }
