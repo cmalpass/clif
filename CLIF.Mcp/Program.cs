@@ -41,14 +41,14 @@ var services = new ServiceCollection();
 services
     .AddMcpServer(options =>
     {
+        options.ToolCollection = McpSdkToolAdapter.CreateCollection(sdkTools);
         options.ServerInfo = new Implementation
         {
             Name = "clif-mcp",
             Version = "0.1.0",
         };
     })
-    .WithStdioServerTransport()
-    .WithTools(sdkTools);
+    .WithStdioServerTransport();
 await using var serviceProvider = services.BuildServiceProvider();
 var server = serviceProvider.GetRequiredService<ModelContextProtocol.Server.McpServer>();
 

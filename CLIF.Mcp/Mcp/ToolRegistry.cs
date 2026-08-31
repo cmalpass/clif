@@ -61,6 +61,9 @@ public class ToolRegistry
             : throw new KeyNotFoundException($"No tool is registered with name '{name}'.");
     }
 
+    /// <summary>Returns whether a canonical tool name is registered.</summary>
+    internal bool ContainsTool(string name) => !string.IsNullOrWhiteSpace(name) && _tools.ContainsKey(name);
+
     /// <summary>
     /// Execute a tool by name with the given arguments.
     /// </summary>

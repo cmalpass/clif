@@ -22,6 +22,8 @@ public sealed class McpSdkToolAdapterTests
         sdkTool.ProtocolTool.Description.Should().Be("Adapter echo tool");
         sdkTool.ProtocolTool.InputSchema.GetProperty("type").GetString().Should().Be("object");
         sdkTool.ProtocolTool.InputSchema.GetProperty("properties").GetProperty("message").GetProperty("type").GetString().Should().Be("string");
+        sdkTool.ProtocolTool.Annotations!.ReadOnlyHint.Should().BeTrue();
+        sdkTool.ProtocolTool.Annotations.DestructiveHint.Should().BeFalse();
     }
 
     [Fact]
@@ -34,6 +36,19 @@ public sealed class McpSdkToolAdapterTests
         var sdkTools = McpSdkToolAdapter.CreateAll(registry);
 
         sdkTools.Select(tool => tool.ProtocolTool.Name)
+            .Should().Equal("clif_a_echo", "clif_z_echo");
+    }
+
+    [Fact]
+    public void CreateCollection_EmitsToolsInOrdinalNameOrder()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterTool(new AdapterEchoTool("clif_z_echo"));
+        registry.RegisterTool(new AdapterEchoTool("clif_a_echo"));
+
+        var collection = McpSdkToolAdapter.CreateCollection(McpSdkToolAdapter.CreateAll(registry));
+
+        collection.ToArray().Select(tool => tool.ProtocolTool.Name)
             .Should().Equal("clif_a_echo", "clif_z_echo");
     }
 

@@ -1,8 +1,10 @@
 // Licensed under the MIT License.
 
 using System.Text.Json;
+using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp;
 
@@ -18,6 +20,13 @@ namespace CLIF.Mcp;
 /// </remarks>
 public static class McpSdkToolAdapter
 {
+    /// <summary>Creates a collection that emits tools in ordinal name order.</summary>
+    public static McpServerPrimitiveCollection<McpServerTool> CreateCollection(
+        IEnumerable<McpServerTool> tools)
+    {
+        ArgumentNullException.ThrowIfNull(tools);
+        return new SortedToolCollection(tools);
+    }
     /// <summary>
     /// Creates an SDK tool for an existing CLIF tool.
     /// </summary>
@@ -34,6 +43,13 @@ public static class McpSdkToolAdapter
                 Name = definition.Name,
                 Description = definition.Description,
                 InputSchema = inputSchema,
+                Annotations = new ToolAnnotations
+                {
+                    ReadOnlyHint = tool.RequiredCapability == McpCapability.ReadOnly,
+                    DestructiveHint = tool.RequiredCapability != McpCapability.ReadOnly,
+                    IdempotentHint = false,
+                    OpenWorldHint = false,
+                },
             },
             tool,
             registry);
@@ -50,6 +66,21 @@ public static class McpSdkToolAdapter
                 registry.GetTool(definition.Name),
                 registry))
             .ToArray();
+    }
+
+    /// <summary>Executes a registry tool for an SDK call-tool handler.</summary>
+    public static Task<CallToolResult> ExecuteAsync(
+        string name,
+        IDictionary<string, JsonElement>? arguments,
+        CancellationToken cancellationToken,
+        ToolRegistry registry)
+    {
+        if (!registry.ContainsTool(name))
+        {
+            throw new McpException($"Unknown tool: '{name}'");
+        }
+
+        return InvokeAsync(name, arguments, cancellationToken, registry);
     }
 
     private static async Task<CallToolResult> InvokeAsync(
@@ -107,5 +138,20 @@ public static class McpSdkToolAdapter
                 cancellationToken,
                 _registry).ConfigureAwait(false);
         }
+    }
+
+    private sealed class SortedToolCollection : McpServerPrimitiveCollection<McpServerTool>
+    {
+        public SortedToolCollection(IEnumerable<McpServerTool> tools)
+            : base(StringComparer.Ordinal)
+        {
+            foreach (var tool in tools) Add(tool);
+        }
+
+        public override McpServerTool[] ToArray() => base.ToArray()
+            .OrderBy(tool => tool.ProtocolTool.Name, StringComparer.Ordinal)
+            .ToArray();
+
+        public override IEnumerator<McpServerTool> GetEnumerator() => ToArray().AsEnumerable().GetEnumerator();
     }
 }
