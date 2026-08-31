@@ -1,15 +1,17 @@
 ﻿using System.CommandLine;
+using System.Runtime.Versioning;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
+using CLIF.Commands;
 using CLIF.Core;
 using CLIF.Services;
-using CLIF.Commands;
 
 namespace CLIF;
 
 class Program
 {
+    [SupportedOSPlatform("windows7.0")]
     static async Task<int> Main(string[] args)
     {
         // Setup dependency injection and configuration
