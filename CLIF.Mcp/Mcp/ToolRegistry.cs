@@ -45,6 +45,17 @@ public class ToolRegistry
     }
 
     /// <summary>
+    /// Gets a registered tool by its canonical name for protocol adapters.
+    /// </summary>
+    internal ITool GetTool(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return _tools.TryGetValue(name, out var tool)
+            ? tool
+            : throw new KeyNotFoundException($"No tool is registered with name '{name}'.");
+    }
+
+    /// <summary>
     /// Execute a tool by name with the given arguments.
     /// </summary>
     public async Task<McpToolResult> ExecuteToolAsync(
