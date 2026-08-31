@@ -18,6 +18,12 @@ namespace CLIF.Services;
 /// </summary>
 public interface ISessionCaptureService
 {
+    /// <summary>Gets the current session identifier, if a session is active.</summary>
+    string? CurrentSessionId { get; }
+
+    /// <summary>Gets the path of the current session, if a session is active.</summary>
+    string? CurrentSessionPath { get; }
+
     /// <summary>Starts a new capture session.</summary>
     /// <param name="sessionName">Optional session identifier.</param>
     /// <param name="targetWindow">Optional window to capture.</param>
@@ -46,11 +52,6 @@ public interface ISessionCaptureService
     /// <param name="targetWindow">Window to capture, or <see langword="null"/> for the full screen.</param>
     void SetTargetWindow(AutomationElement? targetWindow);
 
-    /// <summary>Gets the current session identifier, if a session is active.</summary>
-    string? CurrentSessionId { get; }
-
-    /// <summary>Gets the path of the current session, if a session is active.</summary>
-    string? CurrentSessionPath { get; }
 }
 
 /// <summary>
@@ -58,13 +59,6 @@ public interface ISessionCaptureService
 /// </summary>
 public class SessionCaptureService : ISessionCaptureService
 {
-    // Windows API for bringing window to foreground
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
     private const int SW_RESTORE = 9;
 
     private readonly ILogger<SessionCaptureService> logger;
@@ -75,11 +69,6 @@ public class SessionCaptureService : ISessionCaptureService
     private readonly object lockObject = new();
     private AutomationElement? targetWindow;
 
-    /// <inheritdoc />
-    public string? CurrentSessionId => this.currentSessionId;
-    /// <inheritdoc />
-    public string? CurrentSessionPath => this.currentSessionPath;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="SessionCaptureService"/> class.
     /// Initializes the session capture service.
@@ -89,6 +78,18 @@ public class SessionCaptureService : ISessionCaptureService
     {
         this.logger = logger;
     }
+
+    /// <inheritdoc />
+    public string? CurrentSessionId => this.currentSessionId;
+    /// <inheritdoc />
+    public string? CurrentSessionPath => this.currentSessionPath;
+
+    // Windows API for bringing window to foreground
+    [DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     /// <inheritdoc />
     public async Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
