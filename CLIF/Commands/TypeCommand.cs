@@ -15,7 +15,7 @@ public class TypeCommand : Command
     /// <summary>Creates a type command backed by the automation and capture services.</summary>
     /// <param name="automationService">Service used to attach and type into the target.</param>
     /// <param name="captureService">Service used to record the command session.</param>
-    public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService) 
+    public TypeCommand(IAutomationService automationService, ISessionCaptureService captureService)
         : base("type", "Type text into a UI element")
     {
         this._automationService = automationService;
@@ -51,14 +51,14 @@ public class TypeCommand : Command
 
             // Start a mini-session for individual command
             var sessionId = await this._captureService.StartSessionAsync($"TYPE_Command_{DateTime.Now:HHmmss}");
-            
+
             try
             {
                 await this._captureService.LogInteractionAsync($"TYPE command started: '{text}' into {elementPath} (Process: {processId})");
-                
+
                 Console.WriteLine($"Attaching to process {processId}...");
                 var success = await this._automationService.AttachToProcessAsync(processId);
-                
+
                 if (!success)
                 {
                     Console.WriteLine("Failed to attach to process.");
@@ -76,7 +76,7 @@ public class TypeCommand : Command
                     context.ExitCode = 1;
                     return;
                 }
-                
+
                 Console.WriteLine($"Typing text '{text}' into element: {elementPath}");
                 if (!await this._automationService.TypeTextAsync(element, text))
                 {

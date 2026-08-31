@@ -11,7 +11,7 @@ namespace CLIF.Security;
 public class SecurityContext
 {
     private static readonly Lazy<SecurityContext> _instance = new(() => new SecurityContext());
-    
+
     /// <summary>
     /// Gets the singleton instance of the SecurityContext
     /// </summary>
@@ -52,11 +52,11 @@ public class SecurityContext
         try
         {
             using var process = System.Diagnostics.Process.GetProcessById(processId);
-            
+
             // Check if we can access the process
             _ = process.ProcessName; // This will throw if we don't have access
             _ = process.MainWindowTitle; // This requires additional permissions
-            
+
             return ValidationResult.Success();
         }
         catch (UnauthorizedAccessException)
@@ -87,7 +87,7 @@ public class SecurityContext
         try
         {
             var fullPath = Path.GetFullPath(filePath);
-            
+
             // Check if we can read the file/directory
             if (File.Exists(fullPath))
             {

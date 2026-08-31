@@ -17,7 +17,7 @@ public interface IValidator<T>
     /// <param name="input">The input to validate</param>
     /// <returns>A validation result indicating success or failure</returns>
     ValidationResult Validate(T input);
-    
+
     /// <summary>
     /// Asynchronously validates the specified input
     /// </summary>
@@ -38,7 +38,7 @@ public interface IValidator
     /// <param name="inputType">The type of the input</param>
     /// <returns>A validation result indicating success or failure</returns>
     ValidationResult Validate(object input, Type inputType);
-    
+
     /// <summary>
     /// Asynchronously validates the specified input of the given type
     /// </summary>

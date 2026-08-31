@@ -22,7 +22,7 @@ class Program
 
         services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
-        
+
         // Register services
         services.AddTransient<IProcessService, ProcessService>();
         services.AddTransient<IAutomationService, AutomationService>();
@@ -30,12 +30,12 @@ class Program
         services.AddTransient<IScriptService, ScriptService>();
         services.AddTransient<IInteractiveService, InteractiveService>();
         services.AddSingleton<ISessionCaptureService, SessionCaptureService>();
-        
+
         var serviceProvider = services.BuildServiceProvider();
-        
+
         // Build command structure
         var rootCommand = new RootCommand("CLIF - Comprehensive WPF UI Automation CLI");
-        
+
         // Add all commands
         rootCommand.Add(new ListProcessesCommand(serviceProvider));
         rootCommand.Add(new AttachCommand(serviceProvider));
@@ -45,7 +45,7 @@ class Program
         rootCommand.Add(new InteractCommand(serviceProvider.GetRequiredService<IAutomationService>(), serviceProvider.GetRequiredService<ISessionCaptureService>(), serviceProvider.GetRequiredService<ILogger<InteractCommand>>()));
         rootCommand.Add(new ScriptCommand(serviceProvider.GetRequiredService<IScriptService>()));
         rootCommand.Add(new InteractiveCommand(serviceProvider.GetRequiredService<IInteractiveService>()));
-        
+
         return await rootCommand.InvokeAsync(args);
     }
 }

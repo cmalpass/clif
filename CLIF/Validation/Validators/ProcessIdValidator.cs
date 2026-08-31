@@ -30,7 +30,7 @@ public class ProcessIdValidator : ValidatorBase<int>
     public override ValidationResult Validate(int processId)
     {
         var result = this.ValidateRules(processId);
-        
+
         // Additional process-specific validation
         if (result.IsValid)
         {
@@ -56,7 +56,7 @@ public class ProcessIdValidator : ValidatorBase<int>
                 result.AddError($"Error accessing process {processId}: {ex.Message}");
             }
         }
-        
+
         return result;
     }
 }
@@ -124,7 +124,7 @@ public class ProcessIdentifierValidator : ValidatorBase<string>
         }
 
         var result = this.ValidateRules(processIdentifier);
-        
+
         // If it's a numeric ID, validate as process ID
         if (int.TryParse(processIdentifier, out var processId))
         {

@@ -19,7 +19,7 @@ public static class TestHelpers
     public static Mock<ILogger<T>> CreateMockLogger<T>() where T : class
     {
         var mock = new Mock<ILogger<T>>();
-        
+
         // Setup common logging methods to avoid null reference exceptions
         mock.Setup(x => x.Log(
             It.IsAny<LogLevel>(),
@@ -27,7 +27,7 @@ public static class TestHelpers
             It.IsAny<It.IsAnyType>(),
             It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()));
-            
+
         return mock;
     }
 
@@ -39,17 +39,17 @@ public static class TestHelpers
     public static IServiceProvider CreateTestServiceProvider(Action<IServiceCollection>? configureServices = null)
     {
         var services = new ServiceCollection();
-        
+
         // Add logging
         services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug));
-        
+
         // Add default test services
         services.AddTransient<TestDataBuilder>();
         services.AddTransient<MockFactory>();
-        
+
         // Allow custom service configuration
         configureServices?.Invoke(services);
-        
+
         return services.BuildServiceProvider();
     }
 
@@ -82,7 +82,7 @@ public static class TestHelpers
 
         // Wait for the process to be ready
         await WaitForProcessReady(process, timeoutMs);
-        
+
         return process;
     }
 
@@ -94,7 +94,7 @@ public static class TestHelpers
     private static async Task WaitForProcessReady(Process process, int timeoutMs)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         while (stopwatch.ElapsedMilliseconds < timeoutMs)
         {
             try
@@ -109,10 +109,10 @@ public static class TestHelpers
                 // Process might have exited
                 break;
             }
-            
+
             await Task.Delay(100);
         }
-        
+
         throw new TimeoutException($"Process failed to become ready within {timeoutMs}ms");
     }
 
