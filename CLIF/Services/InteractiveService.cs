@@ -46,6 +46,7 @@ public class InteractiveService : IInteractiveService
     /// Starts the interactive command mode.
     /// </summary>
     /// <param name="processId">Optional process to attach to initially.</param>
+    /// <returns>A task that completes when interactive mode starts.</returns>
     public async Task StartInteractiveModeAsync(int? processId = null)
     {
         await this.StartInteractiveSessionAsync(processId);

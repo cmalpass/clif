@@ -35,5 +35,6 @@ public interface IScriptService
     /// <summary>Saves a script to a file.</summary>
     /// <param name="script">Script to serialize.</param>
     /// <param name="scriptPath">Destination path.</param>
+    /// <returns>A task that completes when the script has been saved.</returns>
     Task SaveScriptAsync(Script script, string scriptPath);
 }
