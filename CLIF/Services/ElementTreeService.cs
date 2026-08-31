@@ -140,13 +140,31 @@ public class ElementTreeService : IElementTreeService
 
     private void PrintTreeNode(ElementTreeNode node, StringBuilder sb, string prefix, bool isLast, TreePrintOptions options, int currentDepth)
     {
-        if (currentDepth > options.MaxDepth) return;
+        if (currentDepth > options.MaxDepth)
+        {
+            return;
+        }
 
         // Apply filters
-        if (options.ShowOnlyEnabled && !node.IsEnabled) return;
-        if (options.ShowOnlyVisible && !node.IsVisible) return;
-        if (options.IncludeControlTypes.Any() && !options.IncludeControlTypes.Contains(node.ControlType)) return;
-        if (options.ExcludeControlTypes.Contains(node.ControlType)) return;
+        if (options.ShowOnlyEnabled && !node.IsEnabled)
+        {
+            return;
+        }
+
+        if (options.ShowOnlyVisible && !node.IsVisible)
+        {
+            return;
+        }
+
+        if (options.IncludeControlTypes.Any() && !options.IncludeControlTypes.Contains(node.ControlType))
+        {
+            return;
+        }
+
+        if (options.ExcludeControlTypes.Contains(node.ControlType))
+        {
+            return;
+        }
 
         // Build the tree line
         var connector = isLast ? "└── " : "├── ";
@@ -159,26 +177,38 @@ public class ElementTreeService : IElementTreeService
             var propertyPrefix = prefix + (isLast ? "    " : "│   ");
 
             if (!string.IsNullOrEmpty(node.AutomationId))
+            {
                 sb.AppendLine($"{propertyPrefix}  AutomationId: {node.AutomationId}");
+            }
 
             if (!string.IsNullOrEmpty(node.ClassName))
+            {
                 sb.AppendLine($"{propertyPrefix}  ClassName: {node.ClassName}");
+            }
 
             sb.AppendLine($"{propertyPrefix}  ControlType: {node.ControlType}");
             sb.AppendLine($"{propertyPrefix}  Enabled: {node.IsEnabled}");
             sb.AppendLine($"{propertyPrefix}  Visible: {node.IsVisible}");
 
             if (!string.IsNullOrEmpty(node.Value))
+            {
                 sb.AppendLine($"{propertyPrefix}  Value: {node.Value}");
+            }
 
             if (options.ShowBoundingRectangle)
+            {
                 sb.AppendLine($"{propertyPrefix}  BoundingRect: {node.BoundingRectangle}");
+            }
 
             if (options.ShowProcessId)
+            {
                 sb.AppendLine($"{propertyPrefix}  ProcessId: {node.ProcessId}");
+            }
 
             if (options.ShowSelector && !string.IsNullOrEmpty(node.Selector))
+            {
                 sb.AppendLine($"{propertyPrefix}  Selector: {node.Selector}");
+            }
         }
 
         // Print children
@@ -213,7 +243,10 @@ public class ElementTreeService : IElementTreeService
         foreach (var child in node.Children)
         {
             var result = this.FindElementInTreeNode(child, selector);
-            if (result != null) return result;
+            if (result != null)
+            {
+                return result;
+            }
         }
 
         return null;
@@ -234,36 +267,52 @@ public class ElementTreeService : IElementTreeService
             if (criteria.UseRegex)
             {
                 if (!Regex.IsMatch(node.Name, criteria.Name, RegexOptions.IgnoreCase))
+                {
                     return false;
+                }
             }
             else
             {
                 if (!node.Name.Contains(criteria.Name, StringComparison.OrdinalIgnoreCase))
+                {
                     return false;
+                }
             }
         }
 
         if (!string.IsNullOrEmpty(criteria.AutomationId) &&
             !node.AutomationId.Contains(criteria.AutomationId, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         if (!string.IsNullOrEmpty(criteria.ClassName) &&
             !node.ClassName.Contains(criteria.ClassName, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         if (!string.IsNullOrEmpty(criteria.ControlType) &&
             !node.ControlType.Contains(criteria.ControlType, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         if (criteria.IsEnabled.HasValue && node.IsEnabled != criteria.IsEnabled.Value)
+        {
             return false;
+        }
 
         if (criteria.IsVisible.HasValue && node.IsVisible != criteria.IsVisible.Value)
+        {
             return false;
+        }
 
         if (!string.IsNullOrEmpty(criteria.ValueContains) &&
             !node.Value.Contains(criteria.ValueContains, StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         return true;
     }
@@ -273,13 +322,19 @@ public class ElementTreeService : IElementTreeService
         var parts = new List<string>();
 
         if (!string.IsNullOrEmpty(element.AutomationId))
+        {
             return $"id={SelectorParser.FormatValue(element.AutomationId)}";
+        }
 
         if (!string.IsNullOrEmpty(element.Name))
+        {
             parts.Add($"name={SelectorParser.FormatValue(element.Name)}");
+        }
 
         if (!string.IsNullOrEmpty(element.ClassName))
+        {
             parts.Add($"class={SelectorParser.FormatValue(element.ClassName)}");
+        }
 
         parts.Add($"type={element.ControlType}");
 
