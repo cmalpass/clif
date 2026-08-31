@@ -68,23 +68,31 @@ public class TypeTool : ToolBase
 
         try
         {
-            if (!string.IsNullOrEmpty(refId))
+            var element = _elementRegistry.GetElement(refId);
+            if (element == null)
             {
-                var element = _elementRegistry.GetElement(refId);
-                if (element == null)
-                {
-                    return Task.FromResult(ErrorResult(
-                        $"Element not found: {refId}. Run clif_snapshot to refresh element refs."));
-                }
-
-                element.Focus();
-                Thread.Sleep(50);
+                return Task.FromResult(ErrorResult(
+                    $"Element not found: {refId}. Run clif_snapshot to refresh element refs."));
             }
 
-            Keyboard.Type(text);
+            // Value controls (including WPF TextBox) do not guarantee that keyboard
+            // input begins at the end of their current content. Set the combined value
+            // directly so the documented append operation is deterministic.
+            if (element.Patterns.Value.IsSupported)
+            {
+                var existing = element.Patterns.Value.Pattern.Value.ValueOrDefault ?? string.Empty;
+                element.Patterns.Value.Pattern.SetValue(existing + text);
+            }
+            else
+            {
+                element.Focus();
+                Thread.Sleep(50);
+                Keyboard.Type(text);
+            }
 
             if (submit)
             {
+                element.Focus();
                 Keyboard.Press(VirtualKeyShort.ENTER);
                 return Task.FromResult(TextResult($"Typed and submitted text into {refId}"));
             }

@@ -25,6 +25,7 @@ public sealed class McpProcessFixture : IDisposable
     private readonly StreamReader _standardOutput;
     private int _nextRequestId;
     private string? _launchedWindowHandle;
+    private bool _initialized;
     private bool _disposed;
 
     /// <summary>
@@ -56,6 +57,7 @@ public sealed class McpProcessFixture : IDisposable
         // The test proves that a real MCP host honors the explicit allowlist rather
         // than relying on an unrestricted development-machine configuration.
         startInfo.Environment["CLIF_MCP_ALLOWED_APPS"] = WpfExecutablePath;
+        startInfo.Environment["CLIF_MCP_ALLOW_WINDOW_ENUMERATION"] = "true";
         startInfo.Environment["CLIF_MCP_ALLOW_WINDOW_CLOSE"] = "true";
 
         _mcpProcess = Process.Start(startInfo)
@@ -77,6 +79,11 @@ public sealed class McpProcessFixture : IDisposable
     /// </summary>
     public async Task InitializeAsync()
     {
+        if (_initialized)
+        {
+            return;
+        }
+
         using var response = await SendRequestAsync("initialize", new
         {
             protocolVersion = "2025-06-18",
@@ -89,6 +96,7 @@ public sealed class McpProcessFixture : IDisposable
         Assert.Equal("2025-06-18", result.GetProperty("protocolVersion").GetString());
 
         await SendNotificationAsync("notifications/initialized", new { });
+        _initialized = true;
     }
 
     /// <summary>Sends an MCP request and returns its JSON-RPC response.</summary>
