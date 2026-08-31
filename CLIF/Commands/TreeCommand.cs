@@ -39,7 +39,11 @@ public class TreeCommand : Command
         this.Add(controlTypeOption);
         this.Add(outputFileOption);
 
-        this.SetHandler(async (string process, int depth, bool enabledOnly, bool visibleOnly,
+        this.SetHandler(async (
+            string process,
+            int depth,
+            bool enabledOnly,
+            bool visibleOnly,
             bool showProperties) =>
         {
             var processService = serviceProvider.GetRequiredService<IProcessService>();
@@ -101,7 +105,12 @@ public class TreeCommand : Command
             {
                 Console.WriteLine($"Error displaying tree: {ex.Message}");
             }
-        }, processArgument, depthOption, enabledOnlyOption, visibleOnlyOption, showPropertiesOption);
+        },
+            processArgument,
+            depthOption,
+            enabledOnlyOption,
+            visibleOnlyOption,
+            showPropertiesOption);
     }
 
     private ElementSearchCriteria ParseSearchCriteria(string search)

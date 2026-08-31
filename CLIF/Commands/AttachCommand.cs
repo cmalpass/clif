@@ -85,7 +85,12 @@ public class AttachCommand : Command
                 logger.LogError(ex, "Error in attach command");
                 Console.WriteLine($"Error: {ex.Message}");
             }
-        }, processArgument, actionOption, elementOption, valueOption, interactiveOption);
+        },
+            processArgument,
+            actionOption,
+            elementOption,
+            valueOption,
+            interactiveOption);
     }
 
     private async Task ExecuteAction(IAutomationService automation, string action, string elementSelector, string? value)
