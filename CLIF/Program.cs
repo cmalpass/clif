@@ -17,10 +17,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CLIF;
 
-class Program
+internal class Program
 {
     [SupportedOSPlatform("windows7.0")]
-    static async Task<int> Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         // Setup dependency injection and configuration
         var services = new ServiceCollection();
