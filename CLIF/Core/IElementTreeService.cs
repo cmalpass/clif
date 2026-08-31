@@ -1,3 +1,8 @@
+// <copyright file="IElementTreeService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using FlaUI.Core.AutomationElements;
 
 namespace CLIF.Core;
@@ -135,3 +140,5 @@ public class ElementSearchCriteria
     /// <summary>Gets or sets a value indicating whether gets or sets whether text filters are interpreted as regular expressions.</summary>
     public bool UseRegex { get; set; } = false;
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

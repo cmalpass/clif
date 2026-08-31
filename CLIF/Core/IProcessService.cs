@@ -1,3 +1,8 @@
+// <copyright file="IProcessService.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.Diagnostics;
 
 namespace CLIF.Core;
@@ -51,3 +56,5 @@ public class ProcessInfo
     /// <summary>Gets or sets a value indicating whether gets or sets whether the process has a main window.</summary>
     public bool HasMainWindow { get; set; }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.

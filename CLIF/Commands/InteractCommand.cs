@@ -1,3 +1,8 @@
+// <copyright file="InteractCommand.cs" company="CLIF - Comprehensive UI Automation CLI">
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// </copyright>
+// Licensed under the MIT License.
+
 using System.CommandLine;
 using CLIF.Core;
 using CLIF.Services;
@@ -471,3 +476,5 @@ public class InteractCommand : Command
         return allSuccessful;
     }
 }
+// Copyright (c) CLIF - Comprehensive UI Automation CLI. All rights reserved.
+// Licensed under the MIT License.
