@@ -24,7 +24,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore locked dependency graph
       run: dotnet restore clif.sln --locked-mode
@@ -56,7 +56,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Display .NET info
       run: |
@@ -106,7 +106,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode
@@ -170,7 +170,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode
@@ -238,7 +238,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore cross-platform fixture
       run: dotnet restore TestCrossPlatformApp/TestCrossPlatformApp.csproj --locked-mode
@@ -272,7 +272,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode
@@ -366,7 +366,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode
@@ -448,7 +448,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.424'
 
     - name: Restore dependencies
       run: dotnet restore clif.sln --locked-mode

@@ -1,16 +1,16 @@
 # Copilot Cloud Agent Setup Steps
 # This configures the development environment for the Copilot coding agent.
 # CLIF is a Windows-specific WPF UI automation CLI tool that requires a Windows
-# runner with .NET 8.0 and Windows Desktop framework support.
+# runner with the pinned .NET SDK 8.0.424 and Windows Desktop framework support.
 
 setup:
   runs-on: windows-latest
 
   steps:
-    - name: Setup .NET 8.0 SDK
+    - name: Setup .NET SDK 8.0.424
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: "8.0.x"
+        dotnet-version: "8.0.424"
 
     - name: Display .NET version info
       run: |
