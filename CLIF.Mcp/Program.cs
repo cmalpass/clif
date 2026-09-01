@@ -7,6 +7,8 @@ using CLIF.Mcp.Core;
 using CLIF.Mcp.Diagnostics;
 using CLIF.Mcp.Security;
 using CLIF.Mcp.Tools;
+using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol.Protocol;
 
 // Create shared services
 var sessionManager = new WindowSessionManager();
@@ -32,8 +34,22 @@ toolRegistry.RegisterTool(new InteractTool(elementRegistry));
 toolRegistry.RegisterTool(new SearchTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ScriptTool());
 
-// Create and run MCP server
-var server = new McpServer(toolRegistry, diagnostics);
+// Build the official MCP SDK host around the application-owned registry.
+var sdkTools = McpSdkToolAdapter.CreateAll(toolRegistry);
+var services = new ServiceCollection();
+services
+    .AddMcpServer(options =>
+    {
+        options.ServerInfo = new Implementation
+        {
+            Name = "clif-mcp",
+            Version = "0.1.0",
+        };
+    })
+    .WithStdioServerTransport()
+    .WithTools(sdkTools);
+await using var serviceProvider = services.BuildServiceProvider();
+var server = serviceProvider.GetRequiredService<ModelContextProtocol.Server.McpServer>();
 
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
