@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentAssertions;
 using CLIF.Mcp;
+using CLIF.Mcp.Diagnostics;
 using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tests.Unit;
@@ -232,6 +233,25 @@ public class ToolRegistryTests
 
         result.IsError.Should().BeTrue();
         result.Content[0].Text.Should().Contain("MCP_INVALID_PARAMS");
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_EmitsStartedAndCompletedDiagnosticsWithoutArguments()
+    {
+        using var writer = new StringWriter();
+        var registry = new ToolRegistry(diagnostics: new McpDiagnostics(writer, enabled: true));
+        registry.RegisterTool(new EchoTool());
+
+        await registry.ExecuteToolAsync("clif_echo", null);
+
+        var events = new List<string?>();
+        foreach (var line in writer.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
+        {
+            using var document = JsonDocument.Parse(line);
+            events.Add(document.RootElement.GetProperty("event").GetString());
+        }
+        events.Should().ContainInOrder("mcp.tool.started", "mcp.tool.completed");
+        writer.ToString().Should().NotContain("hello world");
     }
 
     // --- Fake tool implementations for testing ---
