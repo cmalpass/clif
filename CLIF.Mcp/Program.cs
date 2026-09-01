@@ -10,6 +10,7 @@ using CLIF.Mcp.Tools;
 // Create shared services
 var sessionManager = new WindowSessionManager();
 var elementRegistry = new ElementRegistry();
+sessionManager.WindowRemoved += elementRegistry.RemoveWindow;
 var safetyPolicy = McpSafetyPolicy.FromEnvironment();
 
 // Register all MCP tools
