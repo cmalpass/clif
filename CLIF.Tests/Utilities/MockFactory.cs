@@ -46,7 +46,7 @@ public class MockFactory
     {
         var mock = new Mock<IProcessService>();
 
-        mock.Setup(x => x.GetWpfProcessesAsync())
+        mock.Setup(x => x.GetDesktopProcessesAsync())
             .Returns(Task.FromResult(new List<ProcessInfo>
             {
                 new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window", HasMainWindow = true },

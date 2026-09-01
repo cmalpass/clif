@@ -267,7 +267,7 @@ public class ScriptService : IScriptService
                 return false;
             }
 
-            var processes = await this.processService.GetWpfProcessesAsync();
+            var processes = await this.processService.GetDesktopProcessesAsync();
             var targetProcess = processes.FirstOrDefault(p =>
                 (processIdOverride.HasValue && p.Id == processIdOverride.Value) ||
                 (!processIdOverride.HasValue && (

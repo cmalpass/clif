@@ -9,13 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CLIF.Commands;
 
-/// <summary>Provides the command-line entry point for listing WPF processes.</summary>
+/// <summary>Provides the command-line entry point for listing desktop automation candidates.</summary>
 public class ListProcessesCommand : Command
 {
     /// <summary>Initializes a new instance of the <see cref="ListProcessesCommand"/> class. Creates the process-listing command.</summary>
     /// <param name="serviceProvider">Provider used to resolve the process service.</param>
     public ListProcessesCommand(IServiceProvider serviceProvider)
-        : base("list-processes", "List all available WPF processes")
+        : base("list-processes", "List desktop processes with an accessible main window")
     {
         var detailedOption = new Option<bool>("--detailed") { Description = "Show detailed process information" };
         var formatOption = new Option<string>("--format") { Description = "Output format (table, json, csv)" };
@@ -33,11 +33,11 @@ public class ListProcessesCommand : Command
 
             try
             {
-                var processes = await processService.GetWpfProcessesAsync();
+                var processes = await processService.GetDesktopProcessesAsync();
 
                 if (!processes.Any())
                 {
-                    Console.WriteLine("No WPF processes found.");
+                    Console.WriteLine("No desktop processes with an accessible main window were found.");
                     return;
                 }
 

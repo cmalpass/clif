@@ -69,7 +69,7 @@ public class TreeCommand : Command
 
                 if (targetProcess == null)
                 {
-                    Console.WriteLine($"Process '{process}' not found or is not a WPF application.");
+                    Console.WriteLine($"Process '{process}' was not found or has no accessible desktop window.");
                     return;
                 }
 
