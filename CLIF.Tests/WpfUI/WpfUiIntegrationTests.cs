@@ -154,11 +154,96 @@ public class WpfUiIntegrationTests
             ?.AsButton();
 
         button.Should().NotBeNull("ToggleButton should exist in the main window");
-        button!.Click();
+        var invokePattern = button!.Patterns.Invoke.PatternOrDefault;
+        invokePattern.Should().NotBeNull("ToggleButton should expose the UIA Invoke pattern");
+        invokePattern!.Invoke();
 
         // After clicking the toggle button (which only changes its label, no dialogs)
         // the window must still be visible.
         window.IsOffscreen.Should().BeFalse("the window should remain visible after a button click");
+    }
+
+    // ─── Delayed and virtualized content ────────────────────────────────────
+
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public void DelayedContent_WhenInvoked_ShouldBecomeAutomationVisible()
+    {
+        _fixture.SkipIfUnavailable();
+
+        var window = _fixture.GetMainWindow();
+        var button = window
+            .FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName("Load delayed content")))
+            ?.AsButton();
+        button.Should().NotBeNull();
+        var delayedContentInvoke = button!.Patterns.Invoke.PatternOrDefault;
+        delayedContentInvoke.Should().NotBeNull();
+        button.Invoke();
+
+        var content = Retry.WhileNull(
+                () =>
+                {
+                    var text = window.FindFirstDescendant(cf => cf.ByAutomationId("DelayedContentText"))
+                        ?.Properties.Name.ValueOrDefault;
+                    return string.Equals(text, "Delayed content is ready.", StringComparison.Ordinal)
+                        ? text
+                        : null;
+                },
+                timeout: TimeSpan.FromSeconds(5),
+                interval: TimeSpan.FromMilliseconds(100),
+                throwOnTimeout: false,
+                ignoreException: true)
+            .Result;
+
+        content.Should().Be("Delayed content is ready.");
+    }
+
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public void VirtualizedList_ShouldExposeInitialItemsThroughUiAutomation()
+    {
+        _fixture.SkipIfUnavailable();
+
+        var list = _fixture.GetMainWindow()
+            .FindFirstDescendant(cf => cf.ByAutomationId("VirtualizedListBox"))
+            ?.AsListBox();
+
+        list.Should().NotBeNull("the compatibility fixture should expose a virtualized list");
+        list!.Items.Should().Contain(item => item.Name == "Virtual item 001");
+    }
+
+    // ─── Multiple top-level windows ─────────────────────────────────────────
+
+    [Fact]
+    [Trait("Category", "WpfUI")]
+    public void CompatibilityChildWindow_OpenAction_ShouldCompleteWithoutMouseInput()
+    {
+        _fixture.SkipIfUnavailable();
+
+        var button = _fixture.GetMainWindow()
+            .FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName("Open compatibility child window")))
+            ?.AsButton();
+        button.Should().NotBeNull();
+        var childWindowInvoke = button!.Patterns.Invoke.PatternOrDefault;
+        childWindowInvoke.Should().NotBeNull();
+        button.Invoke();
+
+        var actionStatus = Retry.WhileNull(
+                () =>
+                {
+                    var status = _fixture.GetMainWindow()
+                        .FindFirstDescendant(cf => cf.ByAutomationId("DelayedContentText"))
+                        ?.Properties.Name.ValueOrDefault;
+                    return string.Equals(status, "Compatibility child window shown.", StringComparison.Ordinal)
+                        ? status
+                        : null;
+                },
+                timeout: TimeSpan.FromSeconds(2),
+                interval: TimeSpan.FromMilliseconds(100),
+                throwOnTimeout: false,
+                ignoreException: true)
+            .Result;
+        actionStatus.Should().Be("Compatibility child window shown.");
     }
 
     // ─── TreeView ────────────────────────────────────────────────────────────

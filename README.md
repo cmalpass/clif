@@ -611,6 +611,12 @@ clif type --process-id <PID> --element "id=TestTextBox" --text "Hello MVVM!"
 clif interact --process-id <PID> --element "id=TestCheckBox" --control-type checkbox --action toggle
 ```
 
+The Windows UI compatibility suite uses this fixture to cover UIA-pattern
+invocation (without mouse injection), delayed content, virtualized list items,
+and an owner-bound secondary window. Applications with owner-drawn controls,
+custom UIA providers, UAC elevation boundaries, or non-default DPI settings
+should also be validated against their deployed target environment.
+
 ### Documentation
 - **README.md**: Architecture overview and features
 - **CALIBURN_CONVENTIONS.md**: Complete convention guide for Caliburn.Micro
