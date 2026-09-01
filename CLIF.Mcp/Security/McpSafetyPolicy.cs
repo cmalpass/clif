@@ -29,6 +29,15 @@ public sealed class McpSafetyPolicy
     /// </summary>
     public const int MaximumScreenshotBytes = 8 * 1024 * 1024;
 
+    /// <summary>Maximum UTF-16 characters accepted in one MCP string argument.</summary>
+    public const int MaximumArgumentStringLength = 16_384;
+
+    /// <summary>Maximum serialized argument payload accepted by a tool call.</summary>
+    public const int MaximumArgumentPayloadBytes = 128 * 1024;
+
+    /// <summary>Maximum total time permitted for one batch request.</summary>
+    public const int MaximumBatchDurationMilliseconds = 30_000;
+
     /// <summary>
     /// Creates an immutable policy for one MCP session.
     /// </summary>

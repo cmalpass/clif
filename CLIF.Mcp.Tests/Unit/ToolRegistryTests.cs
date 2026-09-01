@@ -207,6 +207,33 @@ public class ToolRegistryTests
         tool.Executed.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task ExecuteToolAsync_RejectsNonObjectArguments()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterTool(new EchoTool());
+        using var document = JsonDocument.Parse("[1,2,3]");
+
+        var result = await registry.ExecuteToolAsync("clif_echo", document.RootElement);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Be("MCP_INVALID_PARAMS: tool arguments must be a JSON object");
+    }
+
+    [Fact]
+    public async Task ExecuteToolAsync_RejectsOversizedStringArguments()
+    {
+        var registry = new ToolRegistry();
+        registry.RegisterTool(new EchoTool());
+        var payload = JsonSerializer.Serialize(new { message = new string('x', McpSafetyPolicy.MaximumArgumentStringLength + 1) });
+        using var document = JsonDocument.Parse(payload);
+
+        var result = await registry.ExecuteToolAsync("clif_echo", document.RootElement);
+
+        result.IsError.Should().BeTrue();
+        result.Content[0].Text.Should().Contain("MCP_INVALID_PARAMS");
+    }
+
     // --- Fake tool implementations for testing ---
 
     private sealed class FakeToolA : ToolBase

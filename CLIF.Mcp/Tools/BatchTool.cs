@@ -1,6 +1,7 @@
 // Licensed under the MIT License.
 
 using System.Text.Json;
+using System.Diagnostics;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
@@ -106,6 +107,17 @@ public class BatchTool : ToolBase
 
     /// <inheritdoc />
     public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+        => ExecuteCoreAsync(arguments, CancellationToken.None);
+
+    /// <inheritdoc />
+    public override Task<McpToolResult> ExecuteAsync(
+        JsonElement? arguments,
+        CancellationToken cancellationToken)
+        => ExecuteCoreAsync(arguments, cancellationToken);
+
+    private Task<McpToolResult> ExecuteCoreAsync(
+        JsonElement? arguments,
+        CancellationToken cancellationToken)
     {
         if (arguments == null || !arguments.Value.TryGetProperty("actions", out var actionsElement))
         {
@@ -132,11 +144,19 @@ public class BatchTool : ToolBase
         }
 
         var failed = false;
+        var stopwatch = Stopwatch.StartNew();
 
         foreach (var (actionObj, index) in actions.Select((a, i) => (a, i)))
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (stopwatch.ElapsedMilliseconds > McpSafetyPolicy.MaximumBatchDurationMilliseconds)
+                {
+                    return Task.FromResult(ErrorResult(
+                        $"Batch exceeds the maximum duration of {McpSafetyPolicy.MaximumBatchDurationMilliseconds}ms."));
+                }
+
                 var actionType = actionObj.GetProperty("action").GetString();
                 var result = actionType switch
                 {
