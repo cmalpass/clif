@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace CLIF.Services;
 
-/// <summary>Discovers and inspects processes that host WPF windows.</summary>
+/// <summary>Discovers and inspects processes that expose desktop windows.</summary>
 [SupportedOSPlatform("windows7.0")]
 public class ProcessService : IProcessService
 {
@@ -24,67 +24,56 @@ public class ProcessService : IProcessService
         this.logger = logger;
     }
 
-    /// <summary>Gets the currently running processes that appear to host WPF windows.</summary>
-    /// <returns>The discovered WPF process information, ordered by process name.</returns>
-    public async Task<List<ProcessInfo>> GetWpfProcessesAsync()
+    /// <summary>Gets the currently running processes that are candidates for desktop UI Automation.</summary>
+    /// <returns>The discovered process information, ordered by process name.</returns>
+    public async Task<List<ProcessInfo>> GetDesktopProcessesAsync()
     {
         return await Task.Run(() =>
         {
-            var wpfProcesses = new List<ProcessInfo>();
+            var desktopProcesses = new List<ProcessInfo>();
 
             try
             {
-                var processes = Process.GetProcesses();
-
-                foreach (var process in processes)
+                foreach (var process in Process.GetProcesses())
                 {
-                    try
+                    using (process)
                     {
-                        if (process.HasExited || process.MainWindowHandle == IntPtr.Zero)
+                        try
                         {
-                            continue;
-                        }
-
-                        // Check if it's a .NET/WPF application by looking at loaded modules
-                        if (this.IsWpfProcess(process))
-                        {
-                            wpfProcesses.Add(new ProcessInfo
+                            if (!this.TryGetDesktopProcessInfo(process, out var processInfo))
                             {
-                                Id = process.Id,
-                                Name = process.ProcessName,
-                                WindowTitle = process.MainWindowTitle,
-                                ExecutablePath = this.GetExecutablePath(process),
-                                StartTime = process.StartTime,
-                                HasMainWindow = process.MainWindowHandle != IntPtr.Zero,
-                            });
+                                continue;
+                            }
+
+                            desktopProcesses.Add(processInfo);
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        this.logger.LogWarning($"Failed to process {process.ProcessName}: {ex.Message}");
+                        catch (Exception ex)
+                        {
+                            this.logger.LogWarning(ex, "Failed to inspect a desktop process.");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                this.logger.LogError(ex, "Failed to get WPF processes");
+                this.logger.LogError(ex, "Failed to get desktop automation candidates");
             }
 
-            return wpfProcesses.OrderBy(p => p.Name).ToList();
+            return desktopProcesses.OrderBy(p => p.Name).ToList();
         });
     }
 
-    /// <summary>Finds a WPF process by its executable or process name.</summary>
+    /// <summary>Finds a desktop automation candidate by its executable or process name.</summary>
     /// <param name="processName">The process name to match, ignoring case.</param>
     /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByNameAsync(string processName)
     {
-        var processes = await this.GetWpfProcessesAsync();
+        var processes = await this.GetDesktopProcessesAsync();
         return processes.FirstOrDefault(p =>
             string.Equals(p.Name, processName, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Finds a WPF process by a substring of its main window title.</summary>
+    /// <summary>Finds a desktop automation candidate by a substring of its main window title.</summary>
     /// <param name="windowTitle">The window-title text to match, ignoring case.</param>
     /// <returns>The matching process, or <see langword="null"/> when no process matches.</returns>
     public async Task<ProcessInfo?> FindProcessByWindowTitleAsync(string windowTitle)
@@ -95,35 +84,27 @@ public class ProcessService : IProcessService
             return null;
         }
 
-        var processes = await this.GetWpfProcessesAsync();
+        var processes = await this.GetDesktopProcessesAsync();
         return processes.FirstOrDefault(p =>
             p.WindowTitle.Contains(windowTitle, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Finds a WPF process by process identifier.</summary>
+    /// <summary>Finds a desktop automation candidate by process identifier.</summary>
     /// <param name="processId">The process identifier to inspect.</param>
-    /// <returns>The matching process, or <see langword="null"/> when it is not a WPF process or cannot be found.</returns>
+    /// <returns>The matching process, or <see langword="null"/> when it has no accessible main window or cannot be found.</returns>
     public async Task<ProcessInfo?> FindProcessByIdAsync(int processId)
     {
         return await Task.Run(() =>
         {
             try
             {
-                var process = Process.GetProcessById(processId);
-                if (process.HasExited || !this.IsWpfProcess(process))
+                using var process = Process.GetProcessById(processId);
+                if (!this.TryGetDesktopProcessInfo(process, out var processInfo))
                 {
                     return null;
                 }
 
-                return new ProcessInfo
-                {
-                    Id = process.Id,
-                    Name = process.ProcessName,
-                    WindowTitle = process.MainWindowTitle,
-                    ExecutablePath = this.GetExecutablePath(process),
-                    StartTime = process.StartTime,
-                    HasMainWindow = process.MainWindowHandle != IntPtr.Zero,
-                };
+                return processInfo;
             }
             catch (Exception ex)
             {
@@ -142,7 +123,7 @@ public class ProcessService : IProcessService
         {
             try
             {
-                var process = Process.GetProcessById(processId);
+                using var process = Process.GetProcessById(processId);
                 return !process.HasExited;
             }
             catch
@@ -152,31 +133,31 @@ public class ProcessService : IProcessService
         });
     }
 
-    private bool IsWpfProcess(Process process)
+    private bool TryGetDesktopProcessInfo(Process process, out ProcessInfo processInfo)
     {
+        processInfo = null!;
         try
         {
-            // Check for common WPF/Windows Forms indicators
-            var modules = process.Modules;
-            foreach (ProcessModule module in modules)
+            if (process.HasExited || process.MainWindowHandle == IntPtr.Zero)
             {
-                var moduleName = module.ModuleName.ToLowerInvariant();
-                if (moduleName.Contains("presentationframework") ||
-                    moduleName.Contains("presentationcore") ||
-                    moduleName.Contains("windowsbase") ||
-                    moduleName.Contains("system.windows.forms"))
-                {
-                    return true;
-                }
+                return false;
             }
 
-            // If we can't check modules, assume it's a GUI app if it has a main window
-            return process.MainWindowHandle != IntPtr.Zero;
+            processInfo = new ProcessInfo
+            {
+                Id = process.Id,
+                Name = process.ProcessName,
+                WindowTitle = process.MainWindowTitle,
+                ExecutablePath = this.GetExecutablePath(process),
+                StartTime = process.StartTime,
+                HasMainWindow = true,
+            };
+            return true;
         }
         catch
         {
-            // If we can't access modules (permissions), check if it has a window
-            return process.MainWindowHandle != IntPtr.Zero;
+            // Access-denied and exited processes are not safe attachment candidates.
+            return false;
         }
     }
 

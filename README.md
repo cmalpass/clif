@@ -8,7 +8,7 @@ A powerful .NET CLI tool and MCP server for automating Windows desktop applicati
 
 ## Features
 
-🔧 **Process Attachment**: Attach to running WPF processes by process ID with robust error handling
+🔧 **Process Attachment**: Attach to Windows desktop processes with an accessible main window
 🌳 **Element Tree Navigation**: Explore and print automation element trees with filtering and search options  
 ⚡ **Advanced Control Support**: Comprehensive interactions with ComboBox, ListBox, DataGrid, TreeView, TabControl, Expander, ToggleButton, Menu, and more
 📝 **Script Support**: JSON-based automation scripts with session capture and logging
@@ -328,7 +328,7 @@ CLIF supports multiple selector formats:
 ### Core Commands
 
 #### `list-processes [options]`
-List all available WPF processes.
+List desktop processes with an accessible main window. A listed process is a UI Automation candidate; CLIF reports a clear error if Windows denies access or the application does not expose an automatable main window.
 
 **Options:**
 - `--detailed` - Show detailed process information

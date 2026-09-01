@@ -9,7 +9,7 @@ automation service.
 
 | Component | Supported environment | Purpose |
 | --- | --- | --- |
-| `CLIF.exe` | Windows 10/11, interactive desktop session | CLI automation of WPF applications |
+| `CLIF.exe` | Windows 10/11, interactive desktop session | CLI automation of desktop applications that expose UI Automation |
 | `CLIF.Mcp.exe` | Windows 10/11, interactive desktop session | Local MCP stdio server for AI clients |
 | `TestWpfApp` | Windows | WPF integration fixture |
 | `TestCrossPlatformApp` | Windows, macOS, Linux | Portable contract-test fixture only |
@@ -66,11 +66,17 @@ dotnet run --project .\CLIF\CLIF.csproj -- --help
 
 ## CLI quick start
 
-List candidate WPF processes and note the PID:
+List desktop automation candidates and note the PID. A listed process has an accessible main window; it is not a guarantee that every control is exposed through UI Automation:
 
 ```powershell
 .\CLIF.exe list-processes --detailed
 ```
+
+CLIF does not inspect application frameworks to classify targets. It lists
+processes with an accessible desktop window, then reports an attachment failure
+if Windows access controls or the application's UI Automation provider prevents
+automation. Run CLIF at the same integrity level as the target application; an
+unelevated process cannot reliably automate an elevated one.
 
 Inspect an application before mutating it:
 

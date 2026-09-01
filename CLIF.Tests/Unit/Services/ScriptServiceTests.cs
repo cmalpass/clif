@@ -75,7 +75,7 @@ public class ScriptServiceTests : IDisposable
     public async Task ExecuteScriptContentAsync_WithMissingTarget_ShouldNotAttachToAnArbitraryProcess()
     {
         // Arrange
-        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        _mockProcessService.Setup(service => service.GetDesktopProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
         {
             new() { Id = 1234, Name = "UnrelatedApp", WindowTitle = "Unrelated Window" }
         });
@@ -90,7 +90,7 @@ public class ScriptServiceTests : IDisposable
         // Assert
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("attach");
-        _mockProcessService.Verify(service => service.GetWpfProcessesAsync(), Times.Never);
+        _mockProcessService.Verify(service => service.GetDesktopProcessesAsync(), Times.Never);
         _mockAutomationService.Verify(service => service.AttachToProcessAsync(It.IsAny<int>()), Times.Never);
     }
 
@@ -137,7 +137,7 @@ public class ScriptServiceTests : IDisposable
     public async Task ExecuteScriptContentAsync_WhenAutomationAttachmentFails_ShouldReturnFailure()
     {
         // Arrange
-        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        _mockProcessService.Setup(service => service.GetDesktopProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
         {
             new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window" }
         });
@@ -159,7 +159,7 @@ public class ScriptServiceTests : IDisposable
     public async Task ExecuteScriptContentAsync_WithUnknownAction_ShouldRecordStepFailure()
     {
         // Arrange
-        _mockProcessService.Setup(service => service.GetWpfProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
+        _mockProcessService.Setup(service => service.GetDesktopProcessesAsync()).ReturnsAsync(new List<ProcessInfo>
         {
             new() { Id = 1234, Name = "TestApp", WindowTitle = "Test Window" }
         });
