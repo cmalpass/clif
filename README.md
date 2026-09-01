@@ -26,9 +26,13 @@ A powerful .NET CLI tool and MCP server for automating Windows desktop applicati
 - .NET 8.0 or later
 - Windows OS (UI Automation is Windows-specific)
 
-### Cross-Platform Test Fixture
+### Cross-Platform Test Fixture (not a cross-platform CLIF backend)
 
-The repository also includes `TestCrossPlatformApp`, an Avalonia-based desktop fixture that targets Windows, macOS, and Linux. It provides a stable control surface for future CLIF backends and cross-platform smoke tests while `TestWpfApp` remains the Windows/WPF compatibility fixture used by the current FlaUI integration tests.
+The repository also includes `TestCrossPlatformApp`, an Avalonia-based desktop
+fixture that targets Windows, macOS, and Linux. It provides a stable control
+surface for contract tests and future backends; it does not make CLIF itself
+cross-platform. CLIF's production backend remains Windows UI Automation, while
+`TestWpfApp` is the primary Windows/WPF compatibility fixture.
 
 ```bash
 dotnet run --project TestCrossPlatformApp/TestCrossPlatformApp.csproj
@@ -105,9 +109,12 @@ clif interactive --process-id 1234
 # Interactive mode is currently under development
 ```
 
-## MCP Server (AI Agent Integration)
+## MCP Server (AI Agent Integration, Windows only)
 
-CLIF includes a standalone MCP (Model Context Protocol) server that allows AI agents to automate Windows desktop applications. The MCP server is inspired by [FlaUI-MCP](https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
+CLIF includes a standalone MCP (Model Context Protocol) server that allows AI
+agents to automate Windows desktop applications. It is a local Windows stdio
+server, not a hosted or cross-platform automation service. The MCP server is
+inspired by [FlaUI-MCP](https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 ### Quick Start
 
