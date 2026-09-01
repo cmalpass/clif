@@ -29,13 +29,26 @@ public sealed class McpSafetyPolicy
     /// </summary>
     public const int MaximumScreenshotBytes = 8 * 1024 * 1024;
 
-    private McpSafetyPolicy(
-        IReadOnlySet<string> allowedApplications,
-        bool allowWindowEnumeration,
-        bool allowWindowClose,
-        bool allowFullScreenCapture)
+    /// <summary>
+    /// Creates an immutable policy for one MCP session.
+    /// </summary>
+    /// <param name="allowedApplications">Exact executable names or canonical paths allowed to launch.</param>
+    /// <param name="allowInput">Whether mutating keyboard, mouse, and control operations are allowed.</param>
+    /// <param name="allowWindowEnumeration">Whether desktop window enumeration is allowed.</param>
+    /// <param name="allowWindowClose">Whether registered windows may be closed.</param>
+    /// <param name="allowFullScreenCapture">Whether full-screen capture is allowed.</param>
+    public McpSafetyPolicy(
+        IEnumerable<string>? allowedApplications = null,
+        bool allowInput = false,
+        bool allowWindowEnumeration = false,
+        bool allowWindowClose = false,
+        bool allowFullScreenCapture = false)
     {
-        AllowedApplications = allowedApplications;
+        AllowedApplications = (allowedApplications ?? Enumerable.Empty<string>())
+            .Where(application => !string.IsNullOrWhiteSpace(application))
+            .Select(application => application.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        AllowInput = allowInput;
         AllowWindowEnumeration = allowWindowEnumeration;
         AllowWindowClose = allowWindowClose;
         AllowFullScreenCapture = allowFullScreenCapture;
@@ -46,6 +59,9 @@ public sealed class McpSafetyPolicy
     /// An empty set denies all launches.
     /// </summary>
     public IReadOnlySet<string> AllowedApplications { get; }
+
+    /// <summary>Gets a value indicating whether mutating UI input is allowed.</summary>
+    public bool AllowInput { get; }
 
     /// <summary>
     /// Gets a value indicating whether a session may enumerate desktop windows.
@@ -73,10 +89,26 @@ public sealed class McpSafetyPolicy
 
         return new McpSafetyPolicy(
             allowedApplications,
+            GetBooleanEnvironmentVariable("CLIF_MCP_ALLOW_INPUT"),
             GetBooleanEnvironmentVariable("CLIF_MCP_ALLOW_WINDOW_ENUMERATION"),
             GetBooleanEnvironmentVariable("CLIF_MCP_ALLOW_WINDOW_CLOSE"),
             GetBooleanEnvironmentVariable("CLIF_MCP_ALLOW_FULL_SCREEN_CAPTURE"));
     }
+
+    /// <summary>
+    /// Determines whether the policy grants the supplied MCP capability.
+    /// </summary>
+    public bool IsCapabilityAllowed(McpCapability capability) => capability switch
+    {
+        McpCapability.ReadOnly => true,
+        McpCapability.Input => AllowInput,
+        McpCapability.Launch => AllowedApplications.Count > 0,
+        McpCapability.WindowEnumeration => AllowWindowEnumeration,
+        McpCapability.WindowFocus => AllowInput,
+        McpCapability.WindowClose => AllowWindowClose,
+        McpCapability.FullScreenCapture => AllowFullScreenCapture,
+        _ => false,
+    };
 
     /// <summary>
     /// Determines whether the supplied executable is explicitly approved for launch.

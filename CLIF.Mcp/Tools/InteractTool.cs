@@ -5,6 +5,7 @@ using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -27,6 +28,9 @@ public class InteractTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_interact";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Input;
 
     /// <inheritdoc />
     public override string Description =>

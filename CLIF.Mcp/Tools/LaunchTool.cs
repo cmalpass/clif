@@ -29,6 +29,9 @@ public class LaunchTool : ToolBase
     public override string Name => "clif_launch";
 
     /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Launch;
+
+    /// <inheritdoc />
     public override string Description =>
         "Launch a Windows application and return its window handle. " +
         "Supports Win32, WPF, WinForms, and UWP applications.";

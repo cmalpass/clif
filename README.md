@@ -137,6 +137,25 @@ Configure your AI tool to use CLIF as an MCP server:
 }
 ```
 
+### MCP permissions
+
+The MCP server uses a default-deny, least-privilege policy. Launches require an
+exact executable name or canonical path in `CLIF_MCP_ALLOWED_APPS`; mutating UI
+actions require `CLIF_MCP_ALLOW_INPUT=true`. Window enumeration, window close,
+and full-screen capture are independently disabled unless explicitly enabled:
+
+```text
+CLIF_MCP_ALLOWED_APPS=C:\Path\To\TestWpfApp.exe
+CLIF_MCP_ALLOW_INPUT=true
+CLIF_MCP_ALLOW_WINDOW_ENUMERATION=false
+CLIF_MCP_ALLOW_WINDOW_CLOSE=false
+CLIF_MCP_ALLOW_FULL_SCREEN_CAPTURE=false
+```
+
+Keep these permissions scoped to a dedicated local session and grant only the
+applications and capabilities required for the task. Permission changes take
+effect when a new MCP server process starts.
+
 **Using compiled executable:**
 ```json
 {
