@@ -74,8 +74,6 @@ public class ScriptService : IScriptService
         }
     }
 
-
-
     /// <inheritdoc />
     public async Task<ScriptExecutionResult> ExecuteScriptContentAsync(string jsonContent, int? processIdOverride = null)
     {
