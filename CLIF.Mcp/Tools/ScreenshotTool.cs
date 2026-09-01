@@ -118,6 +118,12 @@ public class ScreenshotTool : ToolBase
         }
         catch (Exception)
         {
+            if (!string.IsNullOrEmpty(handle))
+            {
+                _sessionManager.InvalidateWindow(handle);
+                _elementRegistry.RemoveWindow(handle);
+            }
+
             return Task.FromResult(ErrorResult("Failed to capture screenshot."));
         }
     }

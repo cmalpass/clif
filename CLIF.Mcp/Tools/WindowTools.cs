@@ -127,9 +127,11 @@ public class FocusWindowTool : ToolBase
             _sessionManager.FocusWindow(handle);
             return Task.FromResult(TextResult($"Focused window {handle}"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Task.FromResult(ErrorResult($"Failed to focus window: {ex.Message}"));
+            _sessionManager.InvalidateWindow(handle);
+            return Task.FromResult(ErrorResult(
+                $"Window is no longer available: {handle}. Run clif_list_windows and acquire a new handle."));
         }
     }
 }
@@ -207,6 +209,8 @@ public class CloseWindowTool : ToolBase
         }
         catch (Exception)
         {
+            _sessionManager.InvalidateWindow(handle);
+            _elementRegistry?.RemoveWindow(handle);
             return Task.FromResult(ErrorResult("Failed to close the window."));
         }
     }

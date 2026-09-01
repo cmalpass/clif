@@ -59,6 +59,25 @@ public sealed class McpAllToolsBlackBoxTests
         await AssertCloseWorksAsync(windowHandle);
     }
 
+    [Fact]
+    public async Task McpProcess_ExitedTargetInvalidatesWindowAndElementReferences()
+    {
+        await _fixture.InitializeAsync();
+        var windowHandle = await LaunchFixtureAsync();
+        await _fixture.TrackLaunchedWpfApplicationAsync(windowHandle);
+        var elementReference = await FindReferenceAsync(windowHandle, "TestTextBox");
+
+        await _fixture.TerminateTrackedWpfApplicationAsync();
+
+        using (var snapshotResponse = await _fixture.CallToolAsync("clif_snapshot", new { handle = windowHandle }))
+        {
+            AssertToolErrorContains(snapshotResponse.RootElement, "Window is no longer available");
+        }
+
+        using var textResponse = await _fixture.CallToolAsync("clif_get_text", new { @ref = elementReference });
+        AssertToolErrorContains(textResponse.RootElement, "Element not found");
+    }
+
     private async Task AssertAllToolsAreAdvertisedAsync()
     {
         using var response = await _fixture.SendRequestAsync("tools/list");
@@ -210,5 +229,20 @@ public sealed class McpAllToolsBlackBoxTests
     {
         using var response = await _fixture.CallToolAsync("clif_close", new { handle = windowHandle });
         Assert.Contains("Closed window", McpProcessFixture.GetSuccessfulToolText(response.RootElement));
+    }
+
+    private static void AssertToolErrorContains(JsonElement response, string expectedText)
+    {
+        McpProcessFixture.AssertNoProtocolError(response);
+        var result = response.GetProperty("result");
+        Assert.True(
+            result.TryGetProperty("isError", out var isError) && isError.GetBoolean(),
+            $"Expected a tool error but received: {result.GetRawText()}");
+        var text = string.Join(
+            Environment.NewLine,
+            result.GetProperty("content").EnumerateArray()
+                .Where(item => item.GetProperty("type").GetString() == "text")
+                .Select(item => item.GetProperty("text").GetString()));
+        Assert.Contains(expectedText, text);
     }
 }
