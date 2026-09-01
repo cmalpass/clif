@@ -66,6 +66,30 @@
                                     Width="150" 
                                     Height="36" 
                                     Margin="0,8"/>
+
+                            <!-- Automation compatibility scenarios kept near the top so
+                                 they are materialized without scrolling the fixture. -->
+                            <Button x:Name="LoadDelayedContent"
+                                    Content="Load delayed content"
+                                    Width="220"
+                                    Margin="0,8"
+                                    Click="LoadDelayedContent_Click"/>
+                            <TextBlock x:Name="DelayedContentText"
+                                       Text="Delayed content has not been loaded."
+                                       Margin="0,6,0,0"
+                                       TextWrapping="Wrap"/>
+                            <Button x:Name="OpenCompatibilityWindow"
+                                    Content="Open compatibility child window"
+                                    Width="220"
+                                    Margin="0,8,0,0"
+                                    Click="OpenCompatibilityWindow_Click"/>
+                            <ListBox x:Name="VirtualizedListBox"
+                                     ItemsSource="{Binding VirtualizedItems}"
+                                     Height="120"
+                                     Margin="0,8,0,0"
+                                     VirtualizingStackPanel.IsVirtualizing="True"
+                                     VirtualizingStackPanel.VirtualizationMode="Recycling"
+                                     ScrollViewer.CanContentScroll="True"/>
                                     
                             <Button x:Name="OutlinedButton" 
                                     Style="{DynamicResource MaterialDesignOutlinedButton}"
