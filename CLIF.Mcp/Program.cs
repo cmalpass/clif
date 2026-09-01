@@ -4,6 +4,7 @@
 
 using CLIF.Mcp;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Diagnostics;
 using CLIF.Mcp.Security;
 using CLIF.Mcp.Tools;
 
@@ -12,9 +13,10 @@ var sessionManager = new WindowSessionManager();
 var elementRegistry = new ElementRegistry();
 sessionManager.WindowRemoved += elementRegistry.RemoveWindow;
 var safetyPolicy = McpSafetyPolicy.FromEnvironment();
+var diagnostics = new McpDiagnostics();
 
 // Register all MCP tools
-var toolRegistry = new ToolRegistry(safetyPolicy);
+var toolRegistry = new ToolRegistry(safetyPolicy, diagnostics);
 toolRegistry.RegisterTool(new LaunchTool(sessionManager, safetyPolicy));
 toolRegistry.RegisterTool(new SnapshotTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ClickTool(elementRegistry));
@@ -31,7 +33,7 @@ toolRegistry.RegisterTool(new SearchTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ScriptTool());
 
 // Create and run MCP server
-var server = new McpServer(toolRegistry);
+var server = new McpServer(toolRegistry, diagnostics);
 
 using var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
