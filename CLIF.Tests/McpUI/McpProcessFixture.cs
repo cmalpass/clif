@@ -24,6 +24,7 @@ public sealed class McpProcessFixture : IDisposable
     private readonly StreamWriter _standardInput;
     private readonly StreamReader _standardOutput;
     private int _nextRequestId;
+    private int? _mostRecentlyLaunchedWpfProcessId;
     private string? _launchedWindowHandle;
     private bool _initialized;
     private bool _disposed;
@@ -177,6 +178,7 @@ public sealed class McpProcessFixture : IDisposable
                 if (!_existingWpfProcessIds.Contains(process.Id))
                 {
                     _launchedWpfProcessIds.Add(process.Id);
+                    _mostRecentlyLaunchedWpfProcessId = process.Id;
                     return;
                 }
             }
@@ -186,6 +188,22 @@ public sealed class McpProcessFixture : IDisposable
 
         throw new InvalidOperationException(
             $"MCP launched window '{windowHandle}', but no new {Path.GetFileName(WpfExecutablePath)} process was found for cleanup.");
+    }
+
+    /// <summary>Terminates a tracked fixture process to exercise MCP stale-handle recovery.</summary>
+    public async Task TerminateTrackedWpfApplicationAsync()
+    {
+        if (!_mostRecentlyLaunchedWpfProcessId.HasValue)
+        {
+            throw new InvalidOperationException("No launched WPF fixture process is available to terminate.");
+        }
+
+        using var process = Process.GetProcessById(_mostRecentlyLaunchedWpfProcessId.Value);
+        if (!process.HasExited)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync();
+        }
     }
 
     /// <summary>Throws a useful assertion failure when a JSON-RPC response is an error.</summary>
