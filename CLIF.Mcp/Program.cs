@@ -16,9 +16,10 @@ var elementRegistry = new ElementRegistry();
 sessionManager.WindowRemoved += elementRegistry.RemoveWindow;
 var safetyPolicy = McpSafetyPolicy.FromEnvironment();
 var diagnostics = new McpDiagnostics();
+using var uiDispatcher = new UiDispatcher();
 
 // Register all MCP tools
-var toolRegistry = new ToolRegistry(safetyPolicy, diagnostics);
+var toolRegistry = new ToolRegistry(safetyPolicy, diagnostics, uiDispatcher);
 toolRegistry.RegisterTool(new LaunchTool(sessionManager, safetyPolicy));
 toolRegistry.RegisterTool(new SnapshotTool(sessionManager, elementRegistry));
 toolRegistry.RegisterTool(new ClickTool(elementRegistry));

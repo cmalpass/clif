@@ -62,12 +62,18 @@ public class TypeTool : ToolBase
     };
 
     /// <inheritdoc />
-    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments) => ExecuteCoreAsync(arguments, CancellationToken.None);
+
+    /// <inheritdoc />
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments, CancellationToken cancellationToken) =>
+        ExecuteCoreAsync(arguments, cancellationToken);
+
+    private async Task<McpToolResult> ExecuteCoreAsync(JsonElement? arguments, CancellationToken cancellationToken)
     {
         var text = GetStringArgument(arguments, "text");
         if (string.IsNullOrEmpty(text))
         {
-            return Task.FromResult(ErrorResult("Missing required argument: text"));
+            return ErrorResult("Missing required argument: text");
         }
 
         var refId = GetStringArgument(arguments, "ref");
@@ -75,7 +81,7 @@ public class TypeTool : ToolBase
 
         if (string.IsNullOrEmpty(refId))
         {
-            return Task.FromResult(ErrorResult("Missing required argument: ref"));
+            return ErrorResult("Missing required argument: ref");
         }
 
         try
@@ -83,8 +89,7 @@ public class TypeTool : ToolBase
             var element = _elementRegistry.GetElement(refId);
             if (element == null)
             {
-                return Task.FromResult(ErrorResult(
-                    $"Element not found: {refId}. Run clif_snapshot to refresh element refs."));
+                return ErrorResult($"Element not found: {refId}. Run clif_snapshot to refresh element refs.");
             }
 
             // Value controls (including WPF TextBox) do not guarantee that keyboard
@@ -98,7 +103,7 @@ public class TypeTool : ToolBase
             else
             {
                 element.Focus();
-                Thread.Sleep(50);
+                await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(50), cancellationToken);
                 Keyboard.Type(text);
             }
 
@@ -106,14 +111,18 @@ public class TypeTool : ToolBase
             {
                 element.Focus();
                 Keyboard.Press(VirtualKeyShort.ENTER);
-                return Task.FromResult(TextResult($"Typed and submitted text into {refId}"));
+                return TextResult($"Typed and submitted text into {refId}");
             }
 
-            return Task.FromResult(TextResult($"Typed text into {refId}"));
+            return TextResult($"Typed text into {refId}");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(ErrorResult($"Failed to type: {ex.Message}"));
+            return ErrorResult($"Failed to type: {ex.Message}");
         }
     }
 }
@@ -166,21 +175,26 @@ public class FillTool : ToolBase
     };
 
     /// <inheritdoc />
-    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments)
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments) => ExecuteCoreAsync(arguments, CancellationToken.None);
+
+    /// <inheritdoc />
+    public override Task<McpToolResult> ExecuteAsync(JsonElement? arguments, CancellationToken cancellationToken) =>
+        ExecuteCoreAsync(arguments, cancellationToken);
+
+    private async Task<McpToolResult> ExecuteCoreAsync(JsonElement? arguments, CancellationToken cancellationToken)
     {
         var refId = GetStringArgument(arguments, "ref");
         var value = GetStringArgument(arguments, "value");
 
         if (string.IsNullOrEmpty(refId) || value == null)
         {
-            return Task.FromResult(ErrorResult("Missing required arguments: ref, value"));
+            return ErrorResult("Missing required arguments: ref, value");
         }
 
         var element = _elementRegistry.GetElement(refId);
         if (element == null)
         {
-            return Task.FromResult(ErrorResult(
-                $"Element not found: {refId}. Run clif_snapshot to refresh element refs."));
+            return ErrorResult($"Element not found: {refId}. Run clif_snapshot to refresh element refs.");
         }
 
         try
@@ -188,20 +202,24 @@ public class FillTool : ToolBase
             if (element.Patterns.Value.IsSupported)
             {
                 element.Patterns.Value.Pattern.SetValue(value);
-                return Task.FromResult(TextResult($"Filled {refId} with \"{value}\""));
+                return TextResult($"Filled {refId} with \"{value}\"");
             }
 
             // Fallback: focus, select all, type
             element.Focus();
-            Thread.Sleep(30);
+            await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
-            Thread.Sleep(30);
+            await UiDispatcher.DelayAsync(TimeSpan.FromMilliseconds(30), cancellationToken);
             Keyboard.Type(value);
-            return Task.FromResult(TextResult($"Filled {refId} with \"{value}\""));
+            return TextResult($"Filled {refId} with \"{value}\"");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {
-            return Task.FromResult(ErrorResult($"Failed to fill {refId}: {ex.Message}"));
+            return ErrorResult($"Failed to fill {refId}: {ex.Message}");
         }
     }
 }
