@@ -2,6 +2,7 @@
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 using System.Text.Json;
+using System.Text;
 using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp;
@@ -61,6 +62,18 @@ public class ToolRegistry
             };
         }
 
+        if (!ValidateArguments(arguments, out var validationError))
+        {
+            return new McpToolResult
+            {
+                Content = new List<McpContent>
+                {
+                    new() { Type = "text", Text = $"MCP_INVALID_PARAMS: {validationError}" },
+                },
+                IsError = true,
+            };
+        }
+
         if (!_safetyPolicy.IsCapabilityAllowed(tool.RequiredCapability))
         {
             return new McpToolResult
@@ -92,6 +105,58 @@ public class ToolRegistry
                 IsError = true,
             };
         }
+    }
+
+    private static bool ValidateArguments(JsonElement? arguments, out string error)
+    {
+        error = string.Empty;
+        if (!arguments.HasValue)
+        {
+            return true;
+        }
+
+        if (arguments.Value.ValueKind != JsonValueKind.Object)
+        {
+            error = "tool arguments must be a JSON object";
+            return false;
+        }
+
+        var payloadBytes = Encoding.UTF8.GetByteCount(arguments.Value.GetRawText());
+        if (payloadBytes > McpSafetyPolicy.MaximumArgumentPayloadBytes)
+        {
+            error = $"argument payload exceeds {McpSafetyPolicy.MaximumArgumentPayloadBytes} bytes";
+            return false;
+        }
+
+        return ValidateValue(arguments.Value, out error);
+    }
+
+    private static bool ValidateValue(JsonElement value, out string error)
+    {
+        error = string.Empty;
+        if (value.ValueKind == JsonValueKind.String &&
+            value.GetString()?.Length > McpSafetyPolicy.MaximumArgumentStringLength)
+        {
+            error = $"string arguments may not exceed {McpSafetyPolicy.MaximumArgumentStringLength} characters";
+            return false;
+        }
+
+        if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var child in value.EnumerateArray())
+            {
+                if (!ValidateValue(child, out error)) return false;
+            }
+        }
+        else if (value.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var child in value.EnumerateObject())
+            {
+                if (!ValidateValue(child.Value, out error)) return false;
+            }
+        }
+
+        return true;
     }
 }
 
