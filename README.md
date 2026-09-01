@@ -202,6 +202,13 @@ screenshots, and command-line arguments are not logged by default.
 
 ### MCP Workflow Example
 
+The MCP executable is hosted on the official C# SDK (currently 2.2.x). It
+supports the modern `2026-07-28` stateless request metadata and discovery
+contract, while negotiating down-level legacy clients such as `2025-06-18`.
+Modern `tools/list` responses include cache metadata and deterministic ordinal
+tool ordering. UI automation requests are serialized and honor
+`notifications/cancelled`.
+
 ```
 Agent: "Open Calculator and compute 7 × 8"
 
