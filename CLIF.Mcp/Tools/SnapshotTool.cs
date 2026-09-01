@@ -72,9 +72,14 @@ public class SnapshotTool : ToolBase
             var snapshot = snapshotBuilder.BuildSnapshot(handle, window);
             return Task.FromResult(TextResult(snapshot));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Task.FromResult(ErrorResult($"Failed to capture snapshot: {ex.Message}"));
+            // A top-level snapshot failure means the registered provider can no
+            // longer be trusted. Invalidate the handle and all refs scoped to it.
+            _sessionManager.InvalidateWindow(handle);
+            _elementRegistry.RemoveWindow(handle);
+            return Task.FromResult(ErrorResult(
+                $"Window is no longer available: {handle}. Run clif_list_windows and acquire a new handle."));
         }
     }
 }

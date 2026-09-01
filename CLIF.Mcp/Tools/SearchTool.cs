@@ -116,9 +116,12 @@ public class SearchTool : ToolBase
 
             return Task.FromResult(TextResult(sb.ToString()));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Task.FromResult(ErrorResult($"Search failed: {ex.Message}"));
+            _sessionManager.InvalidateWindow(handle);
+            _elementRegistry.RemoveWindow(handle);
+            return Task.FromResult(ErrorResult(
+                $"Window is no longer available: {handle}. Run clif_list_windows and acquire a new handle."));
         }
     }
 

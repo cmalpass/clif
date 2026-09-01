@@ -2,6 +2,7 @@
 // Inspired by FlaUI-MCP (https://github.com/shanselman/FlaUI-MCP) by Scott Hanselman.
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
@@ -24,6 +25,7 @@ public class WindowSessionManager : IDisposable
     private readonly UIA3Automation _automation;
     private readonly Dictionary<string, Window> _windows = new();
     private readonly Dictionary<nint, string> _nativeHandleToHandle = new();
+    private readonly Dictionary<string, int> _windowProcessIds = new();
     private readonly Dictionary<string, Process> _launchedProcesses = new();
     private readonly object _sync = new();
     private int _windowCounter;
@@ -220,18 +222,29 @@ public class WindowSessionManager : IDisposable
     public string RegisterWindow(Window window)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        CleanupInactiveWindows();
         var nativeHandle = window.Properties.NativeWindowHandle.ValueOrDefault;
+        var processId = window.Properties.ProcessId.ValueOrDefault;
         lock (_sync)
         {
             if (nativeHandle != default && _nativeHandleToHandle.TryGetValue(nativeHandle, out var existingHandle))
             {
                 // Update the window object in case it was refreshed, but keep the same handle.
                 _windows[existingHandle] = window;
+                if (processId > 0)
+                {
+                    _windowProcessIds[existingHandle] = processId;
+                }
+
                 return existingHandle;
             }
 
             var handle = $"w{++_windowCounter}";
             _windows[handle] = window;
+            if (processId > 0)
+            {
+                _windowProcessIds[handle] = processId;
+            }
 
             if (nativeHandle != default)
             {
@@ -252,7 +265,7 @@ public class WindowSessionManager : IDisposable
             return null;
         }
 
-        CleanupExitedProcesses();
+        CleanupInactiveWindows();
         lock (_sync)
         {
             return _windows.TryGetValue(handle, out var window) ? window : null;
@@ -264,7 +277,7 @@ public class WindowSessionManager : IDisposable
     /// </summary>
     public List<(string handle, string title, string? processName)> ListWindows()
     {
-        CleanupExitedProcesses();
+        CleanupInactiveWindows();
         var desktop = _automation.GetDesktop();
         var windows = desktop.FindAllChildren(
             cf => cf.ByControlType(ControlType.Window));
@@ -367,6 +380,7 @@ public class WindowSessionManager : IDisposable
             _launchedProcesses.Clear();
             _windows.Clear();
             _nativeHandleToHandle.Clear();
+            _windowProcessIds.Clear();
         }
 
         foreach (var process in processes)
@@ -397,20 +411,112 @@ public class WindowSessionManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void CleanupExitedProcesses()
+    private void CleanupInactiveWindows()
     {
-        string[] exitedHandles;
+        string[] exitedLaunchedHandles;
         lock (_sync)
         {
-            exitedHandles = _launchedProcesses
-                .Where(pair => pair.Value.HasExited)
+            exitedLaunchedHandles = _launchedProcesses
+                .Where(pair => HasExited(pair.Value))
                 .Select(pair => pair.Key)
                 .ToArray();
         }
 
-        foreach (var handle in exitedHandles)
+        foreach (var handle in exitedLaunchedHandles)
         {
             RemoveWindow(handle);
+        }
+
+        TrackedWindow[] trackedWindows;
+        lock (_sync)
+        {
+            trackedWindows = _windows
+                .Select(pair => new TrackedWindow(
+                    pair.Key,
+                    pair.Value,
+                    _windowProcessIds.GetValueOrDefault(pair.Key)))
+                .ToArray();
+        }
+
+        var inactiveHandles = trackedWindows
+            .Where(window => !IsWindowActive(window))
+            .Select(window => window.Handle)
+            .ToArray();
+
+        foreach (var handle in inactiveHandles)
+        {
+            RemoveWindow(handle);
+        }
+    }
+
+    /// <summary>Invalidates a handle after its UI Automation provider becomes unavailable.</summary>
+    public void InvalidateWindow(string? handle)
+    {
+        if (string.IsNullOrWhiteSpace(handle) || !HandlePattern.IsMatch(handle))
+        {
+            return;
+        }
+
+        RemoveWindow(handle);
+    }
+
+    private static bool IsWindowActive(TrackedWindow trackedWindow)
+    {
+        try
+        {
+            var nativeHandle = trackedWindow.Window.Properties.NativeWindowHandle.ValueOrDefault;
+            if (nativeHandle != default && !IsWindow(nativeHandle))
+            {
+                return false;
+            }
+
+            if (trackedWindow.ProcessId <= 0)
+            {
+                // A provider that does not expose a process ID cannot be checked here.
+                // Retain the handle and let the requested UIA operation report its error.
+                return true;
+            }
+
+            if (trackedWindow.Window.Properties.ProcessId.TryGetValue(out var currentProcessId) &&
+                currentProcessId > 0 && currentProcessId != trackedWindow.ProcessId)
+            {
+                return false;
+            }
+
+            using var process = Process.GetProcessById(trackedWindow.ProcessId);
+            return !process.HasExited;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+        catch (COMException)
+        {
+            // UIA reports stale providers as COM failures (for example, after a
+            // target process is terminated). Those handles must not remain usable.
+            return false;
+        }
+        catch
+        {
+            // Do not discard an otherwise valid handle merely because Windows denied
+            // inspection of the target process.
+            return true;
+        }
+    }
+
+    private static bool HasExited(Process process)
+    {
+        try
+        {
+            return process.HasExited;
+        }
+        catch (InvalidOperationException)
+        {
+            return true;
         }
     }
 
@@ -438,6 +544,7 @@ public class WindowSessionManager : IDisposable
                 _nativeHandleToHandle.Remove(nativeHandle);
             }
 
+            _windowProcessIds.Remove(handle);
             _launchedProcesses.Remove(handle, out process);
         }
 
@@ -447,4 +554,10 @@ public class WindowSessionManager : IDisposable
             WindowRemoved?.Invoke(handle);
         }
     }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindow(nint hWnd);
+
+    private readonly record struct TrackedWindow(string Handle, Window Window, int ProcessId);
 }
