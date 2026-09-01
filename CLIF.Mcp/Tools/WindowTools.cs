@@ -31,6 +31,9 @@ public class ListWindowsTool : ToolBase
     public override string Name => "clif_list_windows";
 
     /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.WindowEnumeration;
+
+    /// <inheritdoc />
     public override string Description =>
         "List all open windows on the desktop with their handles, titles, and process names.";
 
@@ -87,6 +90,9 @@ public class FocusWindowTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_focus";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.WindowFocus;
 
     /// <inheritdoc />
     public override string Description =>
@@ -155,6 +161,9 @@ public class CloseWindowTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_close";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.WindowClose;
 
     /// <inheritdoc />
     public override string Description =>

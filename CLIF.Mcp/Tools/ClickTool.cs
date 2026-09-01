@@ -3,6 +3,7 @@
 using System.Text.Json;
 using FlaUI.Core.Input;
 using CLIF.Mcp.Core;
+using CLIF.Mcp.Security;
 
 namespace CLIF.Mcp.Tools;
 
@@ -24,6 +25,9 @@ public class ClickTool : ToolBase
 
     /// <inheritdoc />
     public override string Name => "clif_click";
+
+    /// <inheritdoc />
+    public override McpCapability RequiredCapability => McpCapability.Input;
 
     /// <inheritdoc />
     public override string Description =>
