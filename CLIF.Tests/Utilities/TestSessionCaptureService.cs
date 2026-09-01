@@ -29,14 +29,14 @@ public class TestSessionCaptureService : ISessionCaptureService
     public string? CurrentSessionId { get; private set; }
     public string? CurrentSessionPath { get; private set; }
 
-    public async Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
+    public Task<string> StartSessionAsync(string? sessionName = null, AutomationElement? targetWindow = null)
     {
         var sessionId = sessionName ?? $"TEST_{DateTime.Now:HHmmss}";
         CurrentSessionId = sessionId;
         CurrentSessionPath = Path.Combine("test-sessions", sessionId);
         CapturedSessions.Add(sessionId);
         _logger.LogInformation("Started test session: {SessionId}", sessionId);
-        return sessionId;
+        return Task.FromResult(sessionId);
     }
 
     public async Task EndSessionAsync()

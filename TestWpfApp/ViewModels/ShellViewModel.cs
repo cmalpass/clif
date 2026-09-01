@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using Caliburn.Micro;
 
@@ -38,6 +39,8 @@ public class ShellViewModel : Screen
         DisplayName = "Comprehensive WPF Controls Test App";
         InitializeData();
         InitializeDefaults();
+        VirtualizedItems = new ObservableCollection<string>(
+            Enumerable.Range(1, 250).Select(index => $"Virtual item {index:D3}"));
     }
 
     private void InitializeData()
@@ -75,6 +78,9 @@ public class ShellViewModel : Screen
             NotifyOfPropertyChange();
         }
     }
+
+    /// <summary>Gets the large collection used to validate virtualized-list automation.</summary>
+    public ObservableCollection<string> VirtualizedItems { get; }
 
     public string StatusMessage
     {
