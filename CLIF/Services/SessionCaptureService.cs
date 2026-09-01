@@ -40,6 +40,7 @@ public class SessionCaptureService : ISessionCaptureService
 
     /// <inheritdoc />
     public string? CurrentSessionId => this.currentSessionId;
+
     /// <inheritdoc />
     public string? CurrentSessionPath => this.currentSessionPath;
 
