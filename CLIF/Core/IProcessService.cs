@@ -7,12 +7,12 @@ using System.Diagnostics;
 
 namespace CLIF.Core;
 
-/// <summary>Discovers and inspects desktop processes that expose WPF windows.</summary>
+/// <summary>Discovers and inspects desktop processes that expose a main window.</summary>
 public interface IProcessService
 {
-    /// <summary>Gets processes that appear to host WPF applications.</summary>
+    /// <summary>Gets processes that are candidates for desktop UI Automation.</summary>
     /// <returns>The discovered process information.</returns>
-    Task<List<ProcessInfo>> GetWpfProcessesAsync();
+    Task<List<ProcessInfo>> GetDesktopProcessesAsync();
 
     /// <summary>Finds a process by executable or process name.</summary>
     /// <param name="processName">Name to match.</param>

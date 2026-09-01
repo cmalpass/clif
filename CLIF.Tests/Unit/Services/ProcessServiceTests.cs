@@ -23,12 +23,12 @@ public class ProcessServiceTests
     }
 
     [Fact]
-    public async Task GetWpfProcessesAsync_ShouldReturnProcessList()
+    public async Task GetDesktopProcessesAsync_ShouldReturnProcessList()
     {
         // Act
         var result = await _processService
-            .GetWpfProcessesAsync()
-            .WithTimeout(DefaultTimeout, "GetWpfProcessesAsync");
+            .GetDesktopProcessesAsync()
+            .WithTimeout(DefaultTimeout, "GetDesktopProcessesAsync");
 
         // Assert
         result.Should().NotBeNull();
@@ -48,8 +48,7 @@ public class ProcessServiceTests
             .WithTimeout(DefaultTimeout, "FindProcessByIdAsync(current)");
 
         // Assert
-        // Current test process might not be a WPF process, so result could be null
-        // This is valid behavior - the service only returns WPF processes
+        // The current test process might not expose a main window, so result could be null.
         if (result != null)
         {
             result.Id.Should().Be(currentProcessId);
@@ -213,12 +212,12 @@ public class ProcessServiceTests
     }
 
     [Fact]
-    public async Task GetWpfProcessesAsync_ResultsAreValid()
+    public async Task GetDesktopProcessesAsync_ResultsAreValid()
     {
         // Act
         var result = await _processService
-            .GetWpfProcessesAsync()
-            .WithTimeout(DefaultTimeout, "GetWpfProcessesAsync(results valid)");
+            .GetDesktopProcessesAsync()
+            .WithTimeout(DefaultTimeout, "GetDesktopProcessesAsync(results valid)");
 
         // Assert
         result.Should().NotBeNull();
@@ -267,7 +266,7 @@ public class ProcessServiceTests
         var currentProcessId = Environment.ProcessId;
 
         // Act & Assert - All methods should handle errors gracefully and not throw
-        var action1 = async () => await _processService.GetWpfProcessesAsync().WithTimeout(DefaultTimeout, "GetWpfProcessesAsync");
+        var action1 = async () => await _processService.GetDesktopProcessesAsync().WithTimeout(DefaultTimeout, "GetDesktopProcessesAsync");
         var action2 = async () => await _processService.FindProcessByIdAsync(currentProcessId).WithTimeout(DefaultTimeout, "FindProcessByIdAsync");
         var action3 = async () => await _processService.FindProcessByNameAsync("testprocess").WithTimeout(DefaultTimeout, "FindProcessByNameAsync");
         var action4 = async () => await _processService.FindProcessByWindowTitleAsync("Test Window").WithTimeout(DefaultTimeout, "FindProcessByWindowTitleAsync");
@@ -281,16 +280,15 @@ public class ProcessServiceTests
     }
 
     [Fact]
-    public async Task GetWpfProcessesAsync_FilteringBehavior()
+    public async Task GetDesktopProcessesAsync_FilteringBehavior()
     {
         // Act
         var allProcesses = await _processService
-            .GetWpfProcessesAsync()
-            .WithTimeout(DefaultTimeout, "GetWpfProcessesAsync(filter)");
+            .GetDesktopProcessesAsync()
+            .WithTimeout(DefaultTimeout, "GetDesktopProcessesAsync(filter)");
 
         // Assert
-        // The service should only return processes that are WPF applications
-        // In test environment, this might be empty, but should not include non-WPF processes
+        // Every result is a process with an accessible main window.
         allProcesses.Should().NotBeNull();
 
         if (allProcesses.Any())
@@ -314,7 +312,7 @@ public class ProcessServiceTests
         // Act - Make multiple concurrent calls
         for (int i = 0; i < 5; i++)
         {
-            tasks.Add(_processService.GetWpfProcessesAsync().WithTimeout(DefaultTimeout, "GetWpfProcessesAsync(concurrent)"));
+            tasks.Add(_processService.GetDesktopProcessesAsync().WithTimeout(DefaultTimeout, "GetDesktopProcessesAsync(concurrent)"));
             tasks.Add(_processService.FindProcessByIdAsync(currentProcessId).WithTimeout(DefaultTimeout, "FindProcessByIdAsync(concurrent)"));
             tasks.Add(_processService.IsProcessAliveAsync(currentProcessId).WithTimeout(DefaultTimeout, "IsProcessAliveAsync(concurrent)"));
         }
