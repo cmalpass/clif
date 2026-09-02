@@ -2,6 +2,22 @@
 
 This guide describes the current `CLIF.exe` command-line contract. All CLI
 commands target a Windows desktop process with an accessible main window.
+CLIF is a Windows UI automation command-line tool: use it for inspection,
+one-off actions, PowerShell pipelines, and repeatable JSON scripting.
+
+## Fast orientation
+
+| Task | Command |
+| --- | --- |
+| Discover target processes | `list-processes --detailed` |
+| Inspect controls and selectors | `tree <process> --show-selectors` |
+| Perform one action | `click`, `type`, or `interact` |
+| Run a repeatable workflow | `script <file.json>` |
+| Explore interactively | `interactive` or `attach <process> --interactive` |
+
+When diagnosing a workflow, keep discovery read-only until the selector and
+target process are confirmed. This makes the same sequence useful from a
+terminal, a test runner, or a recorded demo.
 
 ## Install or build
 

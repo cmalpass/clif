@@ -5,6 +5,12 @@ input/output. It is designed for a trusted AI harness running on the same
 interactive desktop as the target application. It is not a hosted endpoint and
 does not expose a network transport.
 
+This is the integration guide for using CLIF with Claude Desktop, VS Code and
+GitHub Copilot, Gemini CLI, Cursor, or another MCP client that can launch a
+long-lived stdio server. The CLI and JSON script guides are useful companions:
+the CLI is best for deterministic file-based workflows, while MCP exposes
+scoped inspection and interaction tools to a harness.
+
 ## Build and smoke-test the server
 
 From the repository root:
