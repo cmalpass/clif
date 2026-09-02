@@ -1,0 +1,64 @@
+{
+  "name": "CLIF Getting Started - TestWpfApp",
+  "description": "A small, self-checking workflow for the repository WPF fixture.",
+  "version": "1.0",
+  "target": {
+    "processName": "TestWpfApp",
+    "windowTitle": "",
+    "processId": 0,
+    "timeoutMs": 30000
+  },
+  "options": {
+    "stopOnError": true,
+    "logSteps": true,
+    "delayBetweenActionsMs": 300
+  },
+  "steps": [
+    {
+      "action": "log",
+      "description": "Starting the CLIF getting-started workflow."
+    },
+    {
+      "action": "clear",
+      "element": "id=TestTextBox",
+      "description": "Clear the text box."
+    },
+    {
+      "action": "type",
+      "element": "id=TestTextBox",
+      "value": "Hello from a CLIF script",
+      "description": "Type a visible value."
+    },
+    {
+      "action": "validate",
+      "element": "id=TestTextBox",
+      "value": "Hello from a CLIF script",
+      "description": "Verify the value through UI Automation."
+    },
+    {
+      "action": "click",
+      "element": "id=TestButton",
+      "description": "Invoke the main test button."
+    },
+    {
+      "action": "select",
+      "element": "id=TestComboBox",
+      "value": "Item 2",
+      "description": "Select a ComboBox item."
+    },
+    {
+      "action": "setvalue",
+      "element": "id=TestSlider",
+      "value": "42",
+      "description": "Set the slider value."
+    },
+    {
+      "action": "screenshot",
+      "description": "Capture the completed fixture state."
+    },
+    {
+      "action": "log",
+      "description": "Getting-started workflow complete."
+    }
+  ]
+}

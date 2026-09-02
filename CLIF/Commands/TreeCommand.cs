@@ -4,6 +4,7 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using CLIF.Core;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,14 +41,18 @@ public class TreeCommand : Command
         this.Add(controlTypeOption);
         this.Add(outputFileOption);
 
-        this.SetHandler(
-            async (
-                string process,
-                int depth,
-                bool enabledOnly,
-                bool visibleOnly,
-                bool showProperties) =>
+        this.SetHandler(async (InvocationContext context) =>
         {
+            var process = context.ParseResult.GetValueForArgument(processArgument);
+            var depth = context.ParseResult.GetValueForOption(depthOption);
+            var enabledOnly = context.ParseResult.GetValueForOption(enabledOnlyOption);
+            var visibleOnly = context.ParseResult.GetValueForOption(visibleOnlyOption);
+            var showProperties = context.ParseResult.GetValueForOption(showPropertiesOption);
+            var showSelectors = context.ParseResult.GetValueForOption(showSelectorsOption);
+            var search = context.ParseResult.GetValueForOption(searchOption);
+            var controlType = context.ParseResult.GetValueForOption(controlTypeOption);
+            var outputFile = context.ParseResult.GetValueForOption(outputFileOption);
+
             var processService = serviceProvider.GetRequiredService<IProcessService>();
             var automationService = serviceProvider.GetRequiredService<IAutomationService>();
             var treeService = serviceProvider.GetRequiredService<IElementTreeService>();
@@ -96,50 +101,71 @@ public class TreeCommand : Command
                     ShowProperties = showProperties,
                     ShowOnlyEnabled = enabledOnly,
                     ShowOnlyVisible = visibleOnly,
-                    ShowSelector = true,
+                    ShowSelector = showSelectors,
                     MaxDepth = depth,
                 };
 
-                string treeOutput = await treeService.PrintTreeAsync(tree, printOptions);
+                string treeOutput;
+                if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(controlType))
+                {
+                    var criteria = this.ParseSearchCriteria(search, controlType);
+                    var matches = await treeService.SearchTreeAsync(tree, criteria);
+                    treeOutput = matches.Count == 0
+                        ? "No matching elements found."
+                        : $"Found {matches.Count} matching element(s):{Environment.NewLine}" +
+                          string.Join(
+                              Environment.NewLine,
+                              matches.Select(match =>
+                                  $"  - {match.Name} ({match.ControlType}) [{match.Selector}]"));
+                }
+                else
+                {
+                    treeOutput = await treeService.PrintTreeAsync(tree, printOptions);
+                }
+
+                if (!string.IsNullOrWhiteSpace(outputFile))
+                {
+                    await File.WriteAllTextAsync(outputFile, treeOutput);
+                    Console.WriteLine($"Tree saved to: {outputFile}");
+                }
+
                 Console.WriteLine(treeOutput);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error displaying tree: {ex.Message}");
             }
-        },
-            processArgument,
-            depthOption,
-            enabledOnlyOption,
-            visibleOnlyOption,
-            showPropertiesOption);
+        });
     }
 
-    private ElementSearchCriteria ParseSearchCriteria(string search)
+    private ElementSearchCriteria ParseSearchCriteria(string? search, string? controlType)
     {
         var criteria = new ElementSearchCriteria();
 
-        // Simple parsing - can be enhanced later
-        if (search.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(search) && search.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
         {
             criteria.Name = search.Substring(5);
         }
-        else if (search.StartsWith("id:", StringComparison.OrdinalIgnoreCase))
+        else if (!string.IsNullOrWhiteSpace(search) && search.StartsWith("id:", StringComparison.OrdinalIgnoreCase))
         {
             criteria.AutomationId = search.Substring(3);
         }
-        else if (search.StartsWith("class:", StringComparison.OrdinalIgnoreCase))
+        else if (!string.IsNullOrWhiteSpace(search) && search.StartsWith("class:", StringComparison.OrdinalIgnoreCase))
         {
             criteria.ClassName = search.Substring(6);
         }
-        else if (search.StartsWith("type:", StringComparison.OrdinalIgnoreCase))
+        else if (!string.IsNullOrWhiteSpace(search) && search.StartsWith("type:", StringComparison.OrdinalIgnoreCase))
         {
             criteria.ControlType = search.Substring(5);
         }
-        else
+        else if (!string.IsNullOrWhiteSpace(search))
         {
-            // Default to name search
             criteria.Name = search;
+        }
+
+        if (!string.IsNullOrWhiteSpace(controlType))
+        {
+            criteria.ControlType = controlType;
         }
 
         return criteria;
