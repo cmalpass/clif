@@ -4,6 +4,7 @@
 // Licensed under the MIT License.
 
 using System.CommandLine;
+using System.CommandLine.Invocation;
 using CLIF.Core;
 
 namespace CLIF.Commands;
@@ -32,16 +33,17 @@ public class ScriptCommand : Command
         this.AddArgument(scriptFileArgument);
         this.AddOption(processIdOption);
 
-        this.SetHandler(
-            async (
-                string scriptFile,
-                int? processId) =>
+        this.SetHandler(async (InvocationContext context) =>
         {
+            var scriptFile = context.ParseResult.GetValueForArgument(scriptFileArgument);
+            var processId = context.ParseResult.GetValueForOption(processIdOption);
+
             try
             {
                 if (!File.Exists(scriptFile))
                 {
                     Console.WriteLine($"Script file not found: {scriptFile}");
+                    context.ExitCode = 1;
                     return;
                 }
 
@@ -51,19 +53,20 @@ public class ScriptCommand : Command
                 {
                     Console.WriteLine($"Script execution completed successfully in {result.ExecutionTime}");
                     Console.WriteLine($"Steps executed: {result.StepsExecuted}");
+                    context.ExitCode = 0;
                 }
                 else
                 {
                     Console.WriteLine($"Script execution failed: {result.Message}");
+                    context.ExitCode = 1;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error executing script: {ex.Message}");
+                context.ExitCode = 1;
             }
-        },
-            scriptFileArgument,
-            processIdOption);
+        });
     }
 }
 

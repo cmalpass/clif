@@ -6,6 +6,7 @@
 using System.Diagnostics;
 using System.Management;
 using System.Runtime.Versioning;
+using System.Text;
 using CLIF.Core;
 using Microsoft.Extensions.Logging;
 
@@ -99,12 +100,24 @@ public class ProcessService : IProcessService
             try
             {
                 using var process = Process.GetProcessById(processId);
-                if (!this.TryGetDesktopProcessInfo(process, out var processInfo))
+                if (this.TryGetDesktopProcessInfo(process, out var processInfo))
                 {
-                    return null;
+                    return processInfo;
                 }
 
-                return processInfo;
+                // Some WPF hosts expose their top-level window through UI Automation
+                // before Process.MainWindowHandle is populated. An explicit PID is
+                // already user-selected, so allow the automation layer to resolve
+                // the window instead of rejecting the process at discovery time.
+                return new ProcessInfo
+                {
+                    Id = process.Id,
+                    Name = process.ProcessName,
+                    WindowTitle = process.MainWindowTitle,
+                    ExecutablePath = this.GetExecutablePath(process),
+                    StartTime = process.StartTime,
+                    HasMainWindow = true,
+                };
             }
             catch (Exception ex)
             {
@@ -133,12 +146,50 @@ public class ProcessService : IProcessService
         });
     }
 
+    private static bool TryFindVisibleWindow(int processId, out string windowTitle)
+    {
+        IntPtr matchedWindow = IntPtr.Zero;
+        var matchedTitle = string.Empty;
+
+        NativeMethods.EnumWindows(
+            (windowHandle, _) =>
+            {
+                if (!NativeMethods.IsWindowVisible(windowHandle))
+                {
+                    return true;
+                }
+
+                NativeMethods.GetWindowThreadProcessId(windowHandle, out var ownerProcessId);
+                if (ownerProcessId != processId)
+                {
+                    return true;
+                }
+
+                var title = new StringBuilder(512);
+                _ = NativeMethods.GetWindowText(windowHandle, title, title.Capacity);
+                matchedWindow = windowHandle;
+                matchedTitle = title.ToString();
+                return false;
+            },
+            IntPtr.Zero);
+
+        windowTitle = matchedTitle;
+        return matchedWindow != IntPtr.Zero;
+    }
+
     private bool TryGetDesktopProcessInfo(Process process, out ProcessInfo processInfo)
     {
         processInfo = null!;
         try
         {
-            if (process.HasExited || process.MainWindowHandle == IntPtr.Zero)
+            if (process.HasExited)
+            {
+                return false;
+            }
+
+            var windowTitle = process.MainWindowTitle;
+            if (process.MainWindowHandle == IntPtr.Zero &&
+                !TryFindVisibleWindow(process.Id, out windowTitle))
             {
                 return false;
             }
@@ -147,7 +198,7 @@ public class ProcessService : IProcessService
             {
                 Id = process.Id,
                 Name = process.ProcessName,
-                WindowTitle = process.MainWindowTitle,
+                WindowTitle = windowTitle,
                 ExecutablePath = this.GetExecutablePath(process),
                 StartTime = process.StartTime,
                 HasMainWindow = true,
@@ -171,6 +222,23 @@ public class ProcessService : IProcessService
         {
             return string.Empty;
         }
+    }
+
+    private static class NativeMethods
+    {
+        internal delegate bool EnumWindowsProc(IntPtr windowHandle, IntPtr lParam);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern uint GetWindowThreadProcessId(IntPtr windowHandle, out uint processId);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern bool IsWindowVisible(IntPtr windowHandle);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        internal static extern int GetWindowText(IntPtr windowHandle, StringBuilder windowText, int maxCount);
     }
 }
 

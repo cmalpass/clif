@@ -267,15 +267,24 @@ public class ScriptService : IScriptService
                 return false;
             }
 
-            var processes = await this.processService.GetDesktopProcessesAsync();
-            var targetProcess = processes.FirstOrDefault(p =>
-                (processIdOverride.HasValue && p.Id == processIdOverride.Value) ||
-                (!processIdOverride.HasValue && (
-                    (!string.IsNullOrWhiteSpace(target!.ProcessName) &&
+            ProcessInfo? targetProcess;
+            if (processIdOverride.HasValue)
+            {
+                targetProcess = await this.processService.FindProcessByIdAsync(processIdOverride.Value);
+            }
+            else if (target.ProcessId > 0)
+            {
+                targetProcess = await this.processService.FindProcessByIdAsync(target.ProcessId);
+            }
+            else
+            {
+                var processes = await this.processService.GetDesktopProcessesAsync();
+                targetProcess = processes.FirstOrDefault(p =>
+                    (!string.IsNullOrWhiteSpace(target.ProcessName) &&
                      p.Name.Equals(target.ProcessName, StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrWhiteSpace(target.WindowTitle) &&
-                     p.WindowTitle.Contains(target.WindowTitle, StringComparison.OrdinalIgnoreCase)) ||
-                    (target.ProcessId > 0 && p.Id == target.ProcessId))));
+                     p.WindowTitle.Contains(target.WindowTitle, StringComparison.OrdinalIgnoreCase)));
+            }
 
             if (targetProcess != null)
             {
