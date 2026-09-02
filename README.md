@@ -1,9 +1,19 @@
-# CLIF
+# CLIF — Windows UI automation CLI and local MCP server
 
-CLIF is a Windows desktop UI automation toolkit with two entry points:
+[![Build and Test](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/cmalpass/clif/actions/workflows/build-and-test.yml)
+[![CodeQL](https://github.com/cmalpass/clif/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/cmalpass/clif/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/github/license/cmalpass/clif)](LICENSE)
+
+CLIF is a Windows desktop UI automation toolkit for WPF, WinForms, WinUI, and
+other applications that expose Windows UI Automation. It has two entry points:
 
 - a command-line client for repeatable, scriptable workflows;
 - a local Model Context Protocol (MCP) server for trusted AI harnesses.
+
+Use CLIF from PowerShell, interactive test sessions, JSON automation
+scripts, or an MCP-compatible desktop agent. It is built on FlaUI and UIA3,
+with a local-first permission model for launching applications and sending
+input.
 
 CLIF uses FlaUI and Windows UI Automation. The production automation backend
 is Windows-only and requires an unlocked, interactive desktop session. The
@@ -24,6 +34,27 @@ cross-platform CLIF backend.
 | See a real CLI + WPF interaction | [Realtime demo](docs/realtime-demo.md) |
 | Understand support and release constraints | [User guide](docs/user-guide.md) |
 
+## Choose the right entry point
+
+| If you need to… | Start with | Best for |
+| --- | --- | --- |
+| Inspect controls or run a repeatable workflow | [CLI guide](docs/cli.md) | PowerShell, scripts, test harnesses, and debugging |
+| Let a desktop AI client inspect and operate an app | [MCP guide](docs/mcp.md) | Claude Desktop, VS Code/Copilot, Gemini CLI, Cursor, and other stdio hosts |
+| Learn the script format by running a fixture | [Examples](docs/examples.md) | WPF automation, validation, screenshots, and regression samples |
+| See the interaction in real time | [Realtime demo](docs/realtime-demo.md) | A side-by-side CLI and WPF walkthrough |
+
+## Why CLIF
+
+- **Discoverable controls:** inspect a target’s UI Automation tree and copy
+  stable selectors before changing state.
+- **Repeatable automation:** keep workflows in reviewable JSON with explicit
+  targets, ordered actions, waits, and validation steps.
+- **Agent-ready local MCP:** expose narrowly scoped desktop tools over stdio,
+  with application, input, enumeration, close, and screenshot permissions
+  controlled per server process.
+- **Runnable fixtures:** use the included WPF app and examples without needing
+  a separate application under test.
+
 ## Requirements
 
 - Windows 10 or 11 for CLIF, `TestWpfApp`, and UI Automation tests.
@@ -31,7 +62,12 @@ cross-platform CLIF backend.
 - An interactive, unlocked desktop. CLIF cannot reliably attach across user
   sessions or integrity levels.
 
-## Build from source
+## Install or build
+
+For the quickest start, download a Windows archive from the
+[GitHub Releases page](https://github.com/cmalpass/clif/releases), extract it,
+and place the CLI directory on `PATH`. The MCP guide explains when to use the
+published server executable instead of `dotnet run`.
 
 ```powershell
 dotnet restore .\clif.sln --locked-mode
@@ -44,9 +80,8 @@ To run the CLI from the checkout:
 dotnet run --project .\CLIF\CLIF.csproj -- --help
 ```
 
-Published Windows archives are available on the
-[GitHub Releases page](https://github.com/cmalpass/clif/releases). Release
-checksums and contents are documented in [RELEASE_ARTIFACTS.md](RELEASE_ARTIFACTS.md).
+Release checksums and contents are documented in
+[RELEASE_ARTIFACTS.md](RELEASE_ARTIFACTS.md).
 
 ## Five-minute CLI check
 

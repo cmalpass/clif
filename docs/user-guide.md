@@ -1,8 +1,10 @@
 # CLIF user guide
 
-CLIF controls Windows desktop applications through FlaUI and Windows UI
-Automation. Use the task guides below for the current command and protocol
-contracts.
+CLIF is a Windows UI automation CLI and local MCP server for desktop
+applications that expose Windows UI Automation. It is useful for WPF, WinForms,
+WinUI, and other Windows desktop workflows controlled from PowerShell, JSON
+scripts, tests, or an MCP-compatible AI harness. Use the task guides below for
+the current command and protocol contracts.
 
 ## Choose a path
 
@@ -14,6 +16,17 @@ contracts.
   validate JSON, understand compatibility aliases, and use the portable fixture.
 - [Realtime CLI + WPF demo](realtime-demo.md) — watch the CLI window drive the
   WPF fixture.
+
+## Recommended first run
+
+1. Build `TestWpfApp` and CLIF on Windows.
+2. Run `list-processes` and `tree` before sending input.
+3. Execute `examples/getting-started-wpf.json` with an explicit process ID.
+4. Configure the MCP server only after the CLI workflow is understood.
+
+This sequence makes selector discovery and permission failures visible before
+an AI harness is introduced. The README contains the shortest copy/paste path;
+the [examples guide](examples.md) explains how to author and validate scripts.
 
 ## Support boundary
 
