@@ -1,0 +1,13 @@
+CLIF release quick start
+========================
+
+1. Extract this archive to a folder you control.
+2. Open an interactive, unlocked Windows desktop session.
+3. Run CLIF.exe --help to inspect the available commands.
+4. Use the CLI guide at https://github.com/cmalpass/clif/blob/main/docs/cli.md
+   for selectors, interactions, and JSON scripts.
+5. For MCP, configure the absolute path to CLIF.Mcp.exe in your stdio host.
+   Read https://github.com/cmalpass/clif/blob/main/docs/mcp.md first.
+
+This distribution is Windows-specific. Review SECURITY.md in the repository
+before allowing an agent to launch applications or send input.

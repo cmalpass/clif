@@ -1,6 +1,10 @@
 <Project>
   <!-- Keep binaries reproducible when the same source, SDK, and restored packages are used. -->
   <PropertyGroup>
+    <!-- The single source of truth for the product and release version. -->
+    <Version>0.1.0</Version>
+    <Authors>Chris Malpass</Authors>
+    <Copyright>Copyright (c) 2025-2026 Chris Malpass</Copyright>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>

@@ -6,12 +6,23 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- Nothing yet.
+
+### Changed
+
+- Nothing yet.
+
+## [0.1.0] - 2026-09-02
+
+### Added
+
 - Public-project governance, security-reporting, support, contribution, attribution, and dependency-update guidance.
+- CLI, MCP, scripting, example-app, and realtime interaction documentation.
 
 ### Changed
 
 - Documented the current Windows-first automation scope and trusted-local-development posture of the MCP server.
+- Centralized the product version and documented the verified, draft-first release procedure.
+- Release archives now include onboarding and license context, with GitHub artifact attestations for release provenance.
 
-## [0.1.0] - Unreleased
-
-Initial pre-release development baseline. This entry does not represent a published or supported release.
+Initial public pre-release baseline for the CLI and local MCP server.

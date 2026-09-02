@@ -5,26 +5,86 @@ on:
     tags:
       - 'v*.*.*'
 
-# This workflow intentionally uses the repository's current action-tag convention.
-# Before a 1.0 release, pin every third-party action below to a reviewed full commit SHA
-# and keep those pins updated by Dependabot.
+# Third-party actions are pinned to reviewed full commit SHAs. Dependabot opens
+# update pull requests for these pins; review the resulting diff before merging.
 
 permissions:
   contents: read
 
 jobs:
-  build-release:
-    name: Build Windows release artifacts
+  release-verify:
+    name: Verify release source
     runs-on: windows-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           fetch-depth: 0
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: '8.0.424'
+
+      - name: Restore locked dependency graph
+        run: dotnet restore clif.sln --locked-mode
+
+      - name: Build solution
+        run: dotnet build clif.sln --configuration Release --no-restore
+
+      - name: Configure UI test executables
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $paths = @{
+            CLIF_MCP_EXE_PATH = Join-Path $env:GITHUB_WORKSPACE 'CLIF.Mcp\bin\Release\net8.0-windows\CLIF.Mcp.exe'
+            TEST_WPF_APP_PATH = Join-Path $env:GITHUB_WORKSPACE 'TestWpfApp\bin\Release\net8.0-windows\TestWpfApp.exe'
+            TEST_CROSS_PLATFORM_APP_PATH = Join-Path $env:GITHUB_WORKSPACE 'TestCrossPlatformApp\bin\Release\net8.0\TestCrossPlatformApp.exe'
+          }
+          foreach ($entry in $paths.GetEnumerator()) {
+            if (-not (Test-Path -LiteralPath $entry.Value -PathType Leaf)) {
+              throw "Expected test executable was not produced: $($entry.Value)"
+            }
+            "$($entry.Key)=$($entry.Value)" >> $env:GITHUB_ENV
+          }
+
+      - name: Run release test suite
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $testCommands = @(
+            @('CLIF.Tests/CLIF.Tests.csproj', '--filter', 'FullyQualifiedName~Unit&Category!=SkipValidationMismatch'),
+            @('CLIF.Mcp.Tests/CLIF.Mcp.Tests.csproj'),
+            @('TestCrossPlatformApp.Tests/TestCrossPlatformApp.Tests.csproj'),
+            @('CLIF.Tests/CLIF.Tests.csproj', '--filter', 'Category=Integration'),
+            @('CLIF.Tests/CLIF.Tests.csproj', '--filter', 'Category=CrossPlatformUI'),
+            @('CLIF.Tests/CLIF.Tests.csproj', '--filter', 'Category=WpfUI'),
+            @('CLIF.Tests/CLIF.Tests.csproj', '--filter', 'Category=McpUI')
+          )
+          foreach ($test in $testCommands) {
+            & dotnet test $test[0] --configuration Release --no-build --logger 'console;verbosity=minimal' @($test | Select-Object -Skip 1)
+            if ($LASTEXITCODE -ne 0) {
+              throw "Release test command failed for $($test[0])."
+            }
+          }
+
+  build-release:
+    name: Build Windows release artifacts
+    needs: release-verify
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: '8.0.424'
 
@@ -41,15 +101,15 @@ jobs:
           }
 
           $version = $tagMatch.Groups['version'].Value
-          $projectPath = Join-Path $env:GITHUB_WORKSPACE 'CLIF.Mcp/CLIF.Mcp.csproj'
+          $projectPath = Join-Path $env:GITHUB_WORKSPACE 'Directory.Build.props'
           if (-not (Test-Path -LiteralPath $projectPath -PathType Leaf)) {
-            throw "Canonical version project is missing: $projectPath"
+            throw "Canonical version file is missing: $projectPath"
           }
 
           [xml]$project = Get-Content -Raw -LiteralPath $projectPath
           $projectVersion = [string]($project.Project.PropertyGroup.Version | Select-Object -First 1)
           if ([string]::IsNullOrWhiteSpace($projectVersion)) {
-            throw "Canonical project version is missing from $projectPath"
+            throw "Canonical version is missing from $projectPath"
           }
           if ($projectVersion.Trim() -ne $version) {
             throw "Release tag '$tag' does not match the canonical project version '$projectVersion'."
@@ -120,6 +180,10 @@ jobs:
                 throw "Publishing $($project.Name) for $rid failed."
               }
 
+              Copy-Item (Join-Path $env:GITHUB_WORKSPACE 'LICENSE') $publishDirectory
+              Copy-Item (Join-Path $env:GITHUB_WORKSPACE 'NOTICE.md') $publishDirectory
+              Copy-Item (Join-Path $env:GITHUB_WORKSPACE 'GETTING_STARTED.txt') $publishDirectory
+
               $archive = Join-Path $assetRoot "$($project.Name)-$version-$rid.zip"
               Compress-Archive -Path (Join-Path $publishDirectory '*') -DestinationPath $archive -CompressionLevel Optimal
             }
@@ -131,7 +195,7 @@ jobs:
             Set-Content -Encoding ascii (Join-Path $assetRoot 'SHA256SUMS.txt')
 
       - name: Upload SBOM input
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: release-publish-directories
           path: ${{ runner.temp }}/clif-release/staging
@@ -139,7 +203,7 @@ jobs:
           retention-days: 7
 
       - name: Upload unsigned release assets
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: unsigned-release-assets
           path: ${{ runner.temp }}/clif-release/assets
@@ -153,13 +217,13 @@ jobs:
 
     steps:
       - name: Download published binaries
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: release-publish-directories
           path: release-publish-directories
 
       - name: Download release assets
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: unsigned-release-assets
           path: release-assets
@@ -167,7 +231,7 @@ jobs:
       # Anchore maintains this action and Syft, which produces a CycloneDX SBOM.
       # It is intentionally not a container image built from unreviewed shell commands.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: release-publish-directories
           format: cyclonedx-json
@@ -267,7 +331,7 @@ jobs:
             "release-assets/${manifest_name}" > /dev/null
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: release-sbom
           path: release-assets/CLIF-${{ github.ref_name }}.cdx.json
@@ -275,7 +339,7 @@ jobs:
           retention-days: 7
 
       - name: Upload release manifest
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: release-manifest
           path: release-assets/CLIF-${{ github.ref_name }}.release-manifest.json
@@ -288,22 +352,24 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - name: Download release assets
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: unsigned-release-assets
           path: release-assets
 
       - name: Download SBOM
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: release-sbom
           path: release-assets
 
       - name: Download release manifest
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
         with:
           name: release-manifest
           path: release-assets
@@ -363,7 +429,20 @@ jobs:
             fi
           done < <(jq -r '.archives[] | [.name, .sha256] | @tsv' "${manifest}")
 
-      - name: Create GitHub release
+      - name: Attest release archives and SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: 'release-assets/*.zip'
+          sbom-path: 'release-assets/CLIF-${{ github.ref_name }}.cdx.json'
+
+      - name: Attest release integrity metadata
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            release-assets/SHA256SUMS.txt
+            release-assets/CLIF-${{ github.ref_name }}.release-manifest.json
+
+      - name: Create draft GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -371,4 +450,5 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "CLIF ${{ github.ref_name }}" \
             --generate-notes \
+            --draft \
             --verify-tag

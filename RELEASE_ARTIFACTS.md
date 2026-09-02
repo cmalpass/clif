@@ -1,6 +1,7 @@
 # Release artifacts
 
 Tagged releases are produced by [`.github/workflows/release.yml`](.github/workflows/release.yml).
+The maintainer procedure is documented in [`docs/releasing.md`](docs/releasing.md).
 The workflow currently publishes self-contained Windows archives for `win-x64`
 and `win-arm64`, plus a SHA-256 checksum file and a CycloneDX JSON SBOM.
 
@@ -21,8 +22,10 @@ publication job requires every expected archive, checksum, SBOM, and manifest
 file; verifies the checksum file; and compares each archive digest with the
 manifest. It also verifies that the manifest refers to the triggering tag,
 version, and commit and includes the expected archive/checksum/SBOM
-relationships. These checks provide integrity and provenance metadata without
-requiring signing secrets; release signing remains a separate follow-up.
+relationships. The publication job also creates GitHub artifact attestations
+for the release archives and SBOM, plus the checksum and manifest metadata.
+These attestations provide build provenance; they do not replace Authenticode
+signing for Windows trust prompts.
 
 Before creating a tag, update the matching changelog heading, for example:
 
@@ -31,7 +34,8 @@ Before creating a tag, update the matching changelog heading, for example:
 ```
 
 The release workflow intentionally fails if that entry is absent or still
-marked `Unreleased`.
+marked `Unreleased`. A successful run creates a draft GitHub Release; a
+maintainer must inspect and publish it manually.
 
 To inspect a downloaded release locally:
 

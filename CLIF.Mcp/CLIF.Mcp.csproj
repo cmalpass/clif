@@ -7,8 +7,6 @@
     <Nullable>enable</Nullable>
     <AssemblyName>CLIF.Mcp</AssemblyName>
     <RootNamespace>CLIF.Mcp</RootNamespace>
-    <Version>0.1.0</Version>
-    <Authors>CLIF Contributors</Authors>
     <Description>MCP server for Windows desktop automation using CLIF and FlaUI. Inspired by FlaUI-MCP (MIT, Scott Hanselman).</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -33,6 +33,7 @@ cross-platform CLIF backend.
 | Run and validate the included JSON scripts | [Examples guide](docs/examples.md) |
 | See a real CLI + WPF interaction | [Realtime demo](docs/realtime-demo.md) |
 | Understand support and release constraints | [User guide](docs/user-guide.md) |
+| Create and publish a verified release | [Release guide](docs/releasing.md) |
 
 ## Choose the right entry point
 
