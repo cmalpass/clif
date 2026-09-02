@@ -27,4 +27,13 @@ When changing selectors, interactions, scripts, or MCP tools, add tests that ver
 4. Complete the pull-request template, including validation details.
 5. Respond constructively to review feedback and keep commits easy to understand.
 
+## Commit messages and identity
+
+Maintainer commits on `main` use the canonical Git identity `Chris Malpass
+<cmalpass@gmail.com>`. Contributors should keep their own accurate author
+identity; do not impersonate another contributor. Use a Conventional Commit
+subject for new work, for example `feat(mcp): add a read-only inspection tool`
+or `docs: clarify selector discovery`. Pull request titles should use the same
+format so squash merges retain a clear history.
+
 By contributing, you agree that your contributions are licensed under the repository's [MIT License](LICENSE).
