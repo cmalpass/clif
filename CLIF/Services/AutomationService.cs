@@ -69,6 +69,21 @@ public class AutomationService : IAutomationService, IDisposable
 
                 if (this.rootElement == null)
                 {
+                    this.rootElement = this.application
+                        .GetAllTopLevelWindows(this.automation)
+                        .FirstOrDefault();
+                }
+
+                if (this.rootElement == null)
+                {
+                    this.rootElement = this.automation
+                        .GetDesktop()
+                        .FindAllChildren(cf => cf.ByProcessId(processId))
+                        .FirstOrDefault();
+                }
+
+                if (this.rootElement == null)
+                {
                     this.logger.LogWarning($"Could not get main window for process {processId}");
                     return false;
                 }
