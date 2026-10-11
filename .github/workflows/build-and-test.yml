@@ -74,7 +74,7 @@ jobs:
       run: dotnet publish CLIF/CLIF.csproj --configuration Release --output ./publish --no-restore --no-build
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: clif-cli
         path: ./publish/
@@ -82,7 +82,7 @@ jobs:
         retention-days: 30
 
     - name: Upload TestWpfApp artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       with:
         name: test-wpf-app
         path: TestWpfApp/bin/Release/net8.0-windows/
@@ -134,7 +134,7 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload unit test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       if: always()
       with:
         name: unit-test-results
@@ -191,7 +191,7 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload integration test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       if: always()
       with:
         name: integration-test-results
@@ -324,7 +324,7 @@ jobs:
         }
 
     - name: Upload cross-platform UI test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       if: always()
       with:
         name: cross-platform-ui-test-results
@@ -386,7 +386,7 @@ jobs:
           --results-directory ./TestResults
 
     - name: Upload WPF UI test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       if: always()
       with:
         name: wpf-ui-test-results
@@ -503,7 +503,7 @@ jobs:
         }
 
     - name: Upload MCP UI test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7.0.2
       if: always()
       with:
         name: mcp-ui-test-results
